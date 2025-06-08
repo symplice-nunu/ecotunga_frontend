@@ -1,0 +1,74 @@
+{
+  "common": {
+    "welcome": "Murakaza neza kuri Ecotunga",
+    "home": "Ahabanza",
+    "about": "Abo turi",
+    "contact": "Twandikire",
+    "login": "Injira",
+    "signup": "Iyandikishe",
+    "logout": "Sohoka",
+    "search": "Shakisha",
+    "language": "Ururimi",
+    "profile": "Umwirondoro",
+    "users": "Abakoresha",
+    "appName": "Eco Tunga",
+    "dashboard": "Ikibaho"
+  },
+  "auth": {
+    "email": "Imeyili",
+    "password": "Ijambobanga",
+    "forgotPassword": "Wibagiwe ijambobanga?",
+    "rememberMe": "Ntibibagirwe",
+    "noAccount": "Nta konti ufite?",
+    "hasAccount": "Ufite konti?",
+    "loginSuccess": "Winjiye neza",
+    "loginError": "Kwinjira byanze",
+    "signupSuccess": "Iyandikishe neza",
+    "signupError": "Kwiyandikisha byanze",
+    "enterDetails": "Andika amakuru yawe",
+    "signIn": "Injira",
+    "signingIn": "Kwinjira..."
+  },
+  "errors": {
+    "required": "Iki gice ngombwa",
+    "invalidEmail": "Imeyili ntabwo ari yo",
+    "invalidPassword": "Ijambobanga rigomba kuba ririmo inyuguti 6",
+    "serverError": "Habaye ikibazo kuri seriveri",
+    "networkError": "Habaye ikibazo kuri netiweke"
+  },
+  "profile": {
+    "editProfile": "Hindura umwirondoro",
+    "saveChanges": "Bika impinduka",
+    "cancel": "Reka",
+    "firstName": "Amazina y'umubyeyi",
+    "lastName": "Izina",
+    "phone": "Telefoni",
+    "address": "Aderesi",
+    "loading": "Ari gukuramo...",
+    "userId": "ID y'umukoresha",
+    "fullName": "Amazina yose",
+    "emailAddress": "Aderesi ya imeyili",
+    "backToHome": "Garuka kuri ahabanza"
+  },
+  "home": {
+    "stats": {
+      "totalUsers": "Abakoresha bose",
+      "activeProjects": "Proje zikora",
+      "revenue": "Amafaranga yinjijwe",
+      "tasks": "Imitimo"
+    },
+    "recentActivities": "Ibikorwa bya vuba",
+    "quickActions": "Ibikorwa byihuse",
+    "activities": {
+      "createdProject": "yaremye proje nshya",
+      "updatedProfile": "yavuguruwe umwirondoro",
+      "completedTask": "yarangije umurimo #123",
+      "timeAgo": "amasaha {{hours}} yise"
+    },
+    "actions": {
+      "viewProfile": "Reba umwirondoro",
+      "settings": "Igenamiterere",
+      "analytics": "Analitike"
+    }
+  }
+} 

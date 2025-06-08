@@ -1,0 +1,69 @@
+{
+  "common": {
+    "welcome": "Welcome to Ecotunga",
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "search": "Search",
+    "language": "Language",
+    "profile": "Profile",
+    "users": "Users",
+    "appName": "Eco Tunga",
+    "dashboard": "Dashboard"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginSuccess": "Successfully logged in",
+    "loginError": "Failed to login",
+    "signupSuccess": "Successfully signed up",
+    "signupError": "Failed to sign up",
+    "enterDetails": "Please enter your details",
+    "signIn": "Sign In",
+    "signingIn": "Signing in..."
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "invalidPassword": "Password must be at least 6 characters",
+    "serverError": "Server error occurred",
+    "networkError": "Network error occurred"
+  },
+  "profile": {
+    "editProfile": "Edit Profile",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number",
+    "address": "Address"
+  },
+  "home": {
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeProjects": "Active Projects",
+      "revenue": "Revenue",
+      "tasks": "Tasks"
+    },
+    "recentActivities": "Recent Activities",
+    "quickActions": "Quick Actions",
+    "activities": {
+      "createdProject": "created a new project",
+      "updatedProfile": "updated profile settings",
+      "completedTask": "completed task #123",
+      "timeAgo": "{{hours}} hours ago"
+    },
+    "actions": {
+      "viewProfile": "View Profile",
+      "settings": "Settings",
+      "analytics": "Analytics"
+    }
+  }
+} 

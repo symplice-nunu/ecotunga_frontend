@@ -1,0 +1,74 @@
+{
+  "common": {
+    "welcome": "Bienvenue sur Ecotunga",
+    "home": "Accueil",
+    "about": "À propos",
+    "contact": "Contact",
+    "login": "Connexion",
+    "signup": "S'inscrire",
+    "logout": "Déconnexion",
+    "search": "Rechercher",
+    "language": "Langue",
+    "profile": "Profil",
+    "users": "Utilisateurs",
+    "appName": "Eco Tunga",
+    "dashboard": "Tableau de bord"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "loginSuccess": "Connexion réussie",
+    "loginError": "Échec de la connexion",
+    "signupSuccess": "Inscription réussie",
+    "signupError": "Échec de l'inscription",
+    "enterDetails": "Veuillez entrer vos informations",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion en cours..."
+  },
+  "errors": {
+    "required": "Ce champ est obligatoire",
+    "invalidEmail": "Adresse e-mail invalide",
+    "invalidPassword": "Le mot de passe doit contenir au moins 6 caractères",
+    "serverError": "Erreur serveur survenue",
+    "networkError": "Erreur réseau survenue"
+  },
+  "profile": {
+    "editProfile": "Modifier le profil",
+    "saveChanges": "Enregistrer les modifications",
+    "cancel": "Annuler",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "phone": "Numéro de téléphone",
+    "address": "Adresse",
+    "loading": "Chargement...",
+    "userId": "ID utilisateur",
+    "fullName": "Nom complet",
+    "emailAddress": "Adresse e-mail",
+    "backToHome": "Retour à l'accueil"
+  },
+  "home": {
+    "stats": {
+      "totalUsers": "Utilisateurs totaux",
+      "activeProjects": "Projets actifs",
+      "revenue": "Revenus",
+      "tasks": "Tâches"
+    },
+    "recentActivities": "Activités récentes",
+    "quickActions": "Actions rapides",
+    "activities": {
+      "createdProject": "a créé un nouveau projet",
+      "updatedProfile": "a mis à jour les paramètres du profil",
+      "completedTask": "a terminé la tâche #123",
+      "timeAgo": "il y a {{hours}} heures"
+    },
+    "actions": {
+      "viewProfile": "Voir le profil",
+      "settings": "Paramètres",
+      "analytics": "Analytique"
+    }
+  }
+} 
