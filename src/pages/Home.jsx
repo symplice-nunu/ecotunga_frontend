@@ -1,10 +1,8 @@
 // Home.jsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 export default function Home() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const stats = [
@@ -34,26 +32,6 @@ export default function Home() {
     }
   ];
 
-  const recentActivities = [
-    {
-      user: 'John Doe',
-      action: t('home.activities.createdProject'),
-      time: t('home.activities.timeAgo', { hours: 2 }),
-      icon: '📝'
-    },
-    {
-      user: 'Sarah Smith',
-      action: t('home.activities.updatedProfile'),
-      time: t('home.activities.timeAgo', { hours: 3 }),
-      icon: '⚙️'
-    },
-    {
-      user: 'Mike Johnson',
-      action: t('home.activities.completedTask'),
-      time: t('home.activities.timeAgo', { hours: 5 }),
-      icon: '✅'
-    }
-  ];
 
   return (
     <div>
@@ -74,52 +52,6 @@ export default function Home() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activities */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('home.recentActivities')}</h2>
-          <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg">
-                <div className="text-2xl">{activity.icon}</div>
-                <div className="flex-1">
-                  <p className="text-gray-800">
-                    <span className="font-medium">{activity.user}</span> {activity.action}
-                  </p>
-                  <p className="text-sm text-gray-500">{activity.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('home.quickActions')}</h2>
-          <div className="space-y-3">
-            <button
-              onClick={() => navigate('/profile')}
-              className="w-full bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors"
-            >
-              {t('home.actions.viewProfile')}
-            </button>
-            <button
-              onClick={() => navigate('/settings')}
-              className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              {t('home.actions.settings')}
-            </button>
-            <button
-              onClick={() => navigate('/analytics')}
-              className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              {t('home.actions.analytics')}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
