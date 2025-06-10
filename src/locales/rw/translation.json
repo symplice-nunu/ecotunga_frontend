@@ -50,25 +50,80 @@
     "emailAddress": "Aderesi ya imeyili",
     "backToHome": "Garuka kuri ahabanza"
   },
+  "header": {
+    "home": "Ahabanza",
+    "dashboard": "Ikibaho",
+    "notifications": "Amanota",
+    "settings": "Igenamiterere",
+    "logout": "Sohoka"
+  },
+  "sidebar": {
+    "search": "Shakisha",
+    "sections": {
+      "home": "AHABANZA",
+      "items": {
+        "dashboard": "Ikibaho",
+        "wasteCollection": "Gusura imyanda",
+        "recyclingCenter": "Ikigo cyo gukoresha",
+        "communityEvents": "Ibikorwa by'umuryango",
+        "educationMaterials": "Ibikoresho by'amasomo"
+      }
+    },
+    "settings": "Igenamiterere",
+    "logout": "Sohoka"
+  },
   "home": {
+    "dashboard": "Ikibaho",
     "stats": {
-      "totalUsers": "Abakoresha bose",
-      "activeProjects": "Proje zikora",
-      "revenue": "Amafaranga yinjijwe",
-      "tasks": "Imitimo"
+      "users": "Abakoresha",
+      "totalAmount": "Amafaranga yose",
+      "totalWastePickups": "Ubwoko bwose bw'imyanda",
+      "totalRecycledMaterials": "Ibikoresho byose byakoreshwa",
+      "viewDetails": "Reba ibisobanuro"
     },
-    "recentActivities": "Ibikorwa bya vuba",
-    "quickActions": "Ibikorwa byihuse",
-    "activities": {
-      "createdProject": "yaremye proje nshya",
-      "updatedProfile": "yavuguruwe umwirondoro",
-      "completedTask": "yarangije umurimo #123",
-      "timeAgo": "amasaha {{hours}} yise"
+    "wasteCollection": {
+      "title": "Ubwoko bwose bw'imyanda byakusanyijwe",
+      "thisPeriod": "Iki gihe",
+      "lastPeriod": "Igihe cyashize"
     },
-    "actions": {
-      "viewProfile": "Reba umwirondoro",
-      "settings": "Igenamiterere",
-      "analytics": "Analitike"
+    "recentActivity": {
+      "title": "Ibikorwa vuba",
+      "wasteCollected": "Imyanda yakusanyijwe",
+      "joinedCleanup": "Yinjiye mu gusukura {{location}}",
+      "recycled": "{{amount}} kg za {{material}} zakoreshwa",
+      "unlockedBadge": "Badge \"{{badge}}\" yafunguwe"
+    },
+    "nextPickup": {
+      "title": "Gukurikiraho gusura imyanda",
+      "date": "Itariki",
+      "time": "Isaha",
+      "location": "Ahantu"
+    },
+    "nextDropoff": {
+      "title": "Gukurikiraho gusura ibikoresho",
+      "date": "Itariki",
+      "time": "Isaha",
+      "location": "Ahantu"
+    },
+    "events": {
+      "title": "Ibikorwa biza",
+      "umuganda": "Umuganda",
+      "youthLedCleanups": "Gusukura by'urubyiruko",
+      "carFreeDays": "Imisi idafite imodoka"
+    },
+    "guidelines": {
+      "separateBins": {
+        "title": "Gutandukanya ibikoresho",
+        "desc": "Shyira ibikoresho bitandukanye (urupapuro, ...)"
+      },
+      "clearLabeling": {
+        "title": "Kwandika neza",
+        "desc": "Andika neza buri gikoresho..."
+      },
+      "foldFlatten": {
+        "title": "Gupfunda cyangwa gupfobya",
+        "desc": "Iyo bishoboka, pfobya amapaki y'urupapuro..."
+      }
     }
   }
 } 

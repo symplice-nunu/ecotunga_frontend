@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import logo from '../assets/login_logo.png';
 import API from '../services/api';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -10,7 +11,9 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
+  const successMessage = location.state?.successMessage;
 
   const handleChange = (e) => {
     setError('');
@@ -38,18 +41,21 @@ export default function Login() {
         {/* Left Side: Illustration and Company Info */}
         <div className="md:w-1/2 flex flex-col justify-between items-center bg-gradient-to-br from-green-200 via-blue-100 to-green-100 p-8">
           <div className="w-full">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-green-500 rounded-lg p-2">
-                {/* Logo icon */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                  <rect x="8" y="8" width="8" height="8" rx="2" fill="#fff" />
-                </svg>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-green-500 rounded-lg p-2">
+                  {/* Logo icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                    <rect x="8" y="8" width="8" height="8" rx="2" fill="#fff" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-bold text-lg text-gray-800">Ecotunga.</div>
+                  <div className="text-xs text-gray-500">Kigali, Rwanda</div>
+                </div>
               </div>
-              <div>
-                <div className="font-bold text-lg text-gray-800">Ecotunga.</div>
-                <div className="text-xs text-gray-500">Kigali, Rwanda</div>
-              </div>
+              <LanguageSelector />
             </div>
           </div>
           <div className="flex-1 flex items-center justify-center">
@@ -64,6 +70,14 @@ export default function Login() {
               <h2 className="text-2xl font-bold text-gray-800 mb-1">{t('common.welcome')}</h2>
               <p className="text-gray-500 text-sm">{t('auth.enterDetails')}</p>
             </div>
+            {successMessage && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-100 text-green-600 rounded-xl text-sm flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                {successMessage}
+              </div>
+            )}
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">

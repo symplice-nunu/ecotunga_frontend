@@ -51,24 +51,80 @@
     "backToHome": "Retour à l'accueil"
   },
   "home": {
+    "dashboard": "Tableau de bord",
     "stats": {
-      "totalUsers": "Utilisateurs totaux",
-      "activeProjects": "Projets actifs",
-      "revenue": "Revenus",
-      "tasks": "Tâches"
+      "users": "Utilisateurs",
+      "totalAmount": "Montant total",
+      "totalWastePickups": "Total des collectes",
+      "totalRecycledMaterials": "Total des matériaux recyclés",
+      "viewDetails": "Voir les détails"
     },
-    "recentActivities": "Activités récentes",
-    "quickActions": "Actions rapides",
-    "activities": {
-      "createdProject": "a créé un nouveau projet",
-      "updatedProfile": "a mis à jour les paramètres du profil",
-      "completedTask": "a terminé la tâche #123",
-      "timeAgo": "il y a {{hours}} heures"
+    "wasteCollection": {
+      "title": "Total des déchets collectés dans le temps",
+      "thisPeriod": "Cette période",
+      "lastPeriod": "Période précédente"
     },
-    "actions": {
-      "viewProfile": "Voir le profil",
-      "settings": "Paramètres",
-      "analytics": "Analytique"
+    "recentActivity": {
+      "title": "Activité récente",
+      "wasteCollected": "Déchets collectés",
+      "joinedCleanup": "A rejoint le nettoyage de {{location}}",
+      "recycled": "{{amount}} kg de {{material}} recyclés",
+      "unlockedBadge": "Badge \"{{badge}}\" débloqué"
+    },
+    "nextPickup": {
+      "title": "Prochaine collecte",
+      "date": "Date",
+      "time": "Heure",
+      "location": "Lieu"
+    },
+    "nextDropoff": {
+      "title": "Prochain dépôt de recyclables",
+      "date": "Date",
+      "time": "Heure",
+      "location": "Lieu"
+    },
+    "events": {
+      "title": "Événements à venir",
+      "umuganda": "Umuganda",
+      "youthLedCleanups": "Nettoyages dirigés par les jeunes",
+      "carFreeDays": "Journées sans voiture"
+    },
+    "guidelines": {
+      "title": "Directives de tri",
+      "separateBins": {
+        "title": "Bacs de recyclage séparés",
+        "desc": "Dédiez des bacs séparés pour différents types de recyclables (papier, ...)"
+      },
+      "clearLabeling": {
+        "title": "Étiquetage clair",
+        "desc": "Étiquetez clairement chaque bac avec le type de déchets..."
+      },
+      "foldFlatten": {
+        "title": "Plier ou aplatir",
+        "desc": "Si possible, aplatissez ou pliez les boîtes en carton et le plastique..."
+      }
     }
+  },
+  "header": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "notifications": "Notifications",
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
+  },
+  "sidebar": {
+    "search": "Rechercher",
+    "sections": {
+      "home": "ACCUEIL",
+      "items": {
+        "dashboard": "Tableau de bord",
+        "wasteCollection": "Collecte des déchets",
+        "recyclingCenter": "Centre de recyclage",
+        "communityEvents": "Événements communautaires",
+        "educationMaterials": "Matériel éducatif"
+      }
+    },
+    "settings": "Paramètres",
+    "logout": "Déconnexion"
   }
 } 

@@ -46,24 +46,80 @@
     "address": "Address"
   },
   "home": {
+    "dashboard": "Dashboard",
     "stats": {
-      "totalUsers": "Total Users",
-      "activeProjects": "Active Projects",
-      "revenue": "Revenue",
-      "tasks": "Tasks"
+      "users": "Users",
+      "totalAmount": "Total Amount",
+      "totalWastePickups": "Total Waste Pickups",
+      "totalRecycledMaterials": "Total Recycled Materials",
+      "viewDetails": "View details"
     },
-    "recentActivities": "Recent Activities",
-    "quickActions": "Quick Actions",
-    "activities": {
-      "createdProject": "created a new project",
-      "updatedProfile": "updated profile settings",
-      "completedTask": "completed task #123",
-      "timeAgo": "{{hours}} hours ago"
+    "wasteCollection": {
+      "title": "Total waste collected over time",
+      "thisPeriod": "This Period",
+      "lastPeriod": "Last Period"
     },
-    "actions": {
-      "viewProfile": "View Profile",
-      "settings": "Settings",
-      "analytics": "Analytics"
+    "recentActivity": {
+      "title": "Recent Activity",
+      "wasteCollected": "Waste collected",
+      "joinedCleanup": "Joined {{location}} cleanup",
+      "recycled": "{{amount}} kg of {{material}} recycled",
+      "unlockedBadge": "Unlocked \"{{badge}}\" badge"
+    },
+    "nextPickup": {
+      "title": "Next Waste Pickup",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location"
+    },
+    "nextDropoff": {
+      "title": "Next Recyclables Drop-off",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location"
+    },
+    "events": {
+      "title": "Upcoming Events",
+      "umuganda": "Umuganda",
+      "youthLedCleanups": "Youth-Led Cleanups",
+      "carFreeDays": "Car-Free Days"
+    },
+    "guidelines": {
+      "title": "Sorting Guidelines",
+      "separateBins": {
+        "title": "Separate Recycling Bins",
+        "desc": "Dedicate separate bins for different types of recyclables (paper, ...)"
+      },
+      "clearLabeling": {
+        "title": "Clear Labeling",
+        "desc": "Label each bin clearly with the type of waste it is meant for..."
+      },
+      "foldFlatten": {
+        "title": "Fold or Flatten",
+        "desc": "When possible, flatten or fold cardboard boxes and plastic..."
+      }
     }
+  },
+  "header": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "sidebar": {
+    "search": "Search",
+    "sections": {
+      "home": "HOME",
+      "items": {
+        "dashboard": "Dashboard",
+        "wasteCollection": "Waste Collection",
+        "recyclingCenter": "Recycling center",
+        "communityEvents": "Community Events",
+        "educationMaterials": "Education Materials"
+      }
+    },
+    "settings": "Settings",
+    "logout": "Logout"
   }
 } 

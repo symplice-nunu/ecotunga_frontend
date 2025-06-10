@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import logo from '../assets/login_logo.png';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function Signup() {
   const [form, setForm] = useState({ 
@@ -77,18 +78,21 @@ export default function Signup() {
         {/* Left Side: Illustration and Company Info */}
         <div className="md:w-1/2 flex flex-col justify-between items-center bg-gradient-to-br from-green-200 via-blue-100 to-green-100 p-8">
           <div className="w-full">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-green-500 rounded-lg p-2">
-                {/* Logo icon */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" fill="#22c55e" />
-                  <rect x="8" y="8" width="8" height="8" rx="2" fill="#fff" />
-                </svg>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-green-500 rounded-lg p-2">
+                  {/* Logo icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" fill="#22c55e" />
+                    <rect x="8" y="8" width="8" height="8" rx="2" fill="#fff" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="font-bold text-lg text-gray-800">Ecotunga.</div>
+                  <div className="text-xs text-gray-500">Kigali, Rwanda</div>
+                </div>
               </div>
-              <div>
-                <div className="font-bold text-lg text-gray-800">Ecotunga.</div>
-                <div className="text-xs text-gray-500">Kigali, Rwanda</div>
-              </div>
+              <LanguageSelector />
             </div>
           </div>
           <div className="flex-1 flex items-center justify-center">
