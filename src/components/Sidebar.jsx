@@ -6,13 +6,16 @@ import {
   BookOpen,
   Settings,
   LogOut,
-  Building2
+  Building2,
+  List,
+  Shield,
+  X
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [search, setSearch] = useState('');
@@ -25,6 +28,14 @@ export default function Sidebar() {
 
   const isActive = (path) => location.pathname === path;
 
+  const handleNavigation = (path) => {
+    navigate(path);
+    // Close sidebar on mobile after navigation
+    if (onClose) {
+      onClose();
+    }
+  };
+
   // Navigation structure
   const navSections = [
     {
@@ -32,6 +43,8 @@ export default function Sidebar() {
       items: [
         { label: t('sidebar.sections.items.dashboard'), icon: Home, path: '/home' },
         { label: t('sidebar.sections.items.wasteCollection'), icon: Calendar, path: '/collection' },
+        { label: 'My Collections', icon: List, path: '/waste-collections' },
+        { label: 'Manage Collections', icon: Shield, path: '/admin-waste-collections' },
         { label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling-center' },
         { label: t('sidebar.sections.items.communityEvents'), icon: Users, path: '/community' },
         { label: t('sidebar.sections.items.educationMaterials'), icon: BookOpen, path: '/education' },
@@ -42,17 +55,27 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white shadow-xl border-r border-gray-100 p-4 flex flex-col justify-between fixed h-full">
+    <aside className="w-64 bg-white shadow-xl border-r border-gray-100 p-4 flex flex-col justify-between fixed h-full overflow-y-auto">
       <div>
-        {/* Logo and App Name */}
-        <div className="mb-8 flex items-center">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-teal-500 to-green-400 flex items-center justify-center mr-3">
-            <span className="text-white font-bold text-xl">E</span>
+        {/* Logo and App Name with Mobile Close Button */}
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-teal-500 to-green-400 flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-xl">E</span>
+            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-green-500 text-transparent bg-clip-text">
+              EcoTunga
+            </h1>
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-green-500 text-transparent bg-clip-text">
-            EcoTunga
-          </h1>
+          {/* Mobile close button */}
+          <button
+            onClick={onClose}
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
         </div>
+
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
@@ -66,6 +89,7 @@ export default function Sidebar() {
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-400 border border-gray-200">⌘ K</span>
           </div>
         </div>
+
         {/* Navigation Sections */}
         <nav>
           {navSections.map(section => (
@@ -75,7 +99,7 @@ export default function Sidebar() {
                 {section.items.map(item => (
                   <li key={item.label}>
                     <button
-                      onClick={() => navigate(item.path)}
+                      onClick={() => handleNavigation(item.path)}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
                         ${isActive(item.path)
                           ? 'bg-teal-50 text-teal-600 shadow-sm'
@@ -92,10 +116,11 @@ export default function Sidebar() {
           ))}
         </nav>
       </div>
+
       {/* Help & Center and Logout */}
       <div className="mb-2">
         <button
-          onClick={() => navigate('/profile')}
+          onClick={() => handleNavigation('/profile')}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-teal-600 mb-2 group"
         >
           <Settings size={18} className="text-gray-400 group-hover:text-teal-600" />

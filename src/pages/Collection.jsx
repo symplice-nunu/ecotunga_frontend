@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getUserProfile, submitWasteCollection } from '../services/userApi';
+import { getCompanies } from '../services/companyApi';
+import { useAuth } from '../contexts/AuthContext';
 import wasteTruck from '../assets/eb2216243ee44e2c328a1dea4bc045e2ad26c104.jpg';
 import collection from '../assets/e682b31ec1c636f1fc957bef07cbbcd23f22fe33.png';
 import person from '../assets/07e14575ca040bb0119bc4319a1d4d8afb0ac6bd.png';
 import locations from '../assets/82b1f6e7211be6cd0aaaf955a7f648fc0bf7bcbf.png';
 import attention from '../assets/25a91c6fec7f15183e2bac4bc553d85f5b49362a.png';
 import truck from '../assets/f9c17e1c8abf24e0e94b552b9f1b4c26dfa14b1a.png';
-
-
 
 const steps = [
   'Personal Information',
@@ -17,25 +18,123 @@ const steps = [
   'Confirm',
 ];
 
+// Helper to ensure select options include the profile value
+const getOptionsWithProfileValue = (options, profileValue) => {
+  if (profileValue && !options.includes(profileValue)) {
+    return [profileValue, ...options];
+  }
+  return options;
+};
+
 export default function Collection() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [companies, setCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(true);
+  
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: '',
-    lastName: '',
-    gender: '',
+    name: '',
     email: '',
-    phone: '',
-    ubudehe: '',
+    last_name: '',
+    gender: '',
+    phone_number: '',
+    ubudehe_category: '',
+    district: '',
+    sector: '',
+    cell: '',
+    street: ''
   });
   const [location, setLocation] = useState({
     district: '',
     sector: '',
     cell: '',
     village: '',
-    street: '',
+    street: ''
   });
   const [errors, setErrors] = useState({});
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState(null);
+
+  // Fetch user profile on component mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching user profile...');
+        const response = await getUserProfile();
+        console.log('User profile response:', response.data);
+        setUserProfile(response.data);
+        
+        // Pre-populate personal info with user profile data
+        const personalData = {
+          name: response.data.name || '',
+          email: response.data.email || '',
+          last_name: response.data.last_name || '',
+          gender: response.data.gender || '',
+          phone_number: response.data.phone_number || '',
+          ubudehe_category: response.data.ubudehe_category || '',
+          district: response.data.district || '',
+          sector: response.data.sector || '',
+          cell: response.data.cell || '',
+          street: response.data.street || '',
+        };
+        console.log('Setting personal info:', personalData);
+        setPersonalInfo(personalData);
+        
+        // Pre-populate location with user profile data
+        const locationData = {
+          district: response.data.district || '',
+          sector: response.data.sector || '',
+          cell: response.data.cell || '',
+          village: '', // Not in profile, keep empty
+          street: response.data.street || '',
+        };
+        console.log('Setting location data:', locationData);
+        setLocation(locationData);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    console.log('Collection component - user from auth context:', user);
+    if (user) {
+      fetchUserProfile();
+    } else {
+      console.log('No user found in auth context');
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Fetch companies on component mount
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        setCompaniesLoading(true);
+        console.log('Fetching companies...');
+        const response = await getCompanies();
+        console.log('Companies response:', response.data);
+        setCompanies(response.data);
+      } catch (error) {
+        console.error('Error fetching companies:', error);
+      } finally {
+        setCompaniesLoading(false);
+      }
+    };
+
+    console.log('Collection component - companies from API:', companies);
+    if (companies.length === 0) {
+      fetchCompanies();
+    } else {
+      console.log('Companies already fetched');
+    }
+  }, []);
 
   // Dummy options for selects
   const genderOptions = ['Male', 'Female', 'Other'];
@@ -47,9 +146,16 @@ export default function Collection() {
   // Step 3: Book Pickup (Updated UI)
   const [pickupDate, setPickupDate] = useState('');
   const [timeSlot, setTimeSlot] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState('');
   const [notes, setNotes] = useState('');
   const pickupDates = ['2024-06-10', '2024-06-11', '2024-06-12']; // Example dates
   const timeSlots = ['08:00 - 10:00', '10:00 - 12:00', '14:00 - 16:00'];
+
+  // Helper to ensure select options include the profile value
+  const districtOptionsWithProfile = getOptionsWithProfileValue(districtOptions, location.district);
+  const sectorOptionsWithProfile = getOptionsWithProfileValue(sectorOptions, location.sector);
+  const cellOptionsWithProfile = getOptionsWithProfileValue(cellOptions, location.cell);
+  const genderOptionsWithProfile = getOptionsWithProfileValue(genderOptions, personalInfo.gender);
 
   // Stepper UI
   const Stepper = () => {
@@ -100,6 +206,18 @@ export default function Collection() {
     );
   };
 
+  // Show loading state while fetching user profile
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-500 text-lg">Loading your information...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Step 1: Personal Information
   const PersonalInfoForm = () => (
     <form
@@ -108,12 +226,12 @@ export default function Collection() {
         e.preventDefault();
         // Validate
         const newErrors = {};
-        if (!personalInfo.firstName) newErrors.firstName = 'Required';
-        if (!personalInfo.lastName) newErrors.lastName = 'Required';
+        if (!personalInfo.name) newErrors.name = 'Required';
+        if (!personalInfo.last_name) newErrors.last_name = 'Required';
         if (!personalInfo.gender) newErrors.gender = 'Required';
         if (!personalInfo.email) newErrors.email = 'Required';
-        if (!personalInfo.phone) newErrors.phone = 'Required';
-        if (!personalInfo.ubudehe) newErrors.ubudehe = 'Required';
+        if (!personalInfo.phone_number) newErrors.phone_number = 'Required';
+        if (!personalInfo.ubudehe_category) newErrors.ubudehe_category = 'Required';
         setErrors(newErrors);
         if (Object.keys(newErrors).length === 0) setStep(1);
       }}
@@ -123,6 +241,11 @@ export default function Collection() {
             <img src={person} alt="waste" className="w-[35px] h-[30px]" />
           </span> 
         <h3 className="text-xl font-bold mt-1">Personal Information</h3>
+        {userProfile && (
+          <div className="ml-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+            Pre-filled from your profile
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -130,20 +253,20 @@ export default function Collection() {
           <input
             className="w-full border rounded px-3 py-2 mb-1"
             placeholder="Enter your first name"
-            value={personalInfo.firstName}
-            onChange={e => setPersonalInfo({ ...personalInfo, firstName: e.target.value })}
+            value={personalInfo.name}
+            onChange={e => setPersonalInfo({ ...personalInfo, name: e.target.value })}
           />
-          {errors.firstName && <span className="text-xs text-red-500">{errors.firstName}</span>}
+          {errors.name && <span className="text-xs text-red-500">{errors.name}</span>}
         </div>
         <div>
           <label className="block font-medium mb-1">Last Name<span className="text-red-500">*</span></label>
           <input
             className="w-full border rounded px-3 py-2 mb-1"
             placeholder="Enter your last name"
-            value={personalInfo.lastName}
-            onChange={e => setPersonalInfo({ ...personalInfo, lastName: e.target.value })}
+            value={personalInfo.last_name}
+            onChange={e => setPersonalInfo({ ...personalInfo, last_name: e.target.value })}
           />
-          {errors.lastName && <span className="text-xs text-red-500">{errors.lastName}</span>}
+          {errors.last_name && <span className="text-xs text-red-500">{errors.last_name}</span>}
         </div>
         <div>
           <label className="block font-medium mb-1">Gender<span className="text-red-500">*</span></label>
@@ -153,7 +276,7 @@ export default function Collection() {
             onChange={e => setPersonalInfo({ ...personalInfo, gender: e.target.value })}
           >
             <option value="">Select</option>
-            {genderOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            {genderOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
           </select>
           {errors.gender && <span className="text-xs text-red-500">{errors.gender}</span>}
         </div>
@@ -162,10 +285,10 @@ export default function Collection() {
           <input
             className="w-full border rounded px-3 py-2 mb-1"
             placeholder="Enter your phone number"
-            value={personalInfo.phone}
-            onChange={e => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
+            value={personalInfo.phone_number}
+            onChange={e => setPersonalInfo({ ...personalInfo, phone_number: e.target.value })}
           />
-          {errors.phone && <span className="text-xs text-red-500">{errors.phone}</span>}
+          {errors.phone_number && <span className="text-xs text-red-500">{errors.phone_number}</span>}
         </div>
         <div>
           <label className="block font-medium mb-1">Email<span className="text-red-500">*</span></label>
@@ -188,10 +311,10 @@ export default function Collection() {
           <input
             className="w-full border rounded px-3 py-2 mb-1"
             placeholder="Enter your category"
-            value={personalInfo.ubudehe}
-            onChange={e => setPersonalInfo({ ...personalInfo, ubudehe: e.target.value })}
+            value={personalInfo.ubudehe_category}
+            onChange={e => setPersonalInfo({ ...personalInfo, ubudehe_category: e.target.value })}
           />
-          {errors.ubudehe && <span className="text-xs text-red-500">{errors.ubudehe}</span>}
+          {errors.ubudehe_category && <span className="text-xs text-red-500">{errors.ubudehe_category}</span>}
         </div>
       </div>
       <div className='flex justify-center'>
@@ -217,16 +340,23 @@ export default function Collection() {
       }}
     >
       <div className="flex items-center mb-6">
-        
-      <img src={locations} alt="waste" className="w-[35px] h-[30px]" />
+        <img src={locations} alt="waste" className="w-[35px] h-[30px]" />
         <h3 className="text-xl font-bold mt-1">Location Details</h3>
+        {userProfile && (
+          <div className="ml-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+            Pre-filled from your profile
+          </div>
+        )}
       </div>
       <div className="space-y-6">
   {/* District */}
   <div className="relative">
     <div className="relative border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700">
+      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700 flex items-center gap-2">
         District
+        {userProfile && userProfile.district && (
+          <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
+        )}
       </label>
       <select
         className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
@@ -234,7 +364,7 @@ export default function Collection() {
         onChange={e => setLocation({ ...location, district: e.target.value })}
       >
         <option value="">Select</option>
-        {districtOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        {districtOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -248,8 +378,11 @@ export default function Collection() {
   {/* Sector */}
   <div className="relative">
     <div className="relative border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700">
+      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700 flex items-center gap-2">
         Sector
+        {userProfile && userProfile.sector && (
+          <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
+        )}
       </label>
       <select
         className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
@@ -257,7 +390,7 @@ export default function Collection() {
         onChange={e => setLocation({ ...location, sector: e.target.value })}
       >
         <option value="">Select</option>
-        {sectorOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        {sectorOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -271,8 +404,11 @@ export default function Collection() {
   {/* Cell */}
   <div className="relative">
     <div className="relative border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700">
+      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700 flex items-center gap-2">
         Cell
+        {userProfile && userProfile.cell && (
+          <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
+        )}
       </label>
       <select
         className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
@@ -280,7 +416,7 @@ export default function Collection() {
         onChange={e => setLocation({ ...location, cell: e.target.value })}
       >
         <option value="">Select</option>
-        {cellOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        {cellOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -316,7 +452,11 @@ export default function Collection() {
 
   {/* Street (Optional) - Kept as original since it's an input */}
   <div>
-    <label className="block font-medium mb-1">Street <span className="text-gray-400">(Optional)</span></label>
+    <label className="block font-medium mb-1 flex items-center gap-2">Street <span className="text-gray-400">(Optional)</span>
+      {userProfile && userProfile.street && (
+        <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
+      )}
+    </label>
     <input
       className="w-full shadow-lg border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
       placeholder="Optional"
@@ -333,14 +473,38 @@ export default function Collection() {
   );
 
   // Step 3: Book Pickup (Updated UI)
+  const handleBookPickupSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitLoading(true);
+    setSubmitError('');
+    try {
+      const payload = {
+        ...personalInfo,
+        ...location,
+        company_id: selectedCompany,
+        pickup_date: pickupDate,
+        time_slot: timeSlot,
+        notes,
+      };
+      const response = await submitWasteCollection(payload);
+      setBookingDetails({
+        id: response.data.id,
+        ...payload,
+        company: companies.find(c => c.id == selectedCompany)?.name || 'Selected Company'
+      });
+      setSubmitSuccess(true);
+      setStep(3); // Advance to payment step
+    } catch (err) {
+      setSubmitError('Failed to book collection. Please try again.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
   const BookPickup = () => (
     <form
       className="bg-white rounded-xl shadow max-w-4xl mx-auto mt-6 flex flex-col items-center p-8"
-      onSubmit={e => {
-        e.preventDefault();
-        // Optionally validate here
-        setStep(3);
-      }}
+      onSubmit={handleBookPickupSubmit}
     >
         {/* COPED LTD Banner */}
       <div className="bg-white flex flex-col md:flex-row items-center overflow-hidden">
@@ -375,6 +539,103 @@ export default function Collection() {
           <img src={wasteTruck} alt="Waste Truck" className="object-cover w-full h-full rounded-tl-[180px]" />
         </div>
       </div>
+      
+      {/* Company Selection - Full Width */}
+      <div className="w-full mb-8">
+        <label className="block font-semibold mb-2">Select Company</label>
+        {companiesLoading ? (
+          <div className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-500">
+            Loading companies...
+          </div>
+        ) : (
+          <select
+            className="w-full border rounded px-3 py-2"
+            value={selectedCompany}
+            onChange={e => setSelectedCompany(e.target.value)}
+            required
+          >
+            <option value="">Select a company</option>
+            {companies.map(company => (
+              <option key={company.id} value={company.id}>{company.name}</option>
+            ))}
+          </select>
+        )}
+        
+        {/* Selected Company Details */}
+        {selectedCompany && !companiesLoading && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+            {(() => {
+              const selectedCompanyData = companies.find(company => company.id == selectedCompany);
+              return selectedCompanyData ? (
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    {selectedCompanyData.logo ? (
+                      <img 
+                        src={selectedCompanyData.logo} 
+                        alt={`${selectedCompanyData.name} Logo`} 
+                        className="w-12 h-12 rounded-lg object-cover border"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className={`w-12 h-12 rounded-lg border bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-lg ${
+                        selectedCompanyData.logo ? 'hidden' : 'flex'
+                      }`}
+                    >
+                      {selectedCompanyData.name.charAt(0).toUpperCase()}
+                    </div>
+                    <h3 className="font-semibold text-lg text-gray-800">{selectedCompanyData.name}</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">📧 Email:</span>
+                        <span className="text-gray-700">{selectedCompanyData.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">📞 Phone:</span>
+                        <span className="text-gray-700">{selectedCompanyData.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">💰 Monthly Rate:</span>
+                        <span className="text-gray-700">${selectedCompanyData.amount_per_month}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">📍 District:</span>
+                        <span className="text-gray-700">{selectedCompanyData.district}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">🏢 Sector:</span>
+                        <span className="text-gray-700">{selectedCompanyData.sector}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">🏘️ Cell:</span>
+                        <span className="text-gray-700">{selectedCompanyData.cell}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {selectedCompanyData.street && (
+                    <div className="mt-3 pt-3 border-t">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">🏠 Street:</span>
+                        <span className="text-gray-700">{selectedCompanyData.street}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-gray-500">Company details not found</div>
+              );
+            })()}
+          </div>
+        )}
+      </div>
+      
       <div className="w-full flex flex-col md:flex-row gap-8 my-8">
         {/* Pickup Date */}
         <div className="flex-1">
@@ -421,11 +682,13 @@ export default function Collection() {
           onChange={e => setNotes(e.target.value)}
         />
       </div>
+      {submitError && <div className="text-red-600 mb-2">{submitError}</div>}
       <button
         type="submit"
         className="mt-4 flex justify-center w-[420px] bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition"
+        disabled={submitLoading}
       >
-        Book Now
+        {submitLoading ? 'Booking...' : 'Book Now'}
       </button>
     </form>
   );
@@ -433,11 +696,27 @@ export default function Collection() {
   // Step 4: Payment Process (placeholder)
   const PaymentProcess = () => (
     <div className="bg-white rounded-xl shadow p-8 max-w-2xl mx-auto mt-6 flex flex-col items-center">
+      {submitSuccess && bookingDetails && (
+        <div className="w-full mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-green-600 text-xl">✅</span>
+            <h3 className="text-lg font-semibold text-green-800">Booking Successful!</h3>
+          </div>
+          <div className="text-sm text-green-700 space-y-1">
+            <p><strong>Booking ID:</strong> #{bookingDetails.id}</p>
+            <p><strong>Name:</strong> {bookingDetails.name} {bookingDetails.last_name}</p>
+            <p><strong>Company:</strong> {bookingDetails.company}</p>
+            <p><strong>Pickup Date:</strong> {bookingDetails.pickup_date}</p>
+            <p><strong>Time Slot:</strong> {bookingDetails.time_slot}</p>
+            <p><strong>Location:</strong> {bookingDetails.district}, {bookingDetails.sector}</p>
+          </div>
+        </div>
+      )}
       <h3 className="text-xl font-bold mb-4">Payment Process</h3>
       <p className="mb-8">Payment integration coming soon.</p>
       <button
         className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition"
-        onClick={() => setStep(5)}
+        onClick={() => setStep(4)}
       >
         Continue
       </button>

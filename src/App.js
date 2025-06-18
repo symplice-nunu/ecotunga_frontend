@@ -13,6 +13,8 @@ import RecyclingCenter from './pages/RecyclingCenter';
 import CompanyRegistration from './components/CompanyRegistration';
 import CompanyList from './components/CompanyList';
 import Layout from './components/Layout';
+import WasteCollections from './pages/WasteCollections';
+import AdminWasteCollections from './pages/AdminWasteCollections';
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="users" element={<Users />} />
               <Route path="collection" element={<Collection />} />
+              <Route path="waste-collections" element={<WasteCollections />} />
+              <Route path="admin-waste-collections" element={<AdminWasteCollections />} />
               <Route path="recycling-center" element={<RecyclingCenter />} />
               <Route path="company-registration" element={<CompanyRegistration />} />
               <Route path="companies" element={<CompanyList />} />

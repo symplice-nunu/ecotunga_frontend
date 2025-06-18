@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { BellIcon, GlobeAltIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   // For demo, hardcode user info. Replace with real user data as needed.
@@ -20,17 +21,26 @@ const Header = () => {
 
   return (
     <header className="bg-white border-b border-gray-200">
-      <div className="flex justify-between items-center h-20 px-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm" aria-label="Breadcrumb">
+      <div className="flex justify-between items-center h-16 lg:h-20 px-4 lg:px-8">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600"
+        >
+          <Menu size={24} />
+        </button>
+
+        {/* Breadcrumb - Hidden on mobile */}
+        <nav className="hidden lg:flex items-center space-x-2 text-sm" aria-label="Breadcrumb">
           <span className="text-gray-400 font-medium">{t('header.home')}</span>
           <span className="text-gray-300">/</span>
           <span className="text-gray-800 font-semibold">{t('header.dashboard')}</span>
         </nav>
+
         {/* Right side: Language, Notification, User */}
-        <div className="flex items-center gap-6">
-          {/* Language Switcher */}
-          <div className="relative">
+        <div className="flex items-center gap-3 lg:gap-6">
+          {/* Language Switcher - Hidden on mobile */}
+          <div className="relative hidden lg:block">
             <button
               onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
               className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
@@ -67,21 +77,23 @@ const Header = () => {
               </div>
             )}
           </div>
+
           {/* Notification */}
           <button 
-            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+            className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50"
             aria-label={t('header.notifications')}
           >
-            <BellIcon className="h-6 w-6 text-gray-500" />
+            <BellIcon className="h-5 w-5 lg:h-6 lg:w-6 text-gray-500" />
           </button>
+
           {/* User */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:gap-3">
             <img
               src={user.avatar}
               alt={user.name}
-              className="w-10 h-10 rounded-full object-cover border border-gray-200"
+              className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border border-gray-200"
             />
-            <div className="flex flex-col">
+            <div className="hidden sm:flex flex-col">
               <span className="text-sm font-semibold text-gray-900 leading-tight">{user.name}</span>
               <span className="text-xs text-gray-400 leading-tight">{user.role}</span>
             </div>
