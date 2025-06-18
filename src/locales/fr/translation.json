@@ -121,10 +121,80 @@
         "wasteCollection": "Collecte des déchets",
         "recyclingCenter": "Centre de recyclage",
         "communityEvents": "Événements communautaires",
-        "educationMaterials": "Matériel éducatif"
+        "educationMaterials": "Matériel éducatif",
+        "users": "Utilisateurs",
+        "companies": "Entreprises"
       }
     },
     "settings": "Paramètres",
     "logout": "Déconnexion"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "subtitle": "Gérez vos utilisateurs et leurs informations",
+    "usersFound": "{{count}} utilisateurs trouvés",
+    "exportPDF": "Exporter PDF",
+    "registerNewUser": "Enregistrer un nouvel utilisateur",
+    "searchPlaceholder": "Rechercher des utilisateurs par nom ou email...",
+    "noUsersFound": "Aucun utilisateur trouvé",
+    "noUsersMatch": "Aucun utilisateur ne correspond à votre recherche \"{{query}}\"",
+    "table": {
+      "name": "Nom",
+      "email": "Email",
+      "joinedDate": "Date d'inscription",
+      "action": "Actions",
+      "actions": {
+        "view": "Voir",
+        "edit": "Modifier",
+        "delete": "Supprimer"
+      }
+    },
+    "modals": {
+      "success": {
+        "title": "Succès",
+        "message": "Action terminée avec succès.",
+        "close": "Fermer"
+      },
+      "register": {
+        "title": "Enregistrer un nouvel utilisateur",
+        "subtitle": "Remplissez les détails pour créer un nouveau compte utilisateur",
+        "name": "Nom",
+        "email": "Adresse email",
+        "password": "Mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "cancel": "Annuler",
+        "submit": "Enregistrer l'utilisateur"
+      },
+      "view": {
+        "title": "Détails de l'utilisateur",
+        "name": "Nom",
+        "email": "Email",
+        "userId": "ID utilisateur",
+        "joinedDate": "Date d'inscription",
+        "close": "Fermer"
+      },
+      "edit": {
+        "title": "Modifier l'utilisateur",
+        "subtitle": "Mettre à jour les informations de l'utilisateur",
+        "name": "Nom",
+        "email": "Adresse email",
+        "cancel": "Annuler",
+        "save": "Enregistrer les modifications"
+      },
+      "delete": {
+        "title": "Supprimer l'utilisateur",
+        "message": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action ne peut pas être annulée.",
+        "cancel": "Annuler",
+        "confirm": "Supprimer"
+      }
+    },
+    "loading": "Chargement des utilisateurs...",
+    "error": "Échec du chargement des utilisateurs. Veuillez réessayer.",
+    "retry": "Réessayer",
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "showing": "Affichage de {{start}} à {{end}} sur {{total}} résultats"
+    }
   }
 } 

@@ -66,7 +66,9 @@
         "wasteCollection": "Gusura imyanda",
         "recyclingCenter": "Ikigo cyo gukoresha",
         "communityEvents": "Ibikorwa by'umuryango",
-        "educationMaterials": "Ibikoresho by'amasomo"
+        "educationMaterials": "Ibikoresho by'amasomo",
+        "users": "Abakoresha",
+        "companies": "Amasosiyete"
       }
     },
     "settings": "Igenamiterere",
@@ -124,6 +126,74 @@
         "title": "Gupfunda cyangwa gupfobya",
         "desc": "Iyo bishoboka, pfobya amapaki y'urupapuro..."
       }
+    }
+  },
+  "users": {
+    "title": "Abakoresha",
+    "subtitle": "Gukurikirana abakoresha bawe n'amakuru yabo",
+    "usersFound": "{{count}} abakoresha bavumbuwe",
+    "exportPDF": "Kora PDF",
+    "registerNewUser": "Andika umukoresha mushya",
+    "searchPlaceholder": "Shakisha abakoresha ku izina cyangwa email...",
+    "noUsersFound": "Nta mukoresha wavumbuwe",
+    "noUsersMatch": "Nta mukoresha uhuye n'ishakisho ryawe \"{{query}}\"",
+    "table": {
+      "name": "Izina",
+      "email": "Email",
+      "joinedDate": "Itariki yinjijwe",
+      "action": "Ibikorwa",
+      "actions": {
+        "view": "Reba",
+        "edit": "Hindura",
+        "delete": "Siba"
+      }
+    },
+    "modals": {
+      "success": {
+        "title": "Byakunze",
+        "message": "Igikorwa cyakozwe neza.",
+        "close": "Funga"
+      },
+      "register": {
+        "title": "Andika umukoresha mushya",
+        "subtitle": "Uzuze amakuru yo gukora konti nshya",
+        "name": "Izina",
+        "email": "Aderesi ya email",
+        "password": "Ijambo ry'ibanga",
+        "confirmPassword": "Emeza ijambo ry'ibanga",
+        "cancel": "Reka",
+        "submit": "Andika umukoresha"
+      },
+      "view": {
+        "title": "Amakuru y'umukoresha",
+        "name": "Izina",
+        "email": "Email",
+        "userId": "ID y'umukoresha",
+        "joinedDate": "Itariki yinjijwe",
+        "close": "Funga"
+      },
+      "edit": {
+        "title": "Hindura umukoresha",
+        "subtitle": "Vuguruza amakuru y'umukoresha",
+        "name": "Izina",
+        "email": "Aderesi ya email",
+        "cancel": "Reka",
+        "save": "Bika impinduka"
+      },
+      "delete": {
+        "title": "Siba umukoresha",
+        "message": "Urazi neza ko ushaka gusiba {{name}}? Iki gikorwa ntakiboneka gusubirwaho.",
+        "cancel": "Reka",
+        "confirm": "Siba"
+      }
+    },
+    "loading": "Abakoresha barimo gukururwa...",
+    "error": "Kurura abakoresha byanze. Nyamuneka ongera ugerageze.",
+    "retry": "Ongera ugerageze",
+    "pagination": {
+      "previous": "Ibanjirije",
+      "next": "Gukurikira",
+      "showing": "Kwerekana {{start}} kugeza {{end}} ku {{total}} ibisubizo"
     }
   }
 } 

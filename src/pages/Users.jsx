@@ -10,7 +10,7 @@ export default function Users() {
     const fetchUsers = async () => {
       try {
         // Simulated API call
-        const response = await fetch('http://localhost:3001/api/users', {
+        const response = await fetch('http://localhost:5000/api/users', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }

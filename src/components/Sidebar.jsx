@@ -5,7 +5,8 @@ import {
   Users,
   BookOpen,
   Settings,
-  LogOut
+  LogOut,
+  Building2
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
@@ -31,9 +32,11 @@ export default function Sidebar() {
       items: [
         { label: t('sidebar.sections.items.dashboard'), icon: Home, path: '/home' },
         { label: t('sidebar.sections.items.wasteCollection'), icon: Calendar, path: '/collection' },
-        { label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling' },
+        { label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling-center' },
         { label: t('sidebar.sections.items.communityEvents'), icon: Users, path: '/community' },
         { label: t('sidebar.sections.items.educationMaterials'), icon: BookOpen, path: '/education' },
+        { label: t('sidebar.sections.items.users'), icon: Users, path: '/users' },
+        { label: t('sidebar.sections.items.companies'), icon: Building2, path: '/companies' },
       ],
     },
   ];

@@ -8,6 +8,10 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
+import Collection from './pages/Collection';
+import RecyclingCenter from './pages/RecyclingCenter';
+import CompanyRegistration from './components/CompanyRegistration';
+import CompanyList from './components/CompanyList';
 import Layout from './components/Layout';
 
 function App() {
@@ -26,6 +30,10 @@ function App() {
               <Route path="home" element={<Home />} />
               <Route path="profile" element={<Profile />} />
               <Route path="users" element={<Users />} />
+              <Route path="collection" element={<Collection />} />
+              <Route path="recycling-center" element={<RecyclingCenter />} />
+              <Route path="company-registration" element={<CompanyRegistration />} />
+              <Route path="companies" element={<CompanyList />} />
             </Route>
             
             {/* Catch all route */}

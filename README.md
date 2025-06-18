@@ -80,7 +80,7 @@ ecotunga_frontend/
 ## Designs
 
 ### Figma Mockups
-[View Figma Design](https://www.figma.com/file/your-design-file)
+[View Figma Design](https://www.figma.com/design/kpt0ILLjeMGhvAQOrBaDWX/EcoTunga?node-id=0-1&p=f&t=h7zQ29e96jOAixid-0)
 
 ### Application Screenshots
 ![Home Page](docs/screenshots/home.png)

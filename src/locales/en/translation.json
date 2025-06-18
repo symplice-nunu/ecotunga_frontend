@@ -12,7 +12,8 @@
     "profile": "Profile",
     "users": "Users",
     "appName": "Eco Tunga",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "scheduleCollection": "Schedule Collection"
   },
   "auth": {
     "email": "Email",
@@ -116,10 +117,98 @@
         "wasteCollection": "Waste Collection",
         "recyclingCenter": "Recycling center",
         "communityEvents": "Community Events",
-        "educationMaterials": "Education Materials"
+        "educationMaterials": "Education Materials",
+        "users": "Users",
+        "companies": "Companies"
       }
     },
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage your users and their information",
+    "usersFound": "{{count}} users found",
+    "exportPDF": "Export PDF",
+    "registerNewUser": "Register New User",
+    "searchPlaceholder": "Search users by name or email...",
+    "noUsersFound": "No users found",
+    "noUsersMatch": "No users match your search \"{{query}}\"",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "joinedDate": "Joined Date",
+      "action": "Actions",
+      "actions": {
+        "view": "View",
+        "edit": "Edit",
+        "delete": "Delete"
+      }
+    },
+    "modals": {
+      "success": {
+        "title": "Success",
+        "message": "Action completed successfully.",
+        "close": "Close"
+      },
+      "register": {
+        "title": "Register New User",
+        "subtitle": "Fill in the details to create a new user account",
+        "name": "Name",
+        "email": "Email Address",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "cancel": "Cancel",
+        "submit": "Register User"
+      },
+      "view": {
+        "title": "User Details",
+        "name": "Name",
+        "email": "Email",
+        "userId": "User ID",
+        "joinedDate": "Joined Date",
+        "close": "Close"
+      },
+      "edit": {
+        "title": "Edit User",
+        "subtitle": "Update user information",
+        "name": "Name",
+        "email": "Email Address",
+        "cancel": "Cancel",
+        "save": "Save Changes"
+      },
+      "delete": {
+        "title": "Delete User",
+        "message": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    },
+    "loading": "Loading users...",
+    "error": "Failed to fetch users. Please try again.",
+    "retry": "Retry",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "showing": "Showing {{start}} to {{end}} of {{total}} results"
+    }
+  },
+  "collection": {
+    "totalCollections": "Total Collections",
+    "pendingCollections": "Pending Collections",
+    "totalWasteCollected": "Total Waste Collected",
+    "upcomingCollections": "Upcoming Collections",
+    "scheduleNew": "Schedule New Collection",
+    "wasteType": "Waste Type",
+    "quantity": "Quantity",
+    "location": "Location",
+    "date": "Date",
+    "time": "Time",
+    "status": {
+      "scheduled": "Scheduled",
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
   }
 } 
