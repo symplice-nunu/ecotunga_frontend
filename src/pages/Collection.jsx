@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useRef } from 'react';
 import { getUserProfile, submitWasteCollection } from '../services/userApi';
-import { getCompanies } from '../services/companyApi';
+import { getCompanies, getCompanyById } from '../services/companyApi';
 import { useAuth } from '../contexts/AuthContext';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import wasteTruck from '../assets/eb2216243ee44e2c328a1dea4bc045e2ad26c104.jpg';
 import collection from '../assets/e682b31ec1c636f1fc957bef07cbbcd23f22fe33.png';
 import person from '../assets/07e14575ca040bb0119bc4319a1d4d8afb0ac6bd.png';
@@ -26,14 +27,44 @@ const getOptionsWithProfileValue = (options, profileValue) => {
   return options;
 };
 
+// Dummy options for selects
+const genderOptions = ['Male', 'Female', 'Other'];
+const districtOptions = [
+  'Bugesera', 'Burera', 'Gakenke', 'Gasabo', 'Gatsibo', 'Gicumbi', 'Gisagara', 'Huye', 'Kamonyi', 'Karongi',
+  'Kayonza', 'Kicukiro', 'Kirehe', 'Muhanga', 'Musanze', 'Ngoma', 'Ngororero', 'Nyabihu', 'Nyagatare',
+  'Nyamagabe', 'Nyamasheke', 'Nyanza', 'Nyarugenge', 'Nyaruguru', 'Rubavu', 'Ruhango', 'Rulindo',
+  'Rusizi', 'Rutsiro', 'Rwamagana'
+];
+const sectorOptions = [
+  'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko',
+  'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga', 'Gahanga', 'Gatenga', 'Gikondo',
+  'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Busasamana',
+  'Busoro', 'Cyabakamyi', 'Kibilizi', 'Kigoma', 'Mukingo', 'Muyira', 'Ntyazo', 'Nyagisozi', 'Rwabicuma',
+  'Gikonko', 'Gishubi', 'Kansi', 'Kibirizi', 'Kigembe', 'Mamba', 'Muganza', 'Mugombwa', 'Mukindo',
+  'Musha', 'Ndora', 'Nyanza', 'Save', 'Busanze', 'Butare', 'Gahororo', 'Gashora', 'Gikundamvura',
+  'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara',
+  'Bungwe', 'Butaro', 'Cyanika', 'Cyeru', 'Gahunga', 'Gatebe', 'Gitovu', 'Kagogo', 'Kinoni', 'Kinyababa',
+  'Kivuye', 'Nemba', 'Rugarama', 'Rugengabari', 'Ruhunde', 'Rusarabuye', 'Rwerere', 'Busengo', 'Coko',
+  'Cyabingo', 'Gakenke', 'Gashyita', 'Janja', 'Kamubuga', 'Karambo', 'Kivuruga', 'Mataba', 'Minazi',
+  'Mugunga', 'Muhondo', 'Muyongwe', 'Muzo', 'Nemba', 'Ruli', 'Rusasa', 'Rushashi'
+];
+const cellOptions = [
+  'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
+  'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka',
+  'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro',
+  'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana',
+  'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
+];
+
 export default function Collection() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState([]);
-  const [companiesLoading, setCompaniesLoading] = useState(true);
+  const [filteredCompanies, setFilteredCompanies] = useState([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+  const companiesFetchedRef = useRef(false);
   
   const [personalInfo, setPersonalInfo] = useState({
     name: '',
@@ -54,11 +85,39 @@ export default function Collection() {
     village: '',
     street: ''
   });
+  const [selectedLocation, setSelectedLocation] = useState({
+    district: '',
+    sector: '',
+    cell: ''
+  });
   const [errors, setErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
+
+  // Step 3: Book Pickup (Updated UI)
+  const [pickupDate, setPickupDate] = useState(null);
+  const [timeSlot, setTimeSlot] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedCompanyDetails, setSelectedCompanyDetails] = useState(null);
+  const [notes, setNotes] = useState('');
+  const timeSlots = [
+    '06:00 - 08:00',
+    '08:00 - 10:00', 
+    '10:00 - 12:00',
+    '12:00 - 14:00',
+    '14:00 - 16:00',
+    '16:00 - 18:00',
+    '18:00 - 20:00',
+    '20:00 - 22:00'
+  ];
+
+  // Helper to ensure select options include the profile value
+  const districtOptionsWithProfile = getOptionsWithProfileValue(districtOptions, location.district);
+  const sectorOptionsWithProfile = getOptionsWithProfileValue(sectorOptions, location.sector);
+  const cellOptionsWithProfile = getOptionsWithProfileValue(cellOptions, location.cell);
+  const genderOptionsWithProfile = getOptionsWithProfileValue(genderOptions, personalInfo.gender);
 
   // Fetch user profile on component mount
   useEffect(() => {
@@ -96,6 +155,15 @@ export default function Collection() {
         };
         console.log('Setting location data:', locationData);
         setLocation(locationData);
+        
+        // Pre-populate selected location for company filtering
+        const selectedLocationData = {
+          district: response.data.district || '',
+          sector: response.data.sector || '',
+          cell: response.data.cell || '',
+        };
+        console.log('Setting selected location data:', selectedLocationData);
+        setSelectedLocation(selectedLocationData);
       } catch (error) {
         console.error('Error fetching user profile:', error);
       } finally {
@@ -121,6 +189,8 @@ export default function Collection() {
         const response = await getCompanies();
         console.log('Companies response:', response.data);
         setCompanies(response.data);
+        setFilteredCompanies(response.data); // Initially show all companies
+        companiesFetchedRef.current = true;
       } catch (error) {
         console.error('Error fetching companies:', error);
       } finally {
@@ -128,34 +198,47 @@ export default function Collection() {
       }
     };
 
-    console.log('Collection component - companies from API:', companies);
-    if (companies.length === 0) {
+    if (!companiesFetchedRef.current) {
       fetchCompanies();
     } else {
       console.log('Companies already fetched');
     }
   }, []);
 
-  // Dummy options for selects
-  const genderOptions = ['Male', 'Female', 'Other'];
-  const districtOptions = ['Gasabo', 'Kicukiro', 'Nyarugenge'];
-  const sectorOptions = ['Remera', 'Kimironko', 'Kacyiru'];
-  const cellOptions = ['Cell 1', 'Cell 2', 'Cell 3'];
-  const villageOptions = ['Village 1', 'Village 2', 'Village 3'];
+  // Filter companies based on selected location
+  useEffect(() => {
+    if (companies.length > 0) {
+      let filtered = companies;
+      
+      if (selectedLocation.district) {
+        filtered = filtered.filter(company => 
+          company.district && company.district.toLowerCase() === selectedLocation.district.toLowerCase()
+        );
+      }
+      
+      if (selectedLocation.sector) {
+        filtered = filtered.filter(company => 
+          company.sector && company.sector.toLowerCase() === selectedLocation.sector.toLowerCase()
+        );
+      }
+      
+      if (selectedLocation.cell) {
+        filtered = filtered.filter(company => 
+          company.cell && company.cell.toLowerCase() === selectedLocation.cell.toLowerCase()
+        );
+      }
+      
+      setFilteredCompanies(filtered);
+    }
+  }, [selectedLocation, companies]);
 
-  // Step 3: Book Pickup (Updated UI)
-  const [pickupDate, setPickupDate] = useState('');
-  const [timeSlot, setTimeSlot] = useState('');
-  const [selectedCompany, setSelectedCompany] = useState('');
-  const [notes, setNotes] = useState('');
-  const pickupDates = ['2024-06-10', '2024-06-11', '2024-06-12']; // Example dates
-  const timeSlots = ['08:00 - 10:00', '10:00 - 12:00', '14:00 - 16:00'];
-
-  // Helper to ensure select options include the profile value
-  const districtOptionsWithProfile = getOptionsWithProfileValue(districtOptions, location.district);
-  const sectorOptionsWithProfile = getOptionsWithProfileValue(sectorOptions, location.sector);
-  const cellOptionsWithProfile = getOptionsWithProfileValue(cellOptions, location.cell);
-  const genderOptionsWithProfile = getOptionsWithProfileValue(genderOptions, personalInfo.gender);
+  const villageOptions = [
+    'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
+    'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka',
+    'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro',
+    'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana',
+    'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
+  ];
 
   // Stepper UI
   const Stepper = () => {
@@ -387,7 +470,11 @@ export default function Collection() {
       <select
         className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
         value={location.sector}
-        onChange={e => setLocation({ ...location, sector: e.target.value })}
+        onChange={e => {
+          setLocation({ ...location, sector: e.target.value });
+          setSelectedCompany('');
+          setSelectedCompanyDetails(null);
+        }}
       >
         <option value="">Select</option>
         {sectorOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -413,7 +500,11 @@ export default function Collection() {
       <select
         className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
         value={location.cell}
-        onChange={e => setLocation({ ...location, cell: e.target.value })}
+        onChange={e => {
+          setLocation({ ...location, cell: e.target.value });
+          setSelectedCompany('');
+          setSelectedCompanyDetails(null);
+        }}
       >
         <option value="">Select</option>
         {cellOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -472,6 +563,34 @@ export default function Collection() {
      </form>
   );
 
+  // Handle company selection
+  const handleCompanySelection = async (companyId) => {
+    setSelectedCompany(companyId);
+    
+    if (companyId) {
+      try {
+        // First try to find in filtered companies
+        const selectedCompanyId = parseInt(companyId, 10);
+        let companyData = filteredCompanies.find(company => company.id === selectedCompanyId);
+        
+        // If not found in filtered companies, try to fetch from API
+        if (!companyData) {
+          console.log('Company not found in filtered companies, fetching from API...');
+          const response = await getCompanyById(companyId);
+          companyData = response.data;
+        }
+        
+        setSelectedCompanyDetails(companyData);
+        console.log('Selected company details:', companyData);
+      } catch (error) {
+        console.error('Error fetching company details:', error);
+        setSelectedCompanyDetails(null);
+      }
+    } else {
+      setSelectedCompanyDetails(null);
+    }
+  };
+
   // Step 3: Book Pickup (Updated UI)
   const handleBookPickupSubmit = async (e) => {
     e.preventDefault();
@@ -482,7 +601,7 @@ export default function Collection() {
         ...personalInfo,
         ...location,
         company_id: selectedCompany,
-        pickup_date: pickupDate,
+        pickup_date: pickupDate ? pickupDate.toISOString().split('T')[0] : '',
         time_slot: timeSlot,
         notes,
       };
@@ -490,7 +609,7 @@ export default function Collection() {
       setBookingDetails({
         id: response.data.id,
         ...payload,
-        company: companies.find(c => c.id == selectedCompany)?.name || 'Selected Company'
+        company: companies.find(c => c.id === selectedCompany)?.name || 'Selected Company'
       });
       setSubmitSuccess(true);
       setStep(3); // Advance to payment step
@@ -506,7 +625,7 @@ export default function Collection() {
       className="bg-white rounded-xl shadow max-w-4xl mx-auto mt-6 flex flex-col items-center p-8"
       onSubmit={handleBookPickupSubmit}
     >
-        {/* COPED LTD Banner */}
+      {/* COPED LTD Banner */}
       <div className="bg-white flex flex-col md:flex-row items-center overflow-hidden">
         {/* Left: Text Content */}
         <div className="flex-1 pr-5">
@@ -517,7 +636,7 @@ export default function Collection() {
           </div>
           <div className="font-bold text-[16px] mb-2">Company for Protection of Environment and Development</div>
           <div className="text-gray-700 text-[11px] mb-3 max-w-xl">
-            A Rwandan waste management company established in 1999, specializing in the collection, transportation, treatment, and disposal of waste. It serves a broad range of clients, including homes, businesses, government and non-government organizations, industries, and medical facilities. <a href="#" className="text-blue-600 underline">Read More</a>
+            A Rwandan waste management company established in 1999, specializing in the collection, transportation, treatment, and disposal of waste. It serves a broad range of clients, including homes, businesses, government and non-government organizations, industries, and medical facilities. <button type="button" className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer">Read More</button>
           </div>
           <div className="flex text-[10px] flex-col md:flex-col gap-2 text-xs text-gray-600 mt-4">
             <div className="flex items-center gap-1">
@@ -539,119 +658,226 @@ export default function Collection() {
           <img src={wasteTruck} alt="Waste Truck" className="object-cover w-full h-full rounded-tl-[180px]" />
         </div>
       </div>
-      
       {/* Company Selection - Full Width */}
       <div className="w-full mb-8">
-        <label className="block font-semibold mb-2">Select Company</label>
-        {companiesLoading ? (
-          <div className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-500">
-            Loading companies...
+        {/* Location Selection */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between my-4">
+            <h3 className="text-lg font-semibold text-gray-800">Select Company Location</h3>
+            {userProfile && (userProfile.district || userProfile.sector || userProfile.cell) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedLocation({
+                    district: userProfile.district || '',
+                    sector: userProfile.sector || '',
+                    cell: userProfile.cell || '',
+                  });
+                  setSelectedCompany('');
+                  setSelectedCompanyDetails(null);
+                }}
+                className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+              >
+                Use My Location
+              </button>
+            )}
           </div>
-        ) : (
-          <select
-            className="w-full border rounded px-3 py-2"
-            value={selectedCompany}
-            onChange={e => setSelectedCompany(e.target.value)}
-            required
-          >
-            <option value="">Select a company</option>
-            {companies.map(company => (
-              <option key={company.id} value={company.id}>{company.name}</option>
-            ))}
-          </select>
-        )}
-        
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* District Selection */}
+            <div>
+              <label className="block font-semibold mb-2 text-sm">District</label>
+              <select
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={selectedLocation.district}
+                onChange={e => {
+                  setSelectedLocation(prev => ({
+                    ...prev,
+                    district: e.target.value,
+                    sector: '', // Reset sector when district changes
+                    cell: ''    // Reset cell when district changes
+                  }));
+                  setSelectedCompany(''); // Reset company selection
+                  setSelectedCompanyDetails(null); // Reset company details
+                }}
+              >
+                <option value="">Select District</option>
+                {districtOptions.map(district => (
+                  <option key={district} value={district}>{district}</option>
+                ))}
+              </select>
+            </div>
+            {/* Sector Selection */}
+            <div>
+              <label className="block font-semibold mb-2 text-sm">Sector</label>
+              <select
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={selectedLocation.sector}
+                onChange={e => {
+                  setSelectedLocation(prev => ({
+                    ...prev,
+                    sector: e.target.value,
+                    cell: '' // Reset cell when sector changes
+                  }));
+                  setSelectedCompany(''); // Reset company selection
+                  setSelectedCompanyDetails(null); // Reset company details
+                }}
+                disabled={!selectedLocation.district}
+              >
+                <option value="">Select Sector</option>
+                {selectedLocation.district && sectorOptions.map(sector => (
+                  <option key={sector} value={sector}>{sector}</option>
+                ))}
+              </select>
+            </div>
+            {/* Cell Selection */}
+            <div>
+              <label className="block font-semibold mb-2 text-sm">Cell</label>
+              <select
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={selectedLocation.cell}
+                onChange={e => {
+                  setSelectedLocation(prev => ({
+                    ...prev,
+                    cell: e.target.value
+                  }));
+                  setSelectedCompany(''); // Reset company selection
+                  setSelectedCompanyDetails(null); // Reset company details
+                }}
+                disabled={!selectedLocation.sector}
+              >
+                <option value="">Select Cell</option>
+                {selectedLocation.sector && cellOptions.map(cell => (
+                  <option key={cell} value={cell}>{cell}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+        {/* Company Selection */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block font-semibold">Select Company</label>
+            {(selectedLocation.district || selectedLocation.sector || selectedLocation.cell) && (
+              <span className="text-sm text-gray-600">
+                {filteredCompanies.length} company{filteredCompanies.length !== 1 ? 'ies' : 'y'} found
+              </span>
+            )}
+          </div>
+          {companiesLoading ? (
+            <div className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-500">
+              Loading companies...
+            </div>
+          ) : filteredCompanies.length === 0 ? (
+            <div className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-500">
+              {selectedLocation.district || selectedLocation.sector || selectedLocation.cell 
+                ? 'No companies found in the selected location' 
+                : 'Please select a location to see available companies'}
+            </div>
+          ) : (
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={selectedCompany}
+              onChange={e => handleCompanySelection(e.target.value)}
+              required
+            >
+              <option value="">Select a company</option>
+              {filteredCompanies.map(company => (
+                <option key={company.id} value={company.id}>{company.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
         {/* Selected Company Details */}
         {selectedCompany && !companiesLoading && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-            {(() => {
-              const selectedCompanyData = companies.find(company => company.id == selectedCompany);
-              return selectedCompanyData ? (
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    {selectedCompanyData.logo ? (
-                      <img 
-                        src={selectedCompanyData.logo} 
-                        alt={`${selectedCompanyData.name} Logo`} 
-                        className="w-12 h-12 rounded-lg object-cover border"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div 
-                      className={`w-12 h-12 rounded-lg border bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-lg ${
-                        selectedCompanyData.logo ? 'hidden' : 'flex'
-                      }`}
-                    >
-                      {selectedCompanyData.name.charAt(0).toUpperCase()}
-                    </div>
-                    <h3 className="font-semibold text-lg text-gray-800">{selectedCompanyData.name}</h3>
+            {selectedCompanyDetails ? (
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  {selectedCompanyDetails.logo ? (
+                    <img 
+                      src={selectedCompanyDetails.logo} 
+                      alt={`${selectedCompanyDetails.name} Logo`} 
+                      className="w-12 h-12 rounded-lg object-cover border"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className={`w-12 h-12 rounded-lg border bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-lg ${
+                      selectedCompanyDetails.logo ? 'hidden' : 'flex'
+                    }`}
+                  >
+                    {selectedCompanyDetails.name.charAt(0).toUpperCase()}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">📧 Email:</span>
-                        <span className="text-gray-700">{selectedCompanyData.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">📞 Phone:</span>
-                        <span className="text-gray-700">{selectedCompanyData.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">💰 Monthly Rate:</span>
-                        <span className="text-gray-700">${selectedCompanyData.amount_per_month}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">📍 District:</span>
-                        <span className="text-gray-700">{selectedCompanyData.district}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">🏢 Sector:</span>
-                        <span className="text-gray-700">{selectedCompanyData.sector}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">🏘️ Cell:</span>
-                        <span className="text-gray-700">{selectedCompanyData.cell}</span>
-                      </div>
-                    </div>
-                  </div>
-                  {selectedCompanyData.street && (
-                    <div className="mt-3 pt-3 border-t">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">🏠 Street:</span>
-                        <span className="text-gray-700">{selectedCompanyData.street}</span>
-                      </div>
-                    </div>
-                  )}
+                  <h3 className="font-semibold text-lg text-gray-800">{selectedCompanyDetails.name}</h3>
                 </div>
-              ) : (
-                <div className="text-gray-500">Company details not found</div>
-              );
-            })()}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">📧 Email:</span>
+                      <span className="text-gray-700">{selectedCompanyDetails.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">📞 Phone:</span>
+                      <span className="text-gray-700">{selectedCompanyDetails.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">💰 Monthly Rate:</span>
+                      <span className="text-gray-700">${selectedCompanyDetails.amount_per_month}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">📍 District:</span>
+                      <span className="text-gray-700">{selectedCompanyDetails.district}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">🏢 Sector:</span>
+                      <span className="text-gray-700">{selectedCompanyDetails.sector}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">🏘️ Cell:</span>
+                      <span className="text-gray-700">{selectedCompanyDetails.cell}</span>
+                    </div>
+                  </div>
+                </div>
+                {selectedCompanyDetails.street && (
+                  <div className="mt-3 pt-3 border-t">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">🏠 Street:</span>
+                      <span className="text-gray-700">{selectedCompanyDetails.street}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-gray-500">Loading company details...</div>
+            )}
           </div>
         )}
       </div>
-      
-      <div className="w-full flex flex-col md:flex-row gap-8 my-8">
+      {/* Pickup Date and Time Slot */}
+      <div className="flex w-full md:flex-row gap-8 my-8">
         {/* Pickup Date */}
-        <div className="flex-1">
+        <div>
           <label className="block font-semibold mb-2">Select Pickup Date</label>
           <div className="relative">
-            <select
-              className="w-full border rounded px-3 py-2 mb-1"
-              value={pickupDate}
-              onChange={e => setPickupDate(e.target.value)}
+            <DatePicker
+              className="w-full border rounded px-3 py-2 mb-1 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              selected={pickupDate}
+              onChange={(date) => setPickupDate(date)}
+              placeholderText="Select a date"
+              dateFormat="MMMM dd, yyyy"
+              minDate={new Date()}
+              filterDate={(date) => {
+                // Only allow weekdays (Monday to Friday)
+                const day = date.getDay();
+                return day !== 0 && day !== 6; // 0 = Sunday, 6 = Saturday
+              }}
               required
-            >
-              <option value="">Select</option>
-              {pickupDates.map(date => (
-                <option key={date} value={date}>{date}</option>
-              ))}
-            </select>
+            />
           </div>
         </div>
         {/* Time Slot */}

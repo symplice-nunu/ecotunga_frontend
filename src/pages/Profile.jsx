@@ -1,7 +1,251 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getUserProfile, updateUserProfile } from '../services/userApi';
 import { useTranslation } from 'react-i18next';
-import { User, MapPin, Save, CheckCircle, AlertCircle, Mail, Phone, Calendar, Building, Home, UserCheck } from 'lucide-react';
+import { User, MapPin, Save, CheckCircle, AlertCircle, Mail, Phone } from 'lucide-react';
+
+// Rwanda districts array
+const rwandaDistricts = [
+  'Bugesera',
+  'Burera',
+  'Gakenke',
+  'Gasabo',
+  'Gatsibo',
+  'Gicumbi',
+  'Gisagara',
+  'Huye',
+  'Kamonyi',
+  'Karongi',
+  'Kayonza',
+  'Kicukiro',
+  'Kirehe',
+  'Muhanga',
+  'Musanze',
+  'Ngoma',
+  'Ngororero',
+  'Nyabihu',
+  'Nyagatare',
+  'Nyamagabe',
+  'Nyamasheke',
+  'Nyanza',
+  'Nyarugenge',
+  'Nyaruguru',
+  'Rubavu',
+  'Ruhango',
+  'Rulindo',
+  'Rusizi',
+  'Rutsiro',
+  'Rwamagana'
+];
+
+// Rwanda sectors array
+const rwandaSectors = [
+  'Bumbogo',
+  'Gatsata',
+  'Gikomero',
+  'Gisozi',
+  'Jabana',
+  'Jali',
+  'Kacyiru',
+  'Kimihurura',
+  'Kimironko',
+  'Kinyinya',
+  'Ndera',
+  'Nduba',
+  'Remera',
+  'Rusororo',
+  'Rutunga',
+  'Gahanga',
+  'Gatenga',
+  'Gikondo',
+  'Kagarama',
+  'Kanombe',
+  'Kicukiro',
+  'Kigarama',
+  'Masaka',
+  'Niboye',
+  'Nyarugunga',
+  'Busasamana',
+  'Busoro',
+  'Cyabakamyi',
+  'Kibilizi',
+  'Kigoma',
+  'Mukingo',
+  'Muyira',
+  'Ntyazo',
+  'Nyagisozi',
+  'Rwabicuma',
+  'Gikonko',
+  'Gishubi',
+  'Kansi',
+  'Kibirizi',
+  'Kigembe',
+  'Mamba',
+  'Muganza',
+  'Mugombwa',
+  'Mukindo',
+  'Musha',
+  'Ndora',
+  'Nyanza',
+  'Save',
+  'Busanze',
+  'Butare',
+  'Gahororo',
+  'Gashora',
+  'Gikundamvura',
+  'Kigembe',
+  'Mareba',
+  'Mayange',
+  'Musenyi',
+  'Mwogo',
+  'Ngeruka',
+  'Ntarama',
+  'Ruhuha',
+  'Rweru',
+  'Shyara',
+  'Bungwe',
+  'Butaro',
+  'Cyanika',
+  'Cyeru',
+  'Gahunga',
+  'Gatebe',
+  'Gitovu',
+  'Kagogo',
+  'Kinoni',
+  'Kinyababa',
+  'Kivuye',
+  'Nemba',
+  'Rugarama',
+  'Rugengabari',
+  'Ruhunde',
+  'Rusarabuye',
+  'Rwerere',
+  'Busengo',
+  'Coko',
+  'Cyabingo',
+  'Gakenke',
+  'Gashyita',
+  'Janja',
+  'Kamubuga',
+  'Karambo',
+  'Kivuruga',
+  'Mataba',
+  'Minazi',
+  'Mugunga',
+  'Muhondo',
+  'Muyongwe',
+  'Muzo',
+  'Nemba',
+  'Ruli',
+  'Rusasa',
+  'Rushashi',
+  'Bumbogo',
+  'Gatsata',
+  'Gikomero',
+  'Gisozi',
+  'Jabana',
+  'Jali',
+  'Kacyiru',
+  'Kimihurura',
+  'Kimironko',
+  'Kinyinya',
+  'Ndera',
+  'Nduba',
+  'Remera',
+  'Rusororo',
+  'Rutunga',
+  'Gahanga',
+  'Gatenga',
+  'Gikondo',
+  'Kagarama',
+  'Kanombe',
+  'Kicukiro',
+  'Kigarama',
+  'Masaka',
+  'Niboye',
+  'Nyarugunga',
+  'Busasamana',
+  'Busoro',
+  'Cyabakamyi',
+  'Kibilizi',
+  'Kigoma',
+  'Mukingo',
+  'Muyira',
+  'Ntyazo',
+  'Nyagisozi',
+  'Rwabicuma',
+  'Gikonko',
+  'Gishubi',
+  'Kansi',
+  'Kibirizi',
+  'Kigembe',
+  'Mamba',
+  'Muganza',
+  'Mugombwa',
+  'Mukindo',
+  'Musha',
+  'Ndora',
+  'Nyanza',
+  'Save',
+  'Busanze',
+  'Butare',
+  'Gahororo',
+  'Gashora',
+  'Gikundamvura',
+  'Kigembe',
+  'Mareba',
+  'Mayange',
+  'Musenyi',
+  'Mwogo',
+  'Ngeruka',
+  'Ntarama',
+  'Ruhuha',
+  'Rweru',
+  'Shyara',
+  'Bungwe',
+  'Butaro',
+  'Cyanika',
+  'Cyeru',
+  'Gahunga',
+  'Gatebe',
+  'Gitovu',
+  'Kagogo',
+  'Kinoni',
+  'Kinyababa',
+  'Kivuye',
+  'Nemba',
+  'Rugarama',
+  'Rugengabari',
+  'Ruhunde',
+  'Rusarabuye',
+  'Rwerere',
+  'Busengo',
+  'Coko',
+  'Cyabingo',
+  'Gakenke',
+  'Gashyita',
+  'Janja',
+  'Kamubuga',
+  'Karambo',
+  'Kivuruga',
+  'Mataba',
+  'Minazi',
+  'Mugunga',
+  'Muhondo',
+  'Muyongwe',
+  'Muzo',
+  'Nemba',
+  'Ruli',
+  'Rusasa',
+  'Rushashi'
+];
+
+// Rwanda cells array (sample)
+const rwandaCells = [
+  'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nyagatovu', 'Remera',
+  'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga',
+  'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga',
+  'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
+];
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -21,11 +265,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getUserProfile();
@@ -36,7 +276,11 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -242,11 +486,11 @@ const Profile = () => {
                       onChange={handleInputChange}
                       className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
                     >
-                      <option value="">{t('profile.selectCategory')}</option>
-                      <option value="Category 1">{t('profile.category1')}</option>
-                      <option value="Category 2">{t('profile.category2')}</option>
-                      <option value="Category 3">{t('profile.category3')}</option>
-                      <option value="Category 4">{t('profile.category4')}</option>
+                      <option value="">Select</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
                     </select>
                   </div>
                 </div>
@@ -266,45 +510,54 @@ const Profile = () => {
                     <label htmlFor="district" className="block text-sm font-semibold text-gray-700 mb-2">
                       {t('profile.district')}
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="district"
                       name="district"
                       value={profile.district || ''}
                       onChange={handleInputChange}
-                      placeholder={t('profile.districtPlaceholder')}
                       className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    />
+                    >
+                      <option value="">Select</option>
+                      {rwandaDistricts.map((district) => (
+                        <option key={district} value={district}>{district}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div>
                     <label htmlFor="sector" className="block text-sm font-semibold text-gray-700 mb-2">
                       {t('profile.sector')}
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="sector"
                       name="sector"
                       value={profile.sector || ''}
                       onChange={handleInputChange}
-                      placeholder={t('profile.sectorPlaceholder')}
                       className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    />
+                    >
+                      <option value="">Select</option>
+                      {rwandaSectors.map((sector) => (
+                        <option key={sector} value={sector}>{sector}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div>
                     <label htmlFor="cell" className="block text-sm font-semibold text-gray-700 mb-2">
                       {t('profile.cell')}
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="cell"
                       name="cell"
                       value={profile.cell || ''}
                       onChange={handleInputChange}
-                      placeholder={t('profile.cellPlaceholder')}
                       className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    />
+                    >
+                      <option value="">Select</option>
+                      {rwandaCells.map((cell) => (
+                        <option key={cell} value={cell}>{cell}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div>

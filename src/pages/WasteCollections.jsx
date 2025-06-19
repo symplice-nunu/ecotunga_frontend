@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { getUserWasteCollections } from '../services/userApi';
 import { useAuth } from '../contexts/AuthContext';
 import collection from '../assets/e682b31ec1c636f1fc957bef07cbbcd23f22fe33.png';
-import { Calendar, MapPin, Clock, User, Building, FileText, CheckCircle, AlertCircle, Clock as ClockIcon, XCircle, Filter } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, FileText, CheckCircle, AlertCircle, Clock as ClockIcon, XCircle, Filter } from 'lucide-react';
 
 export default function WasteCollections() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);

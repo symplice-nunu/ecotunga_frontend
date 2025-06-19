@@ -1,6 +1,108 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+// Rwanda districts array
+const rwandaDistricts = [
+  'Bugesera',
+  'Burera',
+  'Gakenke',
+  'Gasabo',
+  'Gatsibo',
+  'Gicumbi',
+  'Gisagara',
+  'Huye',
+  'Kamonyi',
+  'Karongi',
+  'Kayonza',
+  'Kicukiro',
+  'Kirehe',
+  'Muhanga',
+  'Musanze',
+  'Ngoma',
+  'Ngororero',
+  'Nyabihu',
+  'Nyagatare',
+  'Nyamagabe',
+  'Nyamasheke',
+  'Nyanza',
+  'Nyarugenge',
+  'Nyaruguru',
+  'Rubavu',
+  'Ruhango',
+  'Rulindo',
+  'Rusizi',
+  'Rutsiro',
+  'Rwamagana'
+];
+
+// Rwanda sectors array
+const rwandaSectors = [
+  'Bumbogo',
+  'Gatsata',
+  'Gikomero',
+  'Gisozi',
+  'Jabana',
+  'Jali',
+  'Kacyiru',
+  'Kimihurura',
+  'Kimironko',
+  'Kinyinya',
+  'Ndera',
+  'Nduba',
+  'Remera',
+  'Rusororo',
+  'Rutunga',
+  'Gahanga',
+  'Gatenga',
+  'Gikondo',
+  'Kagarama',
+  'Kanombe',
+  'Kicukiro',
+  'Kigarama',
+  'Masaka',
+  'Niboye',
+  'Nyarugunga',
+  'Busasamana',
+  'Busoro',
+  'Cyabakamyi',
+  'Kibilizi',
+  'Kigoma',
+  'Mukingo',
+  'Muyira',
+  'Ntyazo',
+  'Nyagisozi',
+  'Rwabicuma',
+  'Gikonko',
+  'Gishubi',
+  'Kansi',
+  'Kibirizi',
+  'Kigembe',
+  'Mamba',
+  'Muganza',
+  'Mugombwa',
+  'Mukindo',
+  'Musha',
+  'Ndora',
+  'Nyanza',
+  'Save'
+];
+
+// Rwanda cells array (sample)
+const rwandaCells = [
+  'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nyagatovu', 'Remera',
+  'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga',
+  'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga',
+  'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
+];
+
+// Rwanda villages array (sample)
+const rwandaVillages = [
+  'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nyagatovu', 'Remera',
+  'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga',
+  'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga',
+  'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
+];
+
 const CompanyRegistration = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -186,64 +288,84 @@ const CompanyRegistration = () => {
                   <label htmlFor="district" className="block text-sm font-semibold text-gray-700">
                     District
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="district"
                     id="district"
                     required
                     value={formData.district}
                     onChange={handleChange}
                     className="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"
-                    placeholder="Enter district"
-                  />
+                  >
+                    <option value="">Select district</option>
+                    {rwandaDistricts.map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="transform transition-all duration-300 hover:scale-[1.02]">
                   <label htmlFor="sector" className="block text-sm font-semibold text-gray-700">
                     Sector
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="sector"
                     id="sector"
                     required
                     value={formData.sector}
                     onChange={handleChange}
                     className="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"
-                    placeholder="Enter sector"
-                  />
+                  >
+                    <option value="">Select sector</option>
+                    {rwandaSectors.map((sector) => (
+                      <option key={sector} value={sector}>
+                        {sector}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="transform transition-all duration-300 hover:scale-[1.02]">
                   <label htmlFor="cell" className="block text-sm font-semibold text-gray-700">
                     Cell
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="cell"
                     id="cell"
                     required
                     value={formData.cell}
                     onChange={handleChange}
                     className="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"
-                    placeholder="Enter cell"
-                  />
+                  >
+                    <option value="">Select cell</option>
+                    {rwandaCells.map((cell) => (
+                      <option key={cell} value={cell}>
+                        {cell}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="transform transition-all duration-300 hover:scale-[1.02]">
                   <label htmlFor="village" className="block text-sm font-semibold text-gray-700">
                     Village
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="village"
                     id="village"
                     required
                     value={formData.village}
                     onChange={handleChange}
                     className="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"
-                    placeholder="Enter village"
-                  />
+                  >
+                    <option value="">Select village</option>
+                    {rwandaVillages.map((village) => (
+                      <option key={village} value={village}>
+                        {village}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="transform transition-all duration-300 hover:scale-[1.02]">

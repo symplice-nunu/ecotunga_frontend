@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { getAllWasteCollections, approveWasteCollection, denyWasteCollection } from '../services/userApi';
 import { useAuth } from '../contexts/AuthContext';
-import { Calendar, MapPin, Clock, User, Building, FileText, CheckCircle, AlertCircle, XCircle, Eye, Check, X, Filter } from 'lucide-react';
+import { MapPin, Clock, User, FileText, CheckCircle, AlertCircle, XCircle, Check, X, Filter } from 'lucide-react';
 
 export default function AdminWasteCollections() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const [collections, setCollections] = useState([]);
   const [filteredCollections, setFilteredCollections] = useState([]);

@@ -12,4 +12,6 @@ companyAPI.interceptors.request.use((config) => {
 
 export const getCompanies = () => companyAPI.get('/');
 
+export const getCompanyById = (id) => companyAPI.get(`/${id}`);
+
 export default companyAPI; 
