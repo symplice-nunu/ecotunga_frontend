@@ -22,9 +22,9 @@ export default function AdminWasteCollections() {
         setLoading(true);
         setError('');
         const response = await wasteCollectionApi.getWasteCollectionsByCompany();
-        // The new API returns the data directly as an array
-        setCollections(response.data || response);
-        setFilteredCollections(response.data || response);
+        // The wasteCollectionApi returns data directly, not wrapped in a data property
+        setCollections(response || []);
+        setFilteredCollections(response || []);
       } catch (err) {
         setError('Failed to load waste collections');
         console.error('Error fetching collections:', err);
@@ -97,7 +97,7 @@ export default function AdminWasteCollections() {
 
       // Refresh the collections list
       const response = await wasteCollectionApi.getWasteCollectionsByCompany();
-      setCollections(response.data || response);
+      setCollections(response || []);
       
       setShowModal(false);
       setSelectedCollection(null);

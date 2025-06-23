@@ -87,6 +87,11 @@
   },
   "home": {
     "dashboard": "Dashboard",
+    "bookCollection": {
+      "title": "Book Waste Collection",
+      "description": "Schedule a pickup for your waste and contribute to a cleaner environment.",
+      "button": "Book Collection"
+    },
     "stats": {
       "users": "Users",
       "totalAmount": "Total Amount",

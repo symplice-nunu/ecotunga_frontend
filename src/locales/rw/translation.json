@@ -115,6 +115,11 @@
   },
   "home": {
     "dashboard": "Ikibaho",
+    "bookCollection": {
+      "title": "Andika gusura imyanda",
+      "description": "Shyira gahunda yo gusura imyanda yawe ya gusubiramo gukoreshwa kandi utange igirakamaro ku isi yoroshye.",
+      "button": "Andika gusura"
+    },
     "stats": {
       "users": "Abakoresha",
       "totalAmount": "Amafaranga yose",

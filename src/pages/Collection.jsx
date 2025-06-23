@@ -89,7 +89,7 @@ export default function Collection() {
     sector: '',
     cell: ''
   });
-  const [setErrors] = useState({});
+  const [errors, setErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -116,7 +116,7 @@ export default function Collection() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [setPaymentDetails] = useState(null);
+  const [paymentDetails, setPaymentDetails] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [recipientPhone] = useState('0785847049');
 

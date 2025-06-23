@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { getUserProfile, updateUserProfile } from '../services/userApi';
 import { useTranslation } from 'react-i18next';
 import { User, MapPin, Save, CheckCircle, AlertCircle, Mail, Phone } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import API from '../services/api';
 
 // Rwanda districts array
 const rwandaDistricts = [
@@ -249,6 +251,7 @@ const rwandaCells = [
 
 const Profile = () => {
   const { t } = useTranslation();
+  const { user: authUser } = useAuth();
   const [profile, setProfile] = useState({
     name: '',
     email: '',
@@ -259,24 +262,82 @@ const Profile = () => {
     district: '',
     sector: '',
     cell: '',
-    street: ''
+    street: '',
+    company_name: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  // Helper function to determine if a field should be hidden based on user role
+  const shouldHideField = (fieldName) => {
+    const userRole = authUser?.role;
+    
+    if (userRole === 'waste_collector' || userRole === 'recycling_center') {
+      // Hide these fields for waste_collector and recycling_center roles
+      const hiddenFields = ['name', 'last_name', 'gender', 'ubudehe_category'];
+      return hiddenFields.includes(fieldName);
+    }
+    
+    if (userRole === 'admin') {
+      // Hide these fields for admin role
+      const hiddenFields = ['ubudehe_category', 'street', 'sector', 'cell', 'district'];
+      return hiddenFields.includes(fieldName);
+    }
+    
+    return false;
+  };
+
+  // Helper function to determine if we should use company profile
+  const shouldUseCompanyProfile = () => {
+    const userRole = authUser?.role;
+    return userRole === 'waste_collector' || userRole === 'recycling_center';
+  };
+
+  // Helper function to get the appropriate section title
+  const getSectionTitle = () => {
+    const userRole = authUser?.role;
+    if (userRole === 'waste_collector' || userRole === 'recycling_center') {
+      return 'Company Information';
+    }
+    return t('profile.personalInfo');
+  };
+
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getUserProfile();
-      setProfile(response.data);
+      
+      if (shouldUseCompanyProfile()) {
+        // Fetch company profile for waste collectors and recycling centers
+        const response = await API.get('/companies/profile/me');
+        const companyData = response.data;
+        
+        // Map company data to profile format
+        setProfile({
+          name: companyData.name || '',
+          email: companyData.email || '',
+          last_name: companyData.last_name || '',
+          gender: companyData.gender || '',
+          phone_number: companyData.phone || '',
+          ubudehe_category: companyData.ubudehe_category || '',
+          district: companyData.district || '',
+          sector: companyData.sector || '',
+          cell: companyData.cell || '',
+          street: companyData.street || '',
+          company_name: companyData.company_name || companyData.name || ''
+        });
+      } else {
+        // Fetch user profile for regular users and admins
+        const response = await getUserProfile();
+        setProfile(response.data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       setMessage({ type: 'error', text: t('profile.fetchError') });
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, authUser?.role]);
 
   useEffect(() => {
     fetchProfile();
@@ -296,9 +357,28 @@ const Profile = () => {
       setSaving(true);
       setMessage({ type: '', text: '' });
       
-      const response = await updateUserProfile(profile);
-      setProfile(response.data);
-      setMessage({ type: 'success', text: t('profile.updateSuccess') });
+      if (shouldUseCompanyProfile()) {
+        // Update company profile for waste collectors and recycling centers
+        const companyData = {
+          phone: profile.phone_number,
+          district: profile.district,
+          sector: profile.sector,
+          cell: profile.cell,
+          street: profile.street,
+          ubudehe_category: profile.ubudehe_category,
+          gender: profile.gender,
+          last_name: profile.last_name,
+          company_name: profile.company_name
+        };
+        
+        const response = await API.put('/companies/profile/me', companyData);
+        setMessage({ type: 'success', text: 'Company profile updated successfully' });
+      } else {
+        // Update user profile for regular users and admins
+        const response = await updateUserProfile(profile);
+        setProfile(response.data);
+        setMessage({ type: 'success', text: t('profile.updateSuccess') });
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       const errorMessage = error.response?.data?.message || t('profile.updateError');
@@ -381,48 +461,72 @@ const Profile = () => {
         {/* Profile Form */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <form onSubmit={handleSubmit} className="p-4 sm:p-6 lg:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+            <div className={`${(authUser?.role === 'user' || authUser?.role === 'waste_collector' || authUser?.role === 'recycling_center') ? 'grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8' : 'space-y-6 sm:space-y-8'} mb-6 sm:mb-8`}>
               {/* Personal Information */}
               <div className="space-y-4 sm:space-y-6">
                 <div className="flex items-center gap-3 mb-4 sm:mb-6">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-800">{t('profile.personalInfo')}</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-800">{getSectionTitle()}</h3>
                 </div>
                 
                 <div className="space-y-4">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {t('profile.firstName')} *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={profile.name || ''}
-                      onChange={handleInputChange}
-                      required
-                      placeholder={t('profile.firstNamePlaceholder')}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    />
-                  </div>
+                  {/* Company Name field for waste_collector and recycling_center */}
+                  {(authUser?.role === 'waste_collector' || authUser?.role === 'recycling_center') && (
+                    <div>
+                      <label htmlFor="company_name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Company Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="company_name"
+                        name="company_name"
+                        value={profile.company_name || ''}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Enter company name"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                      />
+                    </div>
+                  )}
+
+                  {!shouldHideField('name') && (
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {t('profile.firstName')} *
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={profile.name || ''}
+                        onChange={handleInputChange}
+                        required
+                        placeholder={t('profile.firstNamePlaceholder')}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                      />
+                    </div>
+                  )}
                   
-                  <div>
-                    <label htmlFor="last_name" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.lastName')}
-                    </label>
-                    <input
-                      type="text"
-                      id="last_name"
-                      name="last_name"
-                      value={profile.last_name || ''}
-                      onChange={handleInputChange}
-                      placeholder={t('profile.lastNamePlaceholder')}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    />
-                  </div>
+                  {!shouldHideField('last_name') && (
+                    <div>
+                      <label htmlFor="last_name" className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t('profile.lastName')}
+                      </label>
+                      <input
+                        type="text"
+                        id="last_name"
+                        name="last_name"
+                        value={profile.last_name || ''}
+                        onChange={handleInputChange}
+                        placeholder={t('profile.lastNamePlaceholder')}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                      />
+                    </div>
+                  )}
                   
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -457,125 +561,139 @@ const Profile = () => {
                     />
                   </div>
                   
-                  <div>
-                    <label htmlFor="gender" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.gender')}
-                    </label>
-                    <select
-                      id="gender"
-                      name="gender"
-                      value={profile.gender || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    >
-                      <option value="">{t('profile.selectGender')}</option>
-                      <option value="Male">{t('profile.male')}</option>
-                      <option value="Female">{t('profile.female')}</option>
-                      <option value="Other">{t('profile.other')}</option>
-                    </select>
-                  </div>
+                  {!shouldHideField('gender') && (
+                    <div>
+                      <label htmlFor="gender" className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t('profile.gender')}
+                      </label>
+                      <select
+                        id="gender"
+                        name="gender"
+                        value={profile.gender || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                      >
+                        <option value="">{t('profile.selectGender')}</option>
+                        <option value="Male">{t('profile.male')}</option>
+                        <option value="Female">{t('profile.female')}</option>
+                        <option value="Other">{t('profile.other')}</option>
+                      </select>
+                    </div>
+                  )}
                   
-                  <div>
-                    <label htmlFor="ubudehe_category" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.ubudeheCategory')}
-                    </label>
-                    <select
-                      id="ubudehe_category"
-                      name="ubudehe_category"
-                      value={profile.ubudehe_category || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    >
-                      <option value="">Select</option>
-                      <option value="A">A</option>
-                      <option value="B">B</option>
-                      <option value="C">C</option>
-                      <option value="D">D</option>
-                    </select>
-                  </div>
+                  {!shouldHideField('ubudehe_category') && (
+                    <div>
+                      <label htmlFor="ubudehe_category" className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t('profile.ubudeheCategory')}
+                      </label>
+                      <select
+                        id="ubudehe_category"
+                        name="ubudehe_category"
+                        value={profile.ubudehe_category || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                      >
+                        <option value="">Select</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Location Information */}
-              <div className="space-y-4 sm:space-y-6">
-                <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+              {(authUser?.role === 'user' || authUser?.role === 'waste_collector' || authUser?.role === 'recycling_center') && (
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800">{t('profile.locationInfo')}</h3>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-800">{t('profile.locationInfo')}</h3>
+                  
+                  <div className="space-y-4">
+                    {!shouldHideField('district') && (
+                      <div>
+                        <label htmlFor="district" className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('profile.district')}
+                        </label>
+                        <select
+                          id="district"
+                          name="district"
+                          value={profile.district || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                        >
+                          <option value="">Select</option>
+                          {rwandaDistricts.map((district) => (
+                            <option key={district} value={district}>{district}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    
+                    {!shouldHideField('sector') && (
+                      <div>
+                        <label htmlFor="sector" className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('profile.sector')}
+                        </label>
+                        <select
+                          id="sector"
+                          name="sector"
+                          value={profile.sector || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                        >
+                          <option value="">Select</option>
+                          {rwandaSectors.map((sector) => (
+                            <option key={sector} value={sector}>{sector}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    
+                    {!shouldHideField('cell') && (
+                      <div>
+                        <label htmlFor="cell" className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('profile.cell')}
+                        </label>
+                        <select
+                          id="cell"
+                          name="cell"
+                          value={profile.cell || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                        >
+                          <option value="">Select</option>
+                          {rwandaCells.map((cell) => (
+                            <option key={cell} value={cell}>{cell}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    
+                    {!shouldHideField('street') && (
+                      <div>
+                        <label htmlFor="street" className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('profile.street')}
+                        </label>
+                        <input
+                          type="text"
+                          id="street"
+                          name="street"
+                          value={profile.street || ''}
+                          onChange={handleInputChange}
+                          placeholder={t('profile.streetPlaceholder')}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="district" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.district')}
-                    </label>
-                    <select
-                      id="district"
-                      name="district"
-                      value={profile.district || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    >
-                      <option value="">Select</option>
-                      {rwandaDistricts.map((district) => (
-                        <option key={district} value={district}>{district}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="sector" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.sector')}
-                    </label>
-                    <select
-                      id="sector"
-                      name="sector"
-                      value={profile.sector || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    >
-                      <option value="">Select</option>
-                      {rwandaSectors.map((sector) => (
-                        <option key={sector} value={sector}>{sector}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="cell" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.cell')}
-                    </label>
-                    <select
-                      id="cell"
-                      name="cell"
-                      value={profile.cell || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    >
-                      <option value="">Select</option>
-                      {rwandaCells.map((cell) => (
-                        <option key={cell} value={cell}>{cell}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="street" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.street')}
-                    </label>
-                    <input
-                      type="text"
-                      id="street"
-                      name="street"
-                      value={profile.street || ''}
-                      onChange={handleInputChange}
-                      placeholder={t('profile.streetPlaceholder')}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
-                    />
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Save Button */}

@@ -1,10 +1,11 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle } from 'lucide-react';
+import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserWasteCollections, getDashboardStats } from '../services/userApi';
+import { getDashboardStats } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
+import { Link } from 'react-router-dom';
 
 // Function to transform waste collection data into activities (moved outside component)
 const transformCollectionsToActivities = (collectionsData, t) => {
@@ -93,7 +94,7 @@ export default function Home() {
           response = await wasteCollectionApi.getWasteCollectionsByCompany();
         } else {
           // For regular users and others, get their own collections
-          response = await getUserWasteCollections();
+          response = await wasteCollectionApi.getUserWasteCollections();
         }
         
         // The API returns data directly, not wrapped in a data property
@@ -131,7 +132,7 @@ export default function Home() {
           response = await wasteCollectionApi.getWasteCollectionsByCompany();
         } else {
           // For regular users, get their own collections
-          response = await getUserWasteCollections();
+          response = await wasteCollectionApi.getUserWasteCollections();
         }
         
         console.log('Collections response for next pickup:', response);
@@ -669,219 +670,255 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Chart & Activity */}
         <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
-          {/* Bar Chart */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-              <h2 className="text-lg font-semibold text-gray-900">{t('home.wasteCollection.title')}</h2>
-              <div className="flex items-center gap-4 text-xs">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded bg-teal-400"></span>
-                  {t('home.wasteCollection.thisPeriod')}
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded bg-amber-200"></span>
-                  {t('home.wasteCollection.lastPeriod')}
-                </span>
+          {/* Book Waste Collection Button - Only show for users with role 'user' */}
+          {user?.role === 'user' && (
+            <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-white mb-2">{t('home.bookCollection.title')}</h2>
+                  <p className="text-teal-100 text-sm mb-4">
+                    {t('home.bookCollection.description')}
+                  </p>
+                  <Link
+                    to="/collection"
+                    className="inline-flex items-center gap-2 bg-white text-teal-600 px-6 py-3 rounded-lg font-semibold hover:bg-teal-50 transition-colors duration-200 shadow-sm"
+                  >
+                    <Plus className="w-5 h-5" />
+                    {t('home.bookCollection.button')}
+                  </Link>
+                </div>
+                <div className="hidden sm:block">
+                  <Truck className="w-16 h-16 text-teal-200" />
+                </div>
               </div>
             </div>
-            {/* Bar Chart Representation */}
-            <div className="flex items-end gap-2 sm:gap-4 h-32 sm:h-48 overflow-x-auto">
-              {wasteData.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
-                  <div className="flex items-end gap-1 h-24 sm:h-40">
-                    <div
-                      className="w-4 sm:w-6 rounded-t bg-teal-400"
-                      style={{ height: `${(item.thisPeriod / 100) * 96}px` }}
-                    ></div>
-                    <div
-                      className="w-4 sm:w-6 rounded-t bg-amber-200"
-                      style={{ height: `${(item.lastPeriod / 100) * 96}px` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-500 mt-2 text-center truncate w-full">{item.month}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
-          {/* Recent Activity */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">{t('home.recentActivity.title')}</h2>
-            </div>
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+          {/* Bar Chart - Only show for admin users */}
+          {user?.role === 'admin' && (
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">{t('home.wasteCollection.title')}</h2>
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-3 h-3 rounded bg-teal-400"></span>
+                    {t('home.wasteCollection.thisPeriod')}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-3 h-3 rounded bg-amber-200"></span>
+                    {t('home.wasteCollection.lastPeriod')}
+                  </span>
+                </div>
+              </div>
+              {/* Bar Chart Representation */}
+              <div className="flex items-end gap-2 sm:gap-4 h-32 sm:h-48 overflow-x-auto">
+                {wasteData.map((item, idx) => (
+                  <div key={idx} className="flex flex-col items-center min-w-[60px] sm:min-w-[80px]">
+                    <div className="flex items-end gap-1 h-24 sm:h-40">
+                      <div
+                        className="w-4 sm:w-6 rounded-t bg-teal-400"
+                        style={{ height: `${(item.thisPeriod / 100) * 96}px` }}
+                      ></div>
+                      <div
+                        className="w-4 sm:w-6 rounded-t bg-amber-200"
+                        style={{ height: `${(item.lastPeriod / 100) * 96}px` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-gray-500 mt-2 text-center truncate w-full">{item.month}</span>
                   </div>
                 ))}
               </div>
-            ) : activities.length > 0 ? (
-              <ul className="divide-y divide-gray-100">
-                {activities.map((activity, idx) => (
-                  <li key={idx} className="py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                    <span className="text-sm sm:text-base">
-                      {activity.link ? (
-                        <button onClick={() => {}} className="text-teal-600 hover:underline font-medium">
-                          {activity.label}
-                        </button>
-                      ) : (
-                        <span className="text-gray-700">{activity.label}</span>
-                      )}
-                    </span>
-                    <span className="text-xs text-gray-400">{activity.date}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-8">
-                <div className="text-gray-400 mb-2">
-                  <FileText className="w-12 h-12 mx-auto" />
-                </div>
-                <p className="text-sm text-gray-500">No recent activities</p>
-                <p className="text-xs text-gray-400 mt-1">Your waste collection activities will appear here</p>
+            </div>
+          )}
+
+          {/* Recent Activity - Only show for users with role 'user' or 'waste_collector' */}
+          {(user?.role === 'user' || user?.role === 'waste_collector') && (
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">{t('home.recentActivity.title')}</h2>
               </div>
-            )}
-          </div>
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : activities.length > 0 ? (
+                <ul className="divide-y divide-gray-100">
+                  {activities.map((activity, idx) => (
+                    <li key={idx} className="py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                      <span className="text-sm sm:text-base">
+                        {activity.link ? (
+                          <button onClick={() => {}} className="text-teal-600 hover:underline font-medium">
+                            {activity.label}
+                          </button>
+                        ) : (
+                          <span className="text-gray-700">{activity.label}</span>
+                        )}
+                      </span>
+                      <span className="text-xs text-gray-400">{activity.date}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-2">
+                    <FileText className="w-12 h-12 mx-auto" />
+                  </div>
+                  <p className="text-sm text-gray-500">No recent activities</p>
+                  <p className="text-xs text-gray-400 mt-1">Your waste collection activities will appear here</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar: Next Pickup, Drop-off, Events */}
         <div className="flex flex-col gap-4 sm:gap-6">
-          {/* Next Waste Pickup */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.nextPickup.title')}</h3>
-            {pickupLoading ? (
-              <div className="space-y-3">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                </div>
-              </div>
-            ) : pickupError ? (
-              <div className="text-sm text-red-600">{pickupError}</div>
-            ) : nextPickup && nextPickup.hasUpcoming ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-teal-600" />
+          {/* Next Waste Pickup - Only show for users with role 'user' or 'waste_collector' */}
+          {(user?.role === 'user' || user?.role === 'waste_collector') && (
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.nextPickup.title')}</h3>
+              {pickupLoading ? (
+                <div className="space-y-3">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.date}</p>
-                    <p className="text-xs text-gray-500">{nextPickup.pickup.time}</p>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.location}</p>
-                    <p className="text-xs text-gray-500">
-                      {nextPickup.pickup.sector && nextPickup.pickup.district 
-                        ? `${nextPickup.pickup.sector}, ${nextPickup.pickup.district}`
-                        : t('home.nextPickup.location')
-                      }
-                    </p>
-                  </div>
-                </div>
-                {nextPickup.pickup.company && (
+              ) : pickupError ? (
+                <div className="text-sm text-red-600">{pickupError}</div>
+              ) : nextPickup && nextPickup.hasUpcoming ? (
+                <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Truck className="w-4 h-4 text-green-600" />
+                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-teal-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.company}</p>
-                      <p className="text-xs text-gray-500">Collection Company</p>
+                      <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.date}</p>
+                      <p className="text-xs text-gray-500">{nextPickup.pickup.time}</p>
                     </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-sm text-gray-500">
-                {nextPickup?.message || 'No upcoming waste pickup scheduled'}
-              </div>
-            )}
-          </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.location}</p>
+                      <p className="text-xs text-gray-500">
+                        {nextPickup.pickup.sector && nextPickup.pickup.district 
+                          ? `${nextPickup.pickup.sector}, ${nextPickup.pickup.district}`
+                          : t('home.nextPickup.location')
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  {nextPickup.pickup.company && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Truck className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.company}</p>
+                        <p className="text-xs text-gray-500">Collection Company</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">
+                  {nextPickup?.message || 'No upcoming waste pickup scheduled'}
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Next Drop-off */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.nextDropoff.title')}</h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <MapPin className="w-4 h-4 text-green-600" />
+          {/* Next Drop-off - Only show for regular users */}
+          {user?.role === 'user' && (
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.nextDropoff.title')}</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{nextDropoff.location}</p>
+                    <p className="text-xs text-gray-500">{t('home.nextDropoff.location')}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{nextDropoff.location}</p>
-                  <p className="text-xs text-gray-500">{t('home.nextDropoff.location')}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{nextDropoff.date}</p>
-                  <p className="text-xs text-gray-500">{nextDropoff.time}</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{nextDropoff.date}</p>
+                    <p className="text-xs text-gray-500">{nextDropoff.time}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Upcoming Events */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.events.title')}</h3>
-            <div className="space-y-3">
-              {events.map((event, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    event.color === 'green' ? 'bg-green-100' :
-                    event.color === 'orange' ? 'bg-orange-100' :
-                    'bg-red-100'
-                  }`}>
-                    <div className={`${
-                      event.color === 'green' ? 'text-green-600' :
-                      event.color === 'orange' ? 'text-orange-600' :
-                      'text-red-600'
+          {/* Upcoming Events - Only show for regular users */}
+          {user?.role === 'user' && (
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.events.title')}</h3>
+              <div className="space-y-3">
+                {events.map((event, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      event.color === 'green' ? 'bg-green-100' :
+                      event.color === 'orange' ? 'bg-orange-100' :
+                      'bg-red-100'
                     }`}>
-                      {event.icon}
+                      <div className={`${
+                        event.color === 'green' ? 'text-green-600' :
+                        event.color === 'orange' ? 'text-orange-600' :
+                        'text-red-600'
+                      }`}>
+                        {event.icon}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
+                      <p className="text-xs text-gray-500">{event.date}</p>
+                      <p className="text-xs text-gray-500 truncate">{event.location}</p>
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
-                    <p className="text-xs text-gray-500">{event.date}</p>
-                    <p className="text-xs text-gray-500 truncate">{event.location}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Sorting Guidelines */}
-      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('home.guidelines.title')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-          {guidelines.map((guideline, idx) => (
-            <div key={idx} className="flex items-start gap-3 p-4 rounded-lg bg-gray-50">
-              <div className="flex-shrink-0">
-                {guideline.icon}
+      {/* Sorting Guidelines - Only show for users with role 'user' */}
+      {user?.role === 'user' && (
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('home.guidelines.title')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {guidelines.map((guideline, idx) => (
+              <div key={idx} className="flex items-start gap-3 p-4 rounded-lg bg-gray-50">
+                <div className="flex-shrink-0">
+                  {guideline.icon}
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">{guideline.title}</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed">{guideline.desc}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">{guideline.title}</h3>
-                <p className="text-xs text-gray-600 leading-relaxed">{guideline.desc}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

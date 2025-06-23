@@ -48,11 +48,11 @@ export default function Sidebar({ onClose }) {
         // Only show Manage Collections for admin users
         ...(user?.role === 'waste_collector' ? [{ label: 'Manage Collections', icon: Shield, path: '/admin-waste-collections' }] : []),
         // Only show Recycling Center for recycling_center and admin users
-        ...(user?.role === 'recycling_center' || user?.role === 'admin' ? [{ label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling-center' }] : []),
+        ...(user?.role === 'user' ? [{ label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling-center' }] : []),
         // Only show Community Events for admin users
-        ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.communityEvents'), icon: Users, path: '/community' }] : []),
+        ...(user?.role === 'user' ? [{ label: t('sidebar.sections.items.communityEvents'), icon: Users, path: '/community' }] : []),
         // Only show Education Materials for admin users
-        ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.educationMaterials'), icon: BookOpen, path: '/education' }] : []),
+        ...(user?.role === 'user' ? [{ label: t('sidebar.sections.items.educationMaterials'), icon: BookOpen, path: '/education' }] : []),
         // Only show Users section for admin users
         ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.users'), icon: Users, path: '/users' }] : []),
         // Only show Companies section for admin users

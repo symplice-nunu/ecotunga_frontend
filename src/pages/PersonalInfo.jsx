@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import API from '../services/api';
 import logo from '../assets/login_logo.png';
 import LanguageSelector from '../components/LanguageSelector';
-import { User, MapPin, Phone } from 'lucide-react';
+import { User, MapPin, Phone, Building } from 'lucide-react';
 
 // Rwanda districts array (same as Profile.jsx)
 const rwandaDistricts = [
@@ -181,6 +181,7 @@ export default function PersonalInfo() {
     gender: '',
     phone_number: '',
     ubudehe_category: '',
+    company_name: '',
     district: '',
     sector: '',
     cell: '',
@@ -196,24 +197,38 @@ export default function PersonalInfo() {
   // Get user credentials from location state (passed from signup)
   const userCredentials = location.state?.userCredentials;
 
+  // Check if user is a business entity (waste collector or recycling center)
+  const isBusinessEntity = userCredentials?.role === 'waste_collector' || userCredentials?.role === 'recycling_center';
+
   const validateForm = () => {
     const newErrors = {};
-    if (!form.name?.trim()) {
-      newErrors.name = t('errors.required');
+    
+    if (isBusinessEntity) {
+      // For business entities, validate company name instead of personal fields
+      if (!form.company_name?.trim()) {
+        newErrors.company_name = t('errors.required');
+      }
+    } else {
+      // For regular users, validate personal fields
+      if (!form.name?.trim()) {
+        newErrors.name = t('errors.required');
+      }
+      if (!form.last_name?.trim()) {
+        newErrors.last_name = t('errors.required');
+      }
+      if (!form.gender) {
+        newErrors.gender = t('errors.required');
+      }
+      if (!form.ubudehe_category) {
+        newErrors.ubudehe_category = t('errors.required');
+      }
     }
-    if (!form.last_name?.trim()) {
-      newErrors.last_name = t('errors.required');
-    }
-    if (!form.gender) {
-      newErrors.gender = t('errors.required');
-    }
+    
+    // Common validations for all users
     if (!form.phone_number?.trim()) {
       newErrors.phone_number = t('errors.required');
     } else if (!/^(\+250|0)?7[2389][0-9]{7}$/.test(form.phone_number.replace(/\s/g, ''))) {
       newErrors.phone_number = 'Please enter a valid Rwandan phone number';
-    }
-    if (!form.ubudehe_category) {
-      newErrors.ubudehe_category = t('errors.required');
     }
     if (!form.district) {
       newErrors.district = t('errors.required');
@@ -276,15 +291,35 @@ export default function PersonalInfo() {
       // Store the token
       localStorage.setItem('token', loginResponse.data.token);
 
+      // Prepare profile data based on user type
+      const profileData = isBusinessEntity ? {
+        name: form.company_name, // Use company name as the name field
+        phone_number: form.phone_number,
+        district: form.district,
+        sector: form.sector,
+        cell: form.cell,
+        street: form.street
+      } : {
+        name: form.name,
+        last_name: form.last_name,
+        gender: form.gender,
+        phone_number: form.phone_number,
+        ubudehe_category: form.ubudehe_category,
+        district: form.district,
+        sector: form.sector,
+        cell: form.cell,
+        street: form.street
+      };
+
       // Update user profile with personal information
-      await API.put('/users/profile/me', form, {
+      await API.put('/users/profile/me', profileData, {
         headers: {
           Authorization: `Bearer ${loginResponse.data.token}`
         }
       });
 
       // If user is a waste collector or recycling center, update the company record with additional info
-      if (userCredentials.role === 'waste_collector' || userCredentials.role === 'recycling_center') {
+      if (isBusinessEntity) {
         try {
           await API.put('/companies/update-by-email', {
             email: userCredentials.email,
@@ -370,50 +405,109 @@ export default function PersonalInfo() {
             )}
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Personal Information */}
+              {/* Personal/Business Information */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <User className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800">{t('profile.personalInfo')}</h3>
-                </div>
                 
                 <div className="space-y-4">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {t('profile.firstName')} *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      required
-                      placeholder={t('profile.firstNamePlaceholder')}
-                      className={`w-full px-4 py-3 border ${errors.name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
-                    />
-                    {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="last_name" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.lastName')} *
-                    </label>
-                    <input
-                      type="text"
-                      id="last_name"
-                      name="last_name"
-                      value={form.last_name}
-                      onChange={handleChange}
-                      required
-                      placeholder={t('profile.lastNamePlaceholder')}
-                      className={`w-full px-4 py-3 border ${errors.last_name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
-                    />
-                    {errors.last_name && <p className="mt-1 text-xs text-red-600">{errors.last_name}</p>}
-                  </div>
+                  {isBusinessEntity ? (
+                    // Business entity fields
+                    <div>
+                      <label htmlFor="company_name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <Building className="w-4 h-4" />
+                        Company Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="company_name"
+                        name="company_name"
+                        value={form.company_name}
+                        onChange={handleChange}
+                        required
+                        placeholder="Enter your company name"
+                        className={`w-full px-4 py-3 border ${errors.company_name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                      />
+                      {errors.company_name && <p className="mt-1 text-xs text-red-600">{errors.company_name}</p>}
+                    </div>
+                  ) : (
+                    // Regular user fields
+                    <>
+                      <div>
+                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          {t('profile.firstName')} *
+                        </label>
+                        <input
+                          type="text"
+                          id="name"
+                          name="name"
+                          value={form.name}
+                          onChange={handleChange}
+                          required
+                          placeholder={t('profile.firstNamePlaceholder')}
+                          className={`w-full px-4 py-3 border ${errors.name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                        />
+                        {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="last_name" className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('profile.lastName')} *
+                        </label>
+                        <input
+                          type="text"
+                          id="last_name"
+                          name="last_name"
+                          value={form.last_name}
+                          onChange={handleChange}
+                          required
+                          placeholder={t('profile.lastNamePlaceholder')}
+                          className={`w-full px-4 py-3 border ${errors.last_name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                        />
+                        {errors.last_name && <p className="mt-1 text-xs text-red-600">{errors.last_name}</p>}
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="gender" className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('profile.gender')} *
+                        </label>
+                        <select
+                          id="gender"
+                          name="gender"
+                          value={form.gender}
+                          onChange={handleChange}
+                          required
+                          className={`w-full px-4 py-3 border ${errors.gender ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                        >
+                          <option value="">{t('profile.selectGender')}</option>
+                          <option value="Male">{t('profile.male')}</option>
+                          <option value="Female">{t('profile.female')}</option>
+                          <option value="Other">{t('profile.other')}</option>
+                        </select>
+                        {errors.gender && <p className="mt-1 text-xs text-red-600">{errors.gender}</p>}
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="ubudehe_category" className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('profile.ubudeheCategory')} *
+                        </label>
+                        <select
+                          id="ubudehe_category"
+                          name="ubudehe_category"
+                          value={form.ubudehe_category}
+                          onChange={handleChange}
+                          required
+                          className={`w-full px-4 py-3 border ${errors.ubudehe_category ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                        >
+                          <option value="">Select</option>
+                          <option value="A">A</option>
+                          <option value="B">B</option>
+                          <option value="C">C</option>
+                          <option value="D">D</option>
+                        </select>
+                        {errors.ubudehe_category && <p className="mt-1 text-xs text-red-600">{errors.ubudehe_category}</p>}
+                      </div>
+                    </>
+                  )}
                   
                   <div>
                     <label htmlFor="phone_number" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -432,58 +526,11 @@ export default function PersonalInfo() {
                     />
                     {errors.phone_number && <p className="mt-1 text-xs text-red-600">{errors.phone_number}</p>}
                   </div>
-                  
-                  <div>
-                    <label htmlFor="gender" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.gender')} *
-                    </label>
-                    <select
-                      id="gender"
-                      name="gender"
-                      value={form.gender}
-                      onChange={handleChange}
-                      required
-                      className={`w-full px-4 py-3 border ${errors.gender ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
-                    >
-                      <option value="">{t('profile.selectGender')}</option>
-                      <option value="Male">{t('profile.male')}</option>
-                      <option value="Female">{t('profile.female')}</option>
-                      <option value="Other">{t('profile.other')}</option>
-                    </select>
-                    {errors.gender && <p className="mt-1 text-xs text-red-600">{errors.gender}</p>}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="ubudehe_category" className="block text-sm font-semibold text-gray-700 mb-2">
-                      {t('profile.ubudeheCategory')} *
-                    </label>
-                    <select
-                      id="ubudehe_category"
-                      name="ubudehe_category"
-                      value={form.ubudehe_category}
-                      onChange={handleChange}
-                      required
-                      className={`w-full px-4 py-3 border ${errors.ubudehe_category ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
-                    >
-                      <option value="">Select</option>
-                      <option value="A">A</option>
-                      <option value="B">B</option>
-                      <option value="C">C</option>
-                      <option value="D">D</option>
-                    </select>
-                    {errors.ubudehe_category && <p className="mt-1 text-xs text-red-600">{errors.ubudehe_category}</p>}
-                  </div>
                 </div>
               </div>
 
               {/* Location Information */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-4 h-4 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800">{t('profile.locationInfo')}</h3>
-                </div>
                 
                 <div className="space-y-4">
                   <div>

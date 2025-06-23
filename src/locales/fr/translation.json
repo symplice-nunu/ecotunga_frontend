@@ -91,6 +91,11 @@
   },
   "home": {
     "dashboard": "Tableau de bord",
+    "bookCollection": {
+      "title": "Réserver une collecte de déchets",
+      "description": "Planifiez une collecte pour vos déchets recyclables et contribuez à un environnement plus propre.",
+      "button": "Réserver une collecte"
+    },
     "stats": {
       "users": "Utilisateurs",
       "totalAmount": "Montant total",
