@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const userAPI = axios.create({
-  baseURL: 'http://localhost:5000/api/users',
+  baseURL: 'http://localhost:5001/api/users',
 });
 
 userAPI.interceptors.request.use((config) => {
@@ -16,8 +16,10 @@ export const submitWasteCollection = (collectionData) => userAPI.post('/collecti
 export const getUserWasteCollections = () => userAPI.get('/collection');
 
 // Admin functions
-export const getAllWasteCollections = () => userAPI.get('/collection/all');
+export const getAllWasteCollections = () => userAPI.get('/waste-collections/company');
 export const approveWasteCollection = (id, adminNotes) => userAPI.put(`/collection/${id}/approve`, { admin_notes: adminNotes });
 export const denyWasteCollection = (id, adminNotes) => userAPI.put(`/collection/${id}/deny`, { admin_notes: adminNotes });
+export const getUsersCount = () => userAPI.get('/count');
+export const getDashboardStats = () => userAPI.get('/stats');
 
 export default userAPI; 
