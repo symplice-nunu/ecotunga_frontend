@@ -1,34 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getUserProfile, submitWasteCollection } from '../services/userApi';
+import { getUserProfile } from '../services/userApi';
+import { wasteCollectionApi } from '../services/wasteCollectionApi';
 import { getCompanies, getCompanyById } from '../services/companyApi';
+import { initiateMobileMoneyPayment } from '../services/paymentService';
 import { useAuth } from '../contexts/AuthContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import wasteTruck from '../assets/eb2216243ee44e2c328a1dea4bc045e2ad26c104.jpg';
+// import wasteTruck from '../assets/eb2216243ee44e2c328a1dea4bc045e2ad26c104.jpg';
 import collection from '../assets/e682b31ec1c636f1fc957bef07cbbcd23f22fe33.png';
-import person from '../assets/07e14575ca040bb0119bc4319a1d4d8afb0ac6bd.png';
-import locations from '../assets/82b1f6e7211be6cd0aaaf955a7f648fc0bf7bcbf.png';
-import attention from '../assets/25a91c6fec7f15183e2bac4bc553d85f5b49362a.png';
-import truck from '../assets/f9c17e1c8abf24e0e94b552b9f1b4c26dfa14b1a.png';
+// import person from '../assets/07e14575ca040bb0119bc4319a1d4d8afb0ac6bd.png';
+// import locations from '../assets/82b1f6e7211be6cd0aaaf955a7f648fc0bf7bcbf.png';
+// import attention from '../assets/25a91c6fec7f15183e2bac4bc553d85f5b49362a.png';
+// import truck from '../assets/f9c17e1c8abf24e0e94b552b9f1b4c26dfa14b1a.png';
 
 const steps = [
-  'Personal Information',
-  'Provide Location',
   'Book Pickup',
   'Payment Process',
   'Confirm',
 ];
 
 // Helper to ensure select options include the profile value
-const getOptionsWithProfileValue = (options, profileValue) => {
-  if (profileValue && !options.includes(profileValue)) {
-    return [profileValue, ...options];
-  }
-  return options;
-};
+// const getOptionsWithProfileValue = (options, profileValue) => {
+//   if (profileValue && !options.includes(profileValue)) {
+//     return [profileValue, ...options];
+//   }
+//   return options;
+// };
 
 // Dummy options for selects
-const genderOptions = ['Male', 'Female', 'Other'];
+// const genderOptions = ['Male', 'Female', 'Other'];
 const districtOptions = [
   'Bugesera', 'Burera', 'Gakenke', 'Gasabo', 'Gatsibo', 'Gicumbi', 'Gisagara', 'Huye', 'Kamonyi', 'Karongi',
   'Kayonza', 'Kicukiro', 'Kirehe', 'Muhanga', 'Musanze', 'Ngoma', 'Ngororero', 'Nyabihu', 'Nyagatare',
@@ -82,7 +82,6 @@ export default function Collection() {
     district: '',
     sector: '',
     cell: '',
-    village: '',
     street: ''
   });
   const [selectedLocation, setSelectedLocation] = useState({
@@ -90,7 +89,7 @@ export default function Collection() {
     sector: '',
     cell: ''
   });
-  const [errors, setErrors] = useState({});
+  const [setErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -113,57 +112,72 @@ export default function Collection() {
     '20:00 - 22:00'
   ];
 
+  // Payment-related state
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [setPaymentDetails] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [recipientPhone] = useState('0785847049');
+
   // Helper to ensure select options include the profile value
-  const districtOptionsWithProfile = getOptionsWithProfileValue(districtOptions, location.district);
-  const sectorOptionsWithProfile = getOptionsWithProfileValue(sectorOptions, location.sector);
-  const cellOptionsWithProfile = getOptionsWithProfileValue(cellOptions, location.cell);
-  const genderOptionsWithProfile = getOptionsWithProfileValue(genderOptions, personalInfo.gender);
+  // const districtOptionsWithProfile = getOptionsWithProfileValue(districtOptions, location.district);
+  // const sectorOptionsWithProfile = getOptionsWithProfileValue(sectorOptions, location.sector);
+  // const cellOptionsWithProfile = getOptionsWithProfileValue(cellOptions, location.cell);
+  // const genderOptionsWithProfile = getOptionsWithProfileValue(genderOptions, personalInfo.gender);
 
   // Fetch user profile on component mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
-        console.log('Fetching user profile...');
-        const response = await getUserProfile();
-        console.log('User profile response:', response.data);
-        setUserProfile(response.data);
+        console.log('Collection component - user from auth context:', user);
+        console.log('Token in localStorage:', localStorage.getItem('token'));
         
-        // Pre-populate personal info with user profile data
-        const personalData = {
-          name: response.data.name || '',
-          email: response.data.email || '',
-          last_name: response.data.last_name || '',
-          gender: response.data.gender || '',
-          phone_number: response.data.phone_number || '',
-          ubudehe_category: response.data.ubudehe_category || '',
-          district: response.data.district || '',
-          sector: response.data.sector || '',
-          cell: response.data.cell || '',
-          street: response.data.street || '',
-        };
-        console.log('Setting personal info:', personalData);
-        setPersonalInfo(personalData);
-        
-        // Pre-populate location with user profile data
-        const locationData = {
-          district: response.data.district || '',
-          sector: response.data.sector || '',
-          cell: response.data.cell || '',
-          village: '', // Not in profile, keep empty
-          street: response.data.street || '',
-        };
-        console.log('Setting location data:', locationData);
-        setLocation(locationData);
-        
-        // Pre-populate selected location for company filtering
-        const selectedLocationData = {
-          district: response.data.district || '',
-          sector: response.data.sector || '',
-          cell: response.data.cell || '',
-        };
-        console.log('Setting selected location data:', selectedLocationData);
-        setSelectedLocation(selectedLocationData);
+        if (user) {
+          console.log('Fetching user profile...');
+          const response = await getUserProfile();
+          console.log('User profile response:', response.data);
+          setUserProfile(response.data);
+          
+          // Pre-populate personal info with user profile data
+          const personalData = {
+            name: response.data.name || '',
+            email: response.data.email || '',
+            last_name: response.data.last_name || '',
+            gender: response.data.gender || '',
+            phone_number: response.data.phone_number || '',
+            ubudehe_category: response.data.ubudehe_category || '',
+            district: response.data.district || '',
+            sector: response.data.sector || '',
+            cell: response.data.cell || '',
+            street: response.data.street || '',
+          };
+          console.log('Setting personal info:', personalData);
+          setPersonalInfo(personalData);
+          
+          // Pre-populate location with user profile data
+          const locationData = {
+            district: response.data.district || '',
+            sector: response.data.sector || '',
+            cell: response.data.cell || '',
+            street: response.data.street || '',
+          };
+          console.log('Setting location data:', locationData);
+          setLocation(locationData);
+          
+          // Pre-populate selected location for company filtering
+          const selectedLocationData = {
+            district: response.data.district || '',
+            sector: response.data.sector || '',
+            cell: response.data.cell || '',
+          };
+          console.log('Setting selected location data:', selectedLocationData);
+          setSelectedLocation(selectedLocationData);
+        } else {
+          console.log('No user found in auth context');
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Error fetching user profile:', error);
       } finally {
@@ -171,7 +185,6 @@ export default function Collection() {
       }
     };
 
-    console.log('Collection component - user from auth context:', user);
     if (user) {
       fetchUserProfile();
     } else {
@@ -232,13 +245,13 @@ export default function Collection() {
     }
   }, [selectedLocation, companies]);
 
-  const villageOptions = [
-    'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
-    'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka',
-    'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro',
-    'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana',
-    'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
-  ];
+  // const villageOptions = [
+  //   'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
+  //   'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka',
+  //   'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro',
+  //   'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana',
+  //   'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
+  // ];
 
   // Stepper UI
   const Stepper = () => {
@@ -301,267 +314,32 @@ export default function Collection() {
     );
   }
 
-  // Step 1: Personal Information
-  const PersonalInfoForm = () => (
-    <form
-      className="bg-white rounded-xl shadow-xl border-2 p-8 max-w-4xl mx-auto mt-6"
-      onSubmit={e => {
-        e.preventDefault();
-        // Validate
-        const newErrors = {};
-        if (!personalInfo.name) newErrors.name = 'Required';
-        if (!personalInfo.last_name) newErrors.last_name = 'Required';
-        if (!personalInfo.gender) newErrors.gender = 'Required';
-        if (!personalInfo.email) newErrors.email = 'Required';
-        if (!personalInfo.phone_number) newErrors.phone_number = 'Required';
-        if (!personalInfo.ubudehe_category) newErrors.ubudehe_category = 'Required';
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length === 0) setStep(1);
-      }}
-    >
-      <div className="flex items-center mb-6">
-        <span role="img" aria-label="waste">
-            <img src={person} alt="waste" className="w-[35px] h-[30px]" />
-          </span> 
-        <h3 className="text-xl font-bold mt-1">Personal Information</h3>
-        {userProfile && (
-          <div className="ml-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-            Pre-filled from your profile
-          </div>
-        )}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block font-medium mb-1">First Name<span className="text-red-500">*</span></label>
-          <input
-            className="w-full border rounded px-3 py-2 mb-1"
-            placeholder="Enter your first name"
-            value={personalInfo.name}
-            onChange={e => setPersonalInfo({ ...personalInfo, name: e.target.value })}
-          />
-          {errors.name && <span className="text-xs text-red-500">{errors.name}</span>}
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Last Name<span className="text-red-500">*</span></label>
-          <input
-            className="w-full border rounded px-3 py-2 mb-1"
-            placeholder="Enter your last name"
-            value={personalInfo.last_name}
-            onChange={e => setPersonalInfo({ ...personalInfo, last_name: e.target.value })}
-          />
-          {errors.last_name && <span className="text-xs text-red-500">{errors.last_name}</span>}
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Gender<span className="text-red-500">*</span></label>
-          <select
-            className="w-full border rounded px-3 py-2 mb-1"
-            value={personalInfo.gender}
-            onChange={e => setPersonalInfo({ ...personalInfo, gender: e.target.value })}
-          >
-            <option value="">Select</option>
-            {genderOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          {errors.gender && <span className="text-xs text-red-500">{errors.gender}</span>}
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Phone Number<span className="text-red-500">*</span></label>
-          <input
-            className="w-full border rounded px-3 py-2 mb-1"
-            placeholder="Enter your phone number"
-            value={personalInfo.phone_number}
-            onChange={e => setPersonalInfo({ ...personalInfo, phone_number: e.target.value })}
-          />
-          {errors.phone_number && <span className="text-xs text-red-500">{errors.phone_number}</span>}
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Email<span className="text-red-500">*</span></label>
-          <input
-            className="w-full border rounded px-3 py-2 mb-1"
-            placeholder="Enter email address"
-            value={personalInfo.email}
-            onChange={e => setPersonalInfo({ ...personalInfo, email: e.target.value })}
-          />
-          <div className="text-xs text-green-700 flex items-center gap-2 bg-green-50 rounded px-2 py-1 mt-1">
-            <span role="img" aria-label="waste">
-            <img src={attention} alt="waste" className="w-[15px] h-[15px]" />
-          </span>
-           <span>Your email will be used for the app's login</span>
-           </div>
-          {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Ubudehe Category<span className="text-red-500">*</span></label>
-          <input
-            className="w-full border rounded px-3 py-2 mb-1"
-            placeholder="Enter your category"
-            value={personalInfo.ubudehe_category}
-            onChange={e => setPersonalInfo({ ...personalInfo, ubudehe_category: e.target.value })}
-          />
-          {errors.ubudehe_category && <span className="text-xs text-red-500">{errors.ubudehe_category}</span>}
-        </div>
-      </div>
-      <div className='flex justify-center'>
-      <button type="submit" className="mt-8 w-[420px] bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition">Submit</button>
-      </div>
-     </form>
-  );
-
-  // Step 2: Location Details
-  const LocationForm = () => (
-    <form
-      className="bg-white rounded-xl shadow-xl border-3 border-[#EFFDF2] p-8 max-w-3xl mx-auto mt-6 border-2 border-blue-300"
-      onSubmit={e => {
-        e.preventDefault();
-        // Validate
-        const newErrors = {};
-        if (!location.district) newErrors.district = 'Required';
-        if (!location.sector) newErrors.sector = 'Required';
-        if (!location.cell) newErrors.cell = 'Required';
-        if (!location.village) newErrors.village = 'Required';
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length === 0) setStep(2);
-      }}
-    >
-      <div className="flex items-center mb-6">
-        <img src={locations} alt="waste" className="w-[35px] h-[30px]" />
-        <h3 className="text-xl font-bold mt-1">Location Details</h3>
-        {userProfile && (
-          <div className="ml-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-            Pre-filled from your profile
-          </div>
-        )}
-      </div>
-      <div className="space-y-6">
-  {/* District */}
-  <div className="relative">
-    <div className="relative border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700 flex items-center gap-2">
-        District
-        {userProfile && userProfile.district && (
-          <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
-        )}
-      </label>
-      <select
-        className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
-        value={location.district}
-        onChange={e => setLocation({ ...location, district: e.target.value })}
-      >
-        <option value="">Select</option>
-        {districtOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
-      </div>
-    </div>
-    {errors.district && <span className="text-xs text-red-500">{errors.district}</span>}
-  </div>
-
-  {/* Sector */}
-  <div className="relative">
-    <div className="relative border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700 flex items-center gap-2">
-        Sector
-        {userProfile && userProfile.sector && (
-          <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
-        )}
-      </label>
-      <select
-        className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
-        value={location.sector}
-        onChange={e => {
-          setLocation({ ...location, sector: e.target.value });
-          setSelectedCompany('');
-          setSelectedCompanyDetails(null);
-        }}
-      >
-        <option value="">Select</option>
-        {sectorOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
-      </div>
-    </div>
-    {errors.sector && <span className="text-xs text-red-500">{errors.sector}</span>}
-  </div>
-
-  {/* Cell */}
-  <div className="relative">
-    <div className="relative border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700 flex items-center gap-2">
-        Cell
-        {userProfile && userProfile.cell && (
-          <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
-        )}
-      </label>
-      <select
-        className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
-        value={location.cell}
-        onChange={e => {
-          setLocation({ ...location, cell: e.target.value });
-          setSelectedCompany('');
-          setSelectedCompanyDetails(null);
-        }}
-      >
-        <option value="">Select</option>
-        {cellOptionsWithProfile.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
-      </div>
-    </div>
-    {errors.cell && <span className="text-xs text-red-500">{errors.cell}</span>}
-  </div>
-
-  {/* Village */}
-  <div className="relative">
-    <div className="relative border border-gray-300 rounded-md focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
-      <label className="absolute -top-2.5 left-3 bg-white px-1 text-sm font-medium text-gray-700">
-        Village
-      </label>
-      <select
-        className="block w-full shadow-lg px-3 py-2 pr-8 bg-transparent appearance-none focus:outline-none text-gray-700"
-        value={location.village}
-        onChange={e => setLocation({ ...location, village: e.target.value })}
-      >
-        <option value="">Select</option>
-        {villageOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
-      </div>
-    </div>
-    {errors.village && <span className="text-xs text-red-500">{errors.village}</span>}
-  </div>
-
-  {/* Street (Optional) - Kept as original since it's an input */}
-  <div>
-    <label className="block font-medium mb-1 flex items-center gap-2">Street <span className="text-gray-400">(Optional)</span>
-      {userProfile && userProfile.street && (
-        <span className="ml-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">from profile</span>
-      )}
-    </label>
-    <input
-      className="w-full shadow-lg border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-      placeholder="Optional"
-      value={location.street}
-      onChange={e => setLocation({ ...location, street: e.target.value })}
-    />
-  </div>
-</div>
-      
-      <div className='flex justify-center'>
-      <button type="submit" className="mt-8 flex justify-center w-[420px] bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition">Submit</button>
-      </div>
-     </form>
-  );
+  // Validate personal info and location data
+  const validateData = () => {
+    const newErrors = {};
+    
+    console.log('🔍 Validating data...');
+    console.log('Personal Info:', personalInfo);
+    console.log('Location:', location);
+    
+    // Validate personal info
+    if (!personalInfo.name) newErrors.name = 'Required';
+    if (!personalInfo.last_name) newErrors.last_name = 'Required';
+    if (!personalInfo.gender) newErrors.gender = 'Required';
+    if (!personalInfo.email) newErrors.email = 'Required';
+    if (!personalInfo.phone_number) newErrors.phone_number = 'Required';
+    if (!personalInfo.ubudehe_category) newErrors.ubudehe_category = 'Required';
+    
+    // Validate location
+    if (!location.district) newErrors.district = 'Required';
+    if (!location.sector) newErrors.sector = 'Required';
+    if (!location.cell) newErrors.cell = 'Required';
+    
+    console.log('❌ Validation errors:', newErrors);
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Handle company selection
   const handleCompanySelection = async (companyId) => {
@@ -594,29 +372,108 @@ export default function Collection() {
   // Step 3: Book Pickup (Updated UI)
   const handleBookPickupSubmit = async (e) => {
     e.preventDefault();
-    setSubmitLoading(true);
-    setSubmitError('');
+    
+    if (!validateData()) {
+      return;
+    }
+
     try {
-      const payload = {
-        ...personalInfo,
-        ...location,
-        company_id: selectedCompany,
-        pickup_date: pickupDate ? pickupDate.toISOString().split('T')[0] : '',
+      setSubmitLoading(true);
+      setSubmitError('');
+
+      const bookingData = {
+        name: personalInfo.name,
+        last_name: personalInfo.last_name,
+        email: personalInfo.email,
+        phone_number: personalInfo.phone_number,
+        gender: personalInfo.gender,
+        ubudehe_category: personalInfo.ubudehe_category,
+        district: location.district,
+        sector: location.sector,
+        cell: location.cell,
+        street: location.street,
+        pickup_date: pickupDate.toISOString().split('T')[0],
         time_slot: timeSlot,
-        notes,
+        company_id: selectedCompany,
+        notes: notes
       };
-      const response = await submitWasteCollection(payload);
-      setBookingDetails({
-        id: response.data.id,
-        ...payload,
-        company: companies.find(c => c.id === selectedCompany)?.name || 'Selected Company'
-      });
+
+      console.log('Submitting booking data:', bookingData);
+      const response = await wasteCollectionApi.createWasteCollection(bookingData);
+      console.log('Booking response:', response.data);
+
+      setBookingDetails(response.data);
       setSubmitSuccess(true);
-      setStep(3); // Advance to payment step
-    } catch (err) {
-      setSubmitError('Failed to book collection. Please try again.');
+      
+      // Set payment amount based on selected company
+      if (selectedCompanyDetails) {
+        setPaymentAmount(selectedCompanyDetails.amount_per_month);
+      }
+      
+      setStep(1); // Move to payment step
+    } catch (error) {
+      console.error('Error submitting booking:', error);
+      setSubmitError(error.response?.data?.message || 'Failed to book pickup. Please try again.');
     } finally {
       setSubmitLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!userProfile || !userProfile.phone_number) {
+      setPaymentError('Phone number is required for payment. Please update your profile.');
+      return;
+    }
+
+    try {
+      setPaymentLoading(true);
+      setPaymentError('');
+
+      // Generate unique transaction reference
+      const txRef = `ECOTUNGA_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      const paymentData = {
+        amount: paymentAmount,
+        phone_number: userProfile.phone_number,
+        email: userProfile.email,
+        tx_ref: txRef,
+        consumer_id: userProfile.id || user?.id,
+        customer_name: `${userProfile.name} ${userProfile.last_name}`.trim(),
+        callback_url: `${window.location.origin}/payment/callback`,
+        redirect_url: `${window.location.origin}/payment/redirect`
+      };
+
+      console.log('Initiating payment with data:', paymentData);
+      const response = await initiateMobileMoneyPayment(paymentData);
+      console.log('Payment response:', response);
+
+      if (response.success && response.data) {
+        setPaymentDetails(response.data);
+        setPaymentSuccess(true);
+        
+        // Check if there's a redirect URL for CAPTCHA verification
+        if (response.data.meta && response.data.meta.authorization && response.data.meta.authorization.redirect) {
+          // Show user-friendly message about CAPTCHA verification
+          setPaymentSuccess(true);
+          
+          // Wait a moment then redirect to CAPTCHA page
+          setTimeout(() => {
+            window.location.href = response.data.meta.authorization.redirect;
+          }, 2000);
+        } else if (response.data.link) {
+          // Fallback to direct link
+          window.location.href = response.data.link;
+        } else {
+          setPaymentError('Payment initiated but no verification page found. Please check your phone for SMS.');
+        }
+      } else {
+        setPaymentError(response.message || 'Payment initiation failed');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      setPaymentError(error.response?.data?.message || error.message || 'Payment failed. Please try again.');
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -625,39 +482,6 @@ export default function Collection() {
       className="bg-white rounded-xl shadow max-w-4xl mx-auto mt-6 flex flex-col items-center p-8"
       onSubmit={handleBookPickupSubmit}
     >
-      {/* COPED LTD Banner */}
-      <div className="bg-white flex flex-col md:flex-row items-center overflow-hidden">
-        {/* Left: Text Content */}
-        <div className="flex-1 pr-5">
-          <div className="flex items-center gap-2 mb-2">
-            {/* Logo (use collection icon as placeholder) */}
-            <img src={truck} alt="COPED LTD Logo" className="w-8 h-8" />
-            <span className="text-green-700 font-bold text-xl">COPED LTD</span>
-          </div>
-          <div className="font-bold text-[16px] mb-2">Company for Protection of Environment and Development</div>
-          <div className="text-gray-700 text-[11px] mb-3 max-w-xl">
-            A Rwandan waste management company established in 1999, specializing in the collection, transportation, treatment, and disposal of waste. It serves a broad range of clients, including homes, businesses, government and non-government organizations, industries, and medical facilities. <button type="button" className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer">Read More</button>
-          </div>
-          <div className="flex text-[10px] flex-col md:flex-col gap-2 text-xs text-gray-600 mt-4">
-            <div className="flex items-center gap-1">
-              <span role="img" aria-label="location">📍</span>
-              Gasabo, Kacyiru, Utexrwa Road, KG 15 Ave
-            </div>
-            <div className="flex items-center gap-1">
-              <span role="img" aria-label="email">✉️</span>
-              <a href="mailto:info@copedgroup.rw" className="underline">info@copedgroup.rw</a>
-            </div>
-            <div className="flex items-center gap-1">
-              <span role="img" aria-label="phone">📞</span>
-              (+250)788 508 290
-            </div>
-          </div>
-        </div>
-        {/* Right: Truck Image */}
-        <div className="flex-1 min-w-[220px] max-w-[350px] h-full flex items-end justify-end">
-          <img src={wasteTruck} alt="Waste Truck" className="object-cover w-full h-full rounded-tl-[180px]" />
-        </div>
-      </div>
       {/* Company Selection - Full Width */}
       <div className="w-full mb-8">
         {/* Location Selection */}
@@ -919,7 +743,7 @@ export default function Collection() {
     </form>
   );
 
-  // Step 4: Payment Process (placeholder)
+  // Step 4: Payment Process (placeholder) - Now step 1
   const PaymentProcess = () => (
     <div className="bg-white rounded-xl shadow p-8 max-w-2xl mx-auto mt-6 flex flex-col items-center">
       {submitSuccess && bookingDetails && (
@@ -936,24 +760,187 @@ export default function Collection() {
             <p><strong>Time Slot:</strong> {bookingDetails.time_slot}</p>
             <p><strong>Location:</strong> {bookingDetails.district}, {bookingDetails.sector}</p>
           </div>
+          <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-blue-700 text-xs">
+            <strong>📧 Email Confirmation:</strong> A confirmation email has been sent to {bookingDetails.email} with all your booking details.
+          </div>
         </div>
       )}
-      <h3 className="text-xl font-bold mb-4">Payment Process</h3>
-      <p className="mb-8">Payment integration coming soon.</p>
-      <button
-        className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition"
-        onClick={() => setStep(4)}
-      >
-        Continue
-      </button>
+
+      <div className="w-full">
+        <h3 className="text-2xl font-bold mb-6 text-center">Payment Process</h3>
+        
+        {/* Payment Details */}
+        <div className="bg-gray-50 rounded-lg p-6 mb-6">
+          <h4 className="text-lg font-semibold mb-4">Payment Details</h4>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Service:</span>
+              <span className="font-medium">Waste Collection</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Amount:</span>
+              <span className="font-bold text-lg text-green-600">RWF {paymentAmount?.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Payment Method:</span>
+              <span className="font-medium">Mobile Money (Rwanda)</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">From Phone:</span>
+              <span className="font-medium">{userProfile?.phone_number || 'Not set'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">To Phone:</span>
+              <span className="font-medium">{recipientPhone}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Instructions */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h4 className="font-semibold text-blue-800 mb-2">📱 Payment Instructions</h4>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• You will be redirected to a secure verification page</li>
+            <li>• Enter the OTP sent to your phone via SMS/WhatsApp</li>
+            <li>• Complete the CAPTCHA verification if prompted</li>
+            <li>• Payment will be processed securely via Flutterwave</li>
+            <li>• You'll receive a confirmation after successful payment</li>
+          </ul>
+        </div>
+
+        {/* Error Message */}
+        {paymentError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-red-600">❌</span>
+              <span className="text-red-800 font-medium">Payment Error</span>
+            </div>
+            <p className="text-red-700 text-sm mt-1">{paymentError}</p>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {paymentSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-green-600">✅</span>
+              <span className="text-green-800 font-medium">Payment Initiated Successfully</span>
+            </div>
+            <p className="text-green-700 text-sm mt-1">
+              You will be redirected to a secure verification page. Please complete the CAPTCHA verification to finalize your payment.
+            </p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-4">
+          <button
+            className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-gray-600 transition"
+            onClick={() => setStep(0)}
+            disabled={paymentLoading}
+          >
+            Back
+          </button>
+          <button
+            className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition disabled:bg-gray-400"
+            onClick={handlePayment}
+            disabled={paymentLoading || !userProfile?.phone_number}
+          >
+            {paymentLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Processing...
+              </div>
+            ) : (
+              'Pay Now'
+            )}
+          </button>
+        </div>
+
+        {/* Phone Number Warning */}
+        {!userProfile?.phone_number && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-600">⚠️</span>
+              <span className="text-yellow-800 font-medium">Phone Number Required</span>
+            </div>
+            <p className="text-yellow-700 text-sm mt-1">
+              Please update your profile with a valid phone number to proceed with payment.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 
-  // Step 5: Confirmation (placeholder)
+  // Step 5: Confirmation (placeholder) - Now step 2
   const Confirmation = () => (
     <div className="bg-white rounded-xl shadow p-8 max-w-2xl mx-auto mt-6 flex flex-col items-center">
-      <h3 className="text-xl font-bold mb-4">Booking Confirmed!</h3>
-      <p className="mb-8">Thank you for booking your waste collection. We will contact you soon.</p>
+      <div className="text-center mb-6">
+        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-green-600 text-2xl">✅</span>
+        </div>
+        <h3 className="text-2xl font-bold mb-2">Booking Confirmed!</h3>
+        <p className="text-gray-600">Your waste collection has been successfully booked and payment initiated.</p>
+      </div>
+
+      {bookingDetails && (
+        <div className="w-full bg-gray-50 rounded-lg p-6 mb-6">
+          <h4 className="text-lg font-semibold mb-4">Booking Summary</h4>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Booking ID:</span>
+              <span className="font-medium">#{bookingDetails.id}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Name:</span>
+              <span className="font-medium">{bookingDetails.name} {bookingDetails.last_name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Pickup Date:</span>
+              <span className="font-medium">{bookingDetails.pickup_date}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Time Slot:</span>
+              <span className="font-medium">{bookingDetails.time_slot}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Location:</span>
+              <span className="font-medium">{bookingDetails.district}, {bookingDetails.sector}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Amount Paid:</span>
+              <span className="font-bold text-green-600">RWF {paymentAmount?.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="w-full space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-semibold text-blue-800 mb-2">📱 Payment Status</h4>
+          <p className="text-blue-700 text-sm">
+            Payment has been initiated via mobile money. Please check your phone for the payment prompt and complete the transaction.
+          </p>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 className="font-semibold text-green-800 mb-2">📧 Next Steps</h4>
+          <ul className="text-green-700 text-sm space-y-1">
+            <li>• Complete the mobile money payment on your phone</li>
+            <li>• You'll receive a confirmation email with booking details</li>
+            <li>• The waste collection company will contact you before pickup</li>
+            <li>• Keep your phone nearby for any updates</li>
+          </ul>
+        </div>
+
+        <button
+          className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition"
+          onClick={() => window.location.href = '/'}
+        >
+          Return to Home
+        </button>
+      </div>
     </div>
   );
 
@@ -961,11 +948,9 @@ export default function Collection() {
     <div className="py-8 px-2 md:px-8">
       
       <Stepper />
-      {step === 0 && <PersonalInfoForm />}
-      {step === 1 && <LocationForm />}
-      {step === 2 && <BookPickup />}
-      {step === 3 && <PaymentProcess />}
-      {step === 4 && <Confirmation />}
+      {step === 0 && <BookPickup />}
+      {step === 1 && <PaymentProcess />}
+      {step === 2 && <Confirmation />}
     </div>
   );
 } 

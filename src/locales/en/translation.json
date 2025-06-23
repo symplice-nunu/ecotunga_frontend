@@ -30,7 +30,11 @@
     "signupError": "Failed to sign up",
     "enterDetails": "Please enter your details",
     "signIn": "Sign In",
-    "signingIn": "Signing in..."
+    "signingIn": "Signing in...",
+    "completeProfile": "Complete Your Profile",
+    "completeProfileSubtitle": "Tell us more about yourself",
+    "completingRegistration": "Completing registration...",
+    "completeRegistration": "Complete Registration"
   },
   "errors": {
     "required": "This field is required",
@@ -43,6 +47,7 @@
     "title": "Profile Settings",
     "subtitle": "Update your personal information and address details",
     "personalInfo": "Personal Information",
+    "locationInfo": "Location Information",
     "addressInfo": "Address Information",
     "firstName": "First Name",
     "lastName": "Last Name",
@@ -96,10 +101,12 @@
     },
     "recentActivity": {
       "title": "Recent Activity",
-      "wasteCollected": "Waste collected",
+      "wasteCollected": "Waste collected for {{name}}",
       "joinedCleanup": "Joined {{location}} cleanup",
       "recycled": "{{amount}} kg of {{material}} recycled",
-      "unlockedBadge": "Unlocked \"{{badge}}\" badge"
+      "unlockedBadge": "Unlocked \"{{badge}}\" badge",
+      "pendingCollection": "Pending collection for {{name}} in {{location}}",
+      "collectionDenied": "Collection denied for {{name}} - {{reason}}"
     },
     "nextPickup": {
       "title": "Next Waste Pickup",

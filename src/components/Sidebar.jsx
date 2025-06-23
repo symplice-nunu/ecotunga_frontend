@@ -7,19 +7,20 @@ import {
   Settings,
   LogOut,
   Building2,
-  List,
   Shield,
   X
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Sidebar({ onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [search, setSearch] = useState('');
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -42,14 +43,20 @@ export default function Sidebar({ onClose }) {
       header: t('sidebar.sections.home'),
       items: [
         { label: t('sidebar.sections.items.dashboard'), icon: Home, path: '/home' },
-        { label: t('sidebar.sections.items.wasteCollection'), icon: Calendar, path: '/collection' },
-        { label: 'My Collections', icon: List, path: '/waste-collections' },
-        { label: 'Manage Collections', icon: Shield, path: '/admin-waste-collections' },
-        { label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling-center' },
-        { label: t('sidebar.sections.items.communityEvents'), icon: Users, path: '/community' },
-        { label: t('sidebar.sections.items.educationMaterials'), icon: BookOpen, path: '/education' },
-        { label: t('sidebar.sections.items.users'), icon: Users, path: '/users' },
-        { label: t('sidebar.sections.items.companies'), icon: Building2, path: '/companies' },
+        ...(user?.role === 'user' ? [{ label: t('sidebar.sections.items.wasteCollection'), icon: Calendar, path: '/collection' }] : []),
+        // { label: 'My Collections', icon: List, path: '/waste-collections' },
+        // Only show Manage Collections for admin users
+        ...(user?.role === 'waste_collector' ? [{ label: 'Manage Collections', icon: Shield, path: '/admin-waste-collections' }] : []),
+        // Only show Recycling Center for recycling_center and admin users
+        ...(user?.role === 'recycling_center' || user?.role === 'admin' ? [{ label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling-center' }] : []),
+        // Only show Community Events for admin users
+        ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.communityEvents'), icon: Users, path: '/community' }] : []),
+        // Only show Education Materials for admin users
+        ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.educationMaterials'), icon: BookOpen, path: '/education' }] : []),
+        // Only show Users section for admin users
+        ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.users'), icon: Users, path: '/users' }] : []),
+        // Only show Companies section for admin users
+        ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.companies'), icon: Building2, path: '/companies' }] : []),
       ],
     },
   ];

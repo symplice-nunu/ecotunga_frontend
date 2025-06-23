@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllWasteCollections, approveWasteCollection, denyWasteCollection } from '../services/userApi';
+import { wasteCollectionApi } from '../services/wasteCollectionApi';
 import { useAuth } from '../contexts/AuthContext';
 import { MapPin, Clock, User, FileText, CheckCircle, AlertCircle, XCircle, Check, X, Filter } from 'lucide-react';
 
@@ -21,9 +21,10 @@ export default function AdminWasteCollections() {
       try {
         setLoading(true);
         setError('');
-        const response = await getAllWasteCollections();
-        setCollections(response.data);
-        setFilteredCollections(response.data);
+        const response = await wasteCollectionApi.getWasteCollectionsByCompany();
+        // The new API returns the data directly as an array
+        setCollections(response.data || response);
+        setFilteredCollections(response.data || response);
       } catch (err) {
         setError('Failed to load waste collections');
         console.error('Error fetching collections:', err);
@@ -89,14 +90,14 @@ export default function AdminWasteCollections() {
     setProcessing(true);
     try {
       if (actionType === 'approve') {
-        await approveWasteCollection(selectedCollection.id, adminNotes);
+        await wasteCollectionApi.approveWasteCollection(selectedCollection.id, adminNotes);
       } else if (actionType === 'deny') {
-        await denyWasteCollection(selectedCollection.id, adminNotes);
+        await wasteCollectionApi.denyWasteCollection(selectedCollection.id, adminNotes);
       }
 
       // Refresh the collections list
-      const response = await getAllWasteCollections();
-      setCollections(response.data);
+      const response = await wasteCollectionApi.getWasteCollectionsByCompany();
+      setCollections(response.data || response);
       
       setShowModal(false);
       setSelectedCollection(null);
@@ -149,7 +150,7 @@ export default function AdminWasteCollections() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
@@ -203,7 +204,7 @@ export default function AdminWasteCollections() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Filter Section */}
           <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 mb-8">

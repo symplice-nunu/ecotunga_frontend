@@ -136,7 +136,7 @@ const CompanyList = () => {
 
   const fetchCompanies = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/companies');
+      const response = await axios.get('http://localhost:5001/api/companies');
       setCompanies(response.data);
       setFilteredCompanies(response.data);
       setTotalPages(Math.ceil((response.data?.length || 0) / itemsPerPage));
@@ -182,7 +182,7 @@ const CompanyList = () => {
     setFormSuccess('');
 
     try {
-      await axios.post('http://localhost:5000/api/companies/register', formData);
+      await axios.post('http://localhost:5001/api/companies/register', formData);
       setFormSuccess('Company registered successfully!');
       setShowSuccessModal(true);
       // Reset form

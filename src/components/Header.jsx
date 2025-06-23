@@ -2,16 +2,24 @@ import React, { useState } from 'react';
 import { BellIcon, GlobeAltIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
-  // For demo, hardcode user info. Replace with real user data as needed.
-  const user = {
-    name: 'Sophia Adams',
-    role: 'Mentor',
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg', // Replace with your avatar source
+  
+  // Use actual user data from AuthContext, with fallback for demo
+  const userInfo = user ? {
+    name: user.name || 'User',
+    role: user.role || 'User',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg', // Replace with user.avatar when available
+  } : {
+    name: 'Guest',
+    role: 'Guest',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
   };
+
   const languages = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -89,13 +97,13 @@ const Header = ({ onMenuClick }) => {
           {/* User */}
           <div className="flex items-center gap-2 lg:gap-3">
             <img
-              src={user.avatar}
-              alt={user.name}
+              src={userInfo.avatar}
+              alt={userInfo.name}
               className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover border border-gray-200"
             />
             <div className="hidden sm:flex flex-col">
-              <span className="text-sm font-semibold text-gray-900 leading-tight">{user.name}</span>
-              <span className="text-xs text-gray-400 leading-tight">{user.role}</span>
+              <span className="text-sm font-semibold text-gray-900 leading-tight">{userInfo.name}</span>
+              <span className="text-xs text-gray-400 leading-tight">{userInfo.role}</span>
             </div>
           </div>
         </div>

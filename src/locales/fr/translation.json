@@ -29,7 +29,11 @@
     "signupError": "Échec de l'inscription",
     "enterDetails": "Veuillez entrer vos informations",
     "signIn": "Se connecter",
-    "signingIn": "Connexion en cours..."
+    "signingIn": "Connexion en cours...",
+    "completeProfile": "Complétez votre profil",
+    "completeProfileSubtitle": "Parlez-nous de vous",
+    "completingRegistration": "Finalisation de l'inscription...",
+    "completeRegistration": "Finaliser l'inscription"
   },
   "errors": {
     "required": "Ce champ est obligatoire",
@@ -42,6 +46,7 @@
     "title": "Paramètres du profil",
     "subtitle": "Mettez à jour vos informations personnelles et adresse",
     "personalInfo": "Informations personnelles",
+    "locationInfo": "Informations de localisation",
     "addressInfo": "Informations d'adresse",
     "firstName": "Prénom",
     "lastName": "Nom de famille",
@@ -99,11 +104,13 @@
       "lastPeriod": "Période précédente"
     },
     "recentActivity": {
-      "title": "Activité récente",
-      "wasteCollected": "Déchets collectés",
-      "joinedCleanup": "A rejoint le nettoyage de {{location}}",
+      "title": "Activité Récente",
+      "wasteCollected": "Déchets collectés pour {{name}}",
+      "joinedCleanup": "Rejoint le nettoyage de {{location}}",
       "recycled": "{{amount}} kg de {{material}} recyclés",
-      "unlockedBadge": "Badge \"{{badge}}\" débloqué"
+      "unlockedBadge": "Badge \"{{badge}}\" débloqué",
+      "pendingCollection": "Collecte en attente pour {{name}} à {{location}}",
+      "collectionDenied": "Collecte refusée pour {{name}} - {{reason}}"
     },
     "nextPickup": {
       "title": "Prochaine collecte",

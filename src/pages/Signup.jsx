@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../services/api';
 import logo from '../assets/login_logo.png';
 import LanguageSelector from '../components/LanguageSelector';
 
@@ -9,7 +8,8 @@ export default function Signup() {
     name: '', 
     email: '', 
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'user'
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +40,9 @@ export default function Signup() {
     if (form.password !== form.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
+    if (!form.role) {
+      newErrors.role = 'Please select a role';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -59,12 +62,16 @@ export default function Signup() {
     setIsLoading(true);
     setServerError('');
     try {
-      const { data } = await API.post('/register', {
-        name: form.name,
-        email: form.email,
-        password: form.password
+      navigate('/personal-info', { 
+        state: { 
+          userCredentials: {
+            name: form.name,
+            email: form.email,
+            password: form.password,
+            role: form.role
+          }
+        } 
       });
-      navigate('/login', { state: { successMessage: data.message } });
     } catch (err) {
       setServerError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -143,6 +150,58 @@ export default function Signup() {
                   className={`w-full px-4 py-3 bg-white border ${errors.email ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 placeholder-gray-400`}
                 />
                 {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+              </div>
+              
+              {/* Role Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Select Your Role</label>
+                <div className="space-y-2">
+                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="user"
+                      checked={form.role === 'user'}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                    />
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">Regular User</div>
+                      <div className="text-xs text-gray-500">I want to schedule waste collection services</div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="waste_collector"
+                      checked={form.role === 'waste_collector'}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                    />
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">Waste Collector</div>
+                      <div className="text-xs text-gray-500">I provide waste collection services</div>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="recycling_center"
+                      checked={form.role === 'recycling_center'}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                    />
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">Recycling Center</div>
+                      <div className="text-xs text-gray-500">I operate a recycling facility</div>
+                    </div>
+                  </label>
+                </div>
+                {errors.role && <p className="mt-1 text-xs text-red-600">{errors.role}</p>}
               </div>
               
               {/* Password Field */}

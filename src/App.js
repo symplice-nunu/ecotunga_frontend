@@ -5,6 +5,7 @@ import i18n from './i18n';
 import { AuthProvider } from './contexts/AuthContext';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import PersonalInfo from './pages/PersonalInfo';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
@@ -25,6 +26,7 @@ function App() {
             {/* Public routes */}
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/personal-info" element={<PersonalInfo />} />
             
             {/* Protected routes with layout */}
             <Route path="/" element={<Layout />}>

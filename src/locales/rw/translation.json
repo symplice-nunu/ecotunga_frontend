@@ -29,7 +29,11 @@
     "signupError": "Kwiyandikisha byanze",
     "enterDetails": "Andika amakuru yawe",
     "signIn": "Injira",
-    "signingIn": "Kwinjira..."
+    "signingIn": "Kwinjira...",
+    "completeProfile": "Uzuza umwirondoro wawe",
+    "completeProfileSubtitle": "Dutangire ibisobanuro",
+    "completingRegistration": "Ari guzuza kwiyandikisha...",
+    "completeRegistration": "Zuzura kwiyandikisha"
   },
   "errors": {
     "required": "Iki gice ngombwa",
@@ -42,6 +46,7 @@
     "title": "Igenamiterere rya umwirondoro",
     "subtitle": "Vuguruza amakuru yawe n'aderesi",
     "personalInfo": "Amakuru yawe",
+    "locationInfo": "Amakuru y'ahantu",
     "addressInfo": "Amakuru y'aderesi",
     "firstName": "Amazina y'umubyeyi",
     "lastName": "Izina",
@@ -123,11 +128,13 @@
       "lastPeriod": "Igihe cyashize"
     },
     "recentActivity": {
-      "title": "Ibikorwa vuba",
-      "wasteCollected": "Imyanda yakusanyijwe",
+      "title": "Ibikorwa Bya Vuba",
+      "wasteCollected": "Imyanda yatoranijwe kwa {{name}}",
       "joinedCleanup": "Yinjiye mu gusukura {{location}}",
-      "recycled": "{{amount}} kg za {{material}} zakoreshwa",
-      "unlockedBadge": "Badge \"{{badge}}\" yafunguwe"
+      "recycled": "{{amount}} kg za {{material}} zongeye gukoreshwa",
+      "unlockedBadge": "Badge \"{{badge}}\" yafunguwe",
+      "pendingCollection": "Gutoranya byihuse kwa {{name}} muri {{location}}",
+      "collectionDenied": "Gutoranya byanze kwa {{name}} - {{reason}}"
     },
     "nextPickup": {
       "title": "Gukurikiraho gusura imyanda",

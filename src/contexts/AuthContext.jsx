@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
       );
 
       // Fetch user profile to verify token is valid
-      API.get('/profile')
+      API.get('/auth/profile')
         .then(response => {
           setUser(response.data);
         })
@@ -48,11 +48,11 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const { data } = await API.post('/login', { email, password });
+      const { data } = await API.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
       
       // Fetch user profile after successful login
-      const profileResponse = await API.get('/profile');
+      const profileResponse = await API.get('/auth/profile');
       setUser(profileResponse.data);
       
       return profileResponse.data;
@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          await API.post('/logout');
+          await API.post('/auth/logout');
         } catch (error) {
           console.error('Logout API call failed:', error);
         }
