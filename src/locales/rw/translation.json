@@ -120,6 +120,11 @@
       "description": "Shyira gahunda yo gusura imyanda yawe ya gusubiramo gukoreshwa kandi utange igirakamaro ku isi yoroshye.",
       "button": "Andika gusura"
     },
+    "recyclingCenter": {
+      "title": "Shakisha ibigo byo gukoresha",
+      "description": "Shakisha ibigo byo gukoresha biherereye hafi yawe kandi ushyire ibikoresho byawe byo gukoresha.",
+      "button": "Shakisha ibigo"
+    },
     "stats": {
       "users": "Abakoresha",
       "totalAmount": "Amafaranga yose",
@@ -240,6 +245,69 @@
       "previous": "Ibanjirije",
       "next": "Gukurikira",
       "showing": "Kwerekana {{start}} kugeza {{end}} ku {{total}} ibisubizo"
+    }
+  },
+  "communityEvents": {
+    "title": "Ibikorwa by'Umuryango",
+    "subtitle": "Shakisha kandi ujye mu bikorwa by'ibidukikije muri umuryango wawe",
+    "searchPlaceholder": "Shakisha ibikorwa...",
+    "featuredEvents": "Ibikorwa By'Agaciro",
+    "allEvents": "Ibikorwa Byose",
+    "noEventsFound": "Nta gikorwa kivumbuwe",
+    "noEventsMatch": "Gerageza guhindura ibisubizo byawe cyangwa ibisuzuma",
+    "joinEvent": "Jya mu Gikorwa",
+    "joined": "Yinjiye",
+    "participants": "abajyanye",
+    "by": "na",
+    "categories": {
+      "all": "Ibikorwa Byose",
+      "cleanup": "Gusukura",
+      "education": "Amasomo",
+      "planting": "Gutera Ibiti"
+    },
+    "createNew": "Kora Igikorwa Gishya",
+    "editEvent": "Hindura Igikorwa",
+    "deleteEvent": "Siba Igikorwa",
+    "deleteConfirm": "Uzi neza ko ushaka gusiba iki gikorwa? Iki gikorwa ntibishobora guhindurwa."
+  },
+  "educationMaterials": {
+    "title": "Ibikoresho by'Amasomo",
+    "subtitle": "Jya amasomo ku gucunga imyanda, gukoresha ibikoresho no kurinda ibidukikije",
+    "searchPlaceholder": "Shakisha ibikoresho...",
+    "featuredMaterials": "Ibikoresho By'Agaciro",
+    "allMaterials": "Ibikoresho Byose",
+    "noMaterialsFound": "Nta gikoresho kivumbuwe",
+    "noMaterialsMatch": "Gerageza guhindura ibisubizo byawe cyangwa ibisuzuma",
+    "startLearning": "Tangira Kwiga",
+    "learn": "Jya",
+    "readMore": "Soma Byinshi",
+    "views": "kureba",
+    "by": "na",
+    "createNew": "Kora Ibikoresho Bishya",
+    "editMaterial": "Hindura Ibikoresho",
+    "deleteMaterial": "Siba Ibikoresho",
+    "deleteConfirm": "Uzi neza ko ushaka gusiba ibi bikoresho? Iki gikorwa ntibishobora guhindurwa.",
+    "categories": {
+      "all": "Ibwoko Byose",
+      "wasteManagement": "Gucunga Imyanda",
+      "recycling": "Gukoresha Ibikoresho",
+      "composting": "Gukora Ifumbire",
+      "lifestyle": "Uko Twibaho",
+      "eWaste": "Imyanda ya Elektroniki",
+      "packaging": "Gupakira",
+      "conservation": "Kurinda",
+      "materials": "Ibikoresho"
+    },
+    "levels": {
+      "all": "Urupapuro Rwose",
+      "beginner": "Utangira",
+      "intermediate": "Hagati",
+      "advanced": "Urupapuro Rwo Hejuru"
+    },
+    "types": {
+      "guide": "Inyongera",
+      "video": "Video",
+      "article": "Inyandiko"
     }
   }
 } 

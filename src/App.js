@@ -16,6 +16,8 @@ import CompanyList from './components/CompanyList';
 import Layout from './components/Layout';
 import WasteCollections from './pages/WasteCollections';
 import AdminWasteCollections from './pages/AdminWasteCollections';
+import CommunityEvents from './pages/CommunityEvents';
+import EducationMaterials from './pages/EducationMaterials';
 
 function App() {
   return (
@@ -40,6 +42,8 @@ function App() {
               <Route path="recycling-center" element={<RecyclingCenter />} />
               <Route path="company-registration" element={<CompanyRegistration />} />
               <Route path="companies" element={<CompanyList />} />
+              <Route path="community" element={<CommunityEvents />} />
+              <Route path="education" element={<EducationMaterials />} />
             </Route>
             
             {/* Catch all route */}

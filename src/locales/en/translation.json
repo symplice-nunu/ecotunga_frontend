@@ -92,6 +92,11 @@
       "description": "Schedule a pickup for your waste and contribute to a cleaner environment.",
       "button": "Book Collection"
     },
+    "recyclingCenter": {
+      "title": "Find Recycling Centers",
+      "description": "Locate nearby recycling centers and drop off your recyclable materials.",
+      "button": "Find Centers"
+    },
     "stats": {
       "users": "Users",
       "totalAmount": "Total Amount",
@@ -255,6 +260,69 @@
       "pending": "Pending",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    }
+  },
+  "communityEvents": {
+    "title": "Community Events",
+    "subtitle": "Discover and join environmental events in your community",
+    "searchPlaceholder": "Search events...",
+    "featuredEvents": "Featured Events",
+    "allEvents": "All Events",
+    "noEventsFound": "No events found",
+    "noEventsMatch": "Try adjusting your search or filter criteria",
+    "joinEvent": "Join Event",
+    "joined": "Joined",
+    "participants": "participants",
+    "by": "by",
+    "categories": {
+      "all": "All Events",
+      "cleanup": "Cleanup",
+      "education": "Education",
+      "planting": "Tree Planting"
+    },
+    "createNew": "Create New Event",
+    "editEvent": "Edit Event",
+    "deleteEvent": "Delete Event",
+    "deleteConfirm": "Are you sure you want to delete this event? This action cannot be undone."
+  },
+  "educationMaterials": {
+    "title": "Education Materials",
+    "subtitle": "Learn about waste management, recycling, and environmental conservation",
+    "searchPlaceholder": "Search materials...",
+    "featuredMaterials": "Featured Materials",
+    "allMaterials": "All Materials",
+    "noMaterialsFound": "No materials found",
+    "noMaterialsMatch": "Try adjusting your search or filter criteria",
+    "startLearning": "Start Learning",
+    "learn": "Learn",
+    "readMore": "Read More",
+    "views": "views",
+    "by": "by",
+    "createNew": "Create New Material",
+    "editMaterial": "Edit Material",
+    "deleteMaterial": "Delete Material",
+    "deleteConfirm": "Are you sure you want to delete this material? This action cannot be undone.",
+    "categories": {
+      "all": "All Categories",
+      "waste-management": "Waste Management",
+      "recycling": "Recycling",
+      "composting": "Composting",
+      "lifestyle": "Sustainable Lifestyle",
+      "e-waste": "E-Waste",
+      "packaging": "Packaging",
+      "conservation": "Conservation",
+      "materials": "Materials"
+    },
+    "levels": {
+      "all": "All Levels",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "types": {
+      "guide": "Guide",
+      "video": "Video",
+      "article": "Article"
     }
   }
 } 

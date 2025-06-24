@@ -694,6 +694,30 @@ export default function Home() {
             </div>
           )}
 
+          {/* Find Recycling Centers Button - Only show for users with role 'user' */}
+          {user?.role === 'user' && (
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-white mb-2">{t('home.recyclingCenter.title')}</h2>
+                  <p className="text-green-100 text-sm mb-4">
+                    {t('home.recyclingCenter.description')}
+                  </p>
+                  <Link
+                    to="/recycling-center"
+                    className="inline-flex items-center gap-2 bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors duration-200 shadow-sm"
+                  >
+                    <RefreshCcw className="w-5 h-5" />
+                    {t('home.recyclingCenter.button')}
+                  </Link>
+                </div>
+                <div className="hidden sm:block">
+                  <RefreshCcw className="w-16 h-16 text-green-200" />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Bar Chart - Only show for admin users */}
           {user?.role === 'admin' && (
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
@@ -901,7 +925,7 @@ export default function Home() {
       </div>
 
       {/* Sorting Guidelines - Only show for users with role 'user' */}
-      {user?.role === 'user' && (
+      {/* {user?.role === 'user' && (
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('home.guidelines.title')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
@@ -918,7 +942,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

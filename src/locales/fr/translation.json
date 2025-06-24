@@ -96,6 +96,11 @@
       "description": "Planifiez une collecte pour vos déchets recyclables et contribuez à un environnement plus propre.",
       "button": "Réserver une collecte"
     },
+    "recyclingCenter": {
+      "title": "Trouver des centres de recyclage",
+      "description": "Localisez les centres de recyclage à proximité et déposez vos matériaux recyclables.",
+      "button": "Trouver des centres"
+    },
     "stats": {
       "users": "Utilisateurs",
       "totalAmount": "Montant total",
@@ -241,6 +246,69 @@
       "previous": "Précédent",
       "next": "Suivant",
       "showing": "Affichage de {{start}} à {{end}} sur {{total}} résultats"
+    }
+  },
+  "communityEvents": {
+    "title": "Événements Communautaires",
+    "subtitle": "Découvrez et rejoignez des événements environnementaux dans votre communauté",
+    "searchPlaceholder": "Rechercher des événements...",
+    "featuredEvents": "Événements en Vedette",
+    "allEvents": "Tous les Événements",
+    "noEventsFound": "Aucun événement trouvé",
+    "noEventsMatch": "Essayez d'ajuster vos critères de recherche ou de filtrage",
+    "joinEvent": "Rejoindre l'Événement",
+    "joined": "Rejoint",
+    "participants": "participants",
+    "by": "par",
+    "categories": {
+      "all": "Tous les Événements",
+      "cleanup": "Nettoyage",
+      "education": "Éducation",
+      "planting": "Plantation d'Arbres"
+    },
+    "createNew": "Créer un Nouvel Événement",
+    "editEvent": "Modifier l'Événement",
+    "deleteEvent": "Supprimer l'Événement",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée."
+  },
+  "educationMaterials": {
+    "title": "Matériel Éducatif",
+    "subtitle": "Apprenez la gestion des déchets, le recyclage et la conservation environnementale",
+    "searchPlaceholder": "Rechercher du matériel...",
+    "featuredMaterials": "Matériel en Vedette",
+    "allMaterials": "Tout le Matériel",
+    "noMaterialsFound": "Aucun matériel trouvé",
+    "noMaterialsMatch": "Essayez d'ajuster vos critères de recherche ou de filtrage",
+    "startLearning": "Commencer à Apprendre",
+    "learn": "Apprendre",
+    "readMore": "Lire Plus",
+    "views": "vues",
+    "by": "par",
+    "createNew": "Créer un Nouveau Matériel",
+    "editMaterial": "Modifier le Matériel",
+    "deleteMaterial": "Supprimer le Matériel",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce matériel ? Cette action ne peut pas être annulée.",
+    "categories": {
+      "all": "Toutes les Catégories",
+      "wasteManagement": "Gestion des Déchets",
+      "recycling": "Recyclage",
+      "composting": "Compostage",
+      "lifestyle": "Mode de Vie",
+      "eWaste": "Déchets Électroniques",
+      "packaging": "Emballage",
+      "conservation": "Conservation",
+      "materials": "Matériaux"
+    },
+    "levels": {
+      "all": "Tous les Niveaux",
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "advanced": "Avancé"
+    },
+    "types": {
+      "guide": "Guide",
+      "video": "Vidéo",
+      "article": "Article"
     }
   }
 } 

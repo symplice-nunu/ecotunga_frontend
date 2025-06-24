@@ -41,108 +41,638 @@ const rwandaDistricts = [
   'Rwamagana'
 ];
 
-// Rwanda sectors array (same as Profile.jsx)
-const rwandaSectors = [
-  'Bumbogo',
-  'Gatsata',
-  'Gikomero',
-  'Gisozi',
-  'Jabana',
-  'Jali',
-  'Kacyiru',
-  'Kimihurura',
-  'Kimironko',
-  'Kinyinya',
-  'Ndera',
-  'Nduba',
-  'Remera',
-  'Rusororo',
-  'Rutunga',
-  'Gahanga',
-  'Gatenga',
-  'Gikondo',
-  'Kagarama',
-  'Kanombe',
-  'Kicukiro',
-  'Kigarama',
-  'Masaka',
-  'Niboye',
-  'Nyarugunga',
-  'Busasamana',
-  'Busoro',
-  'Cyabakamyi',
-  'Kibilizi',
-  'Kigoma',
-  'Mukingo',
-  'Muyira',
-  'Ntyazo',
-  'Nyagisozi',
-  'Rwabicuma',
-  'Gikonko',
-  'Gishubi',
-  'Kansi',
-  'Kibirizi',
-  'Kigembe',
-  'Mamba',
-  'Muganza',
-  'Mugombwa',
-  'Mukindo',
-  'Musha',
-  'Ndora',
-  'Nyanza',
-  'Save',
-  'Busanze',
-  'Butare',
-  'Gahororo',
-  'Gashora',
-  'Gikundamvura',
-  'Kigembe',
-  'Mareba',
-  'Mayange',
-  'Musenyi',
-  'Mwogo',
-  'Ngeruka',
-  'Ntarama',
-  'Ruhuha',
-  'Rweru',
-  'Shyara',
-  'Bungwe',
-  'Butaro',
-  'Cyanika',
-  'Cyeru',
-  'Gahunga',
-  'Gatebe',
-  'Gitovu',
-  'Kagogo',
-  'Kinoni',
-  'Kinyababa',
-  'Kivuye',
-  'Nemba',
-  'Rugarama',
-  'Rugengabari',
-  'Ruhunde',
-  'Rusarabuye',
-  'Rwerere',
-  'Busengo',
-  'Coko',
-  'Cyabingo',
-  'Gakenke',
-  'Gashyita',
-  'Janja',
-  'Kamubuga',
-  'Karambo',
-  'Kivuruga',
-  'Mataba',
-  'Minazi',
-  'Mugunga',
-  'Muhondo',
-  'Muyongwe',
-  'Muzo',
-  'Nemba',
-  'Ruli',
-  'Rusasa',
-  'Rushashi'
-];
+// District-Sector mapping
+const districtSectorMapping = {
+  'Gasabo': [
+    'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 
+    'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 
+    'Rusororo', 'Rutunga'
+  ],
+  'Kicukiro': [
+    'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 
+    'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga'
+  ],
+  'Nyarugenge': [
+    'Gitega', 'Kanyinya', 'Kigali', 'Kimisagara', 'Mageragere', 'Muhima', 
+    'Nyakabanda', 'Nyamirambo', 'Nyarugenge', 'Rwezamenyo'
+  ],
+  'Bugesera': [
+    'Gashora', 'Juru', 'Kamabuye', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 
+    'Ngeruka', 'Ntarama', 'Nyamata', 'Nyarugenge', 'Rilima', 'Ruhuha', 
+    'Rweru', 'Shyara'
+  ],
+  'Burera': [
+    'Bungwe', 'Butaro', 'Cyanika', 'Cyeru', 'Gahunga', 'Gatebe', 'Gitovu', 
+    'Kagogo', 'Kinoni', 'Kinyababa', 'Kivuye', 'Nemba', 'Rugarama', 
+    'Rugengabari', 'Ruhunde', 'Rusarabuye', 'Rwerere'
+  ],
+  'Gakenke': [
+    'Busengo', 'Coko', 'Cyabingo', 'Gakenke', 'Gashyita', 'Janja', 'Kamubuga', 
+    'Karambo', 'Kivuruga', 'Mataba', 'Minazi', 'Mugunga', 'Muhondo', 
+    'Muyongwe', 'Muzo', 'Nemba', 'Ruli', 'Rusasa', 'Rushashi'
+  ],
+  'Gatsibo': [
+    'Gahini', 'Gasange', 'Gatsibo', 'Gitoki', 'Kabarore', 'Kageyo', 'Kiramuruzi', 
+    'Kiziguro', 'Muhura', 'Murambi', 'Ngarama', 'Nyagihanga', 'Remera', 
+    'Rugarama', 'Rwimbogo'
+  ],
+  'Gicumbi': [
+    'Bukure', 'Bwisige', 'Byumba', 'Cyumba', 'Giti', 'Kaniga', 'Manyagiro', 
+    'Miyove', 'Kageyo', 'Mukarange', 'Muko', 'Mutete', 'Nyamiyaga', 
+    'Nyankenke', 'Rubaya', 'Rukomo', 'Rushaki', 'Rutare', 'Ruvune', 'Shangasha', 'Tumba'
+  ],
+  'Gisagara': [
+    'Gikonko', 'Gishubi', 'Kansi', 'Kibirizi', 'Kigembe', 'Mamba', 'Muganza', 
+    'Mugombwa', 'Mukindo', 'Musha', 'Ndora', 'Nyanza', 'Save'
+  ],
+  'Huye': [
+    'Busanze', 'Butare', 'Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 
+    'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 
+    'Rweru', 'Shyara'
+  ],
+  'Kamonyi': [
+    'Gacurabwenge', 'Karama', 'Kayenzi', 'Kibuye', 'Mugina', 'Musambira', 
+    'Ngamba', 'Nyamiyaga', 'Nyarubaka', 'Rugalika', 'Rukoma', 'Runda'
+  ],
+  'Karongi': [
+    'Bwishyura', 'Gashari', 'Gishyita', 'Gisovu', 'Gitesi', 'Mubuga', 'Murambi', 
+    'Murundi', 'Mutuntu', 'Rubengera', 'Rugabano', 'Ruganda', 'Rwankuba', 'Twumba'
+  ],
+  'Kayonza': [
+    'Gahini', 'Kabarondo', 'Karengera', 'Kaziba', 'Kibungo', 'Mukarange', 
+    'Murama', 'Murundi', 'Mwiri', 'Ndego', 'Nyamirama', 'Rukara', 'Ruramira', 'Rwinkwavu'
+  ],
+  'Kirehe': [
+    'Gahara', 'Gatore', 'Kigarama', 'Kigina', 'Kirehe', 'Mahama', 'Mpanga', 
+    'Musaza', 'Mushikiri', 'Nasho', 'Nyamugari', 'Nyarubuye', 'Rwabukenge', 'Rwanyamuhanga'
+  ],
+  'Muhanga': [
+    'Cyeza', 'Gacurabwenge', 'Gashali', 'Gitarama', 'Kibangu', 'Kiyumba', 
+    'Muhanga', 'Munyinya', 'Musezero', 'Muyira', 'Nkinda', 'Nyabinoni', 
+    'Nyamabuye', 'Nyarusange', 'Rongi', 'Rugendabari', 'Shyogwe'
+  ],
+  'Musanze': [
+    'Busogo', 'Cyuve', 'Gacaca', 'Gashaki', 'Gataraga', 'Kimonyi', 'Kinigi', 
+    'Muhoza', 'Muko', 'Musanze', 'Nkotsi', 'Nyange', 'Remera', 'Rwaza', 'Shingiro'
+  ],
+  'Ngoma': [
+    'Gashanda', 'Jarama', 'Karembo', 'Kazo', 'Kibungo', 'Mugesera', 'Murama', 
+    'Mutenderi', 'Remera', 'Rukira', 'Rukumberi', 'Rurenge', 'Sake', 'Zaza'
+  ],
+  'Ngororero': [
+    'Bwira', 'Gatumba', 'Hindiro', 'Kabaya', 'Kageyo', 'Kavumu', 'Matyazo', 
+    'Muhanda', 'Muhororo', 'Ndaro', 'Ngororero', 'Nyange', 'Sovu'
+  ],
+  'Nyabihu': [
+    'Bigogwe', 'Jenda', 'Jomba', 'Kabatwa', 'Karago', 'Kintobo', 'Mukamira', 
+    'Muringa', 'Rambura', 'Rugera', 'Rurembo', 'Shyira'
+  ],
+  'Nyagatare': [
+    'Gatunda', 'Kiyombe', 'Karama', 'Musheli', 'Nyagatare', 'Rukomo', 
+    'Rwempasha', 'Rwimiyaga', 'Tabagwe'
+  ],
+  'Nyamagabe': [
+    'Buruhukiro', 'Cyanika', 'Gasaka', 'Gatare', 'Kaduha', 'Kamegeli', 
+    'Kibirizi', 'Kibumbwe', 'Kitabi', 'Mbazi', 'Mugano', 'Musange', 'Musebeya', 
+    'Mushubi', 'Nkomane', 'Tare', 'Uwinkingi'
+  ],
+  'Nyamasheke': [
+    'Bushekeri', 'Bushenge', 'Cyato', 'Gihombo', 'Kagano', 'Kanjongo', 
+    'Karambi', 'Karengera', 'Kirimbi', 'Macuba', 'Mahembe', 'Nyabitekeri', 
+    'Rangiro', 'Ruharambuga', 'Shangi'
+  ],
+  'Nyanza': [
+    'Busasamana', 'Busoro', 'Cyabakamyi', 'Kibilizi', 'Kigoma', 'Mukingo', 
+    'Muyira', 'Ntyazo', 'Nyagisozi', 'Rwabicuma'
+  ],
+  'Nyaruguru': [
+    'Busanze', 'Cyahinda', 'Kibeho', 'Kivu', 'Mata', 'Muganza', 'Munini', 
+    'Ngera', 'Ngoma', 'Nyabimata', 'Nyagisozi', 'Ruheru', 'Ruramba', 'Rusenge'
+  ],
+  'Rubavu': [
+    'Bugeshi', 'Busasamana', 'Cyanzarwe', 'Gisenyi', 'Kanama', 'Kanzenze', 
+    'Mudende', 'Nyakiriba', 'Nyamyumba', 'Nyundo', 'Rubavu', 'Rugerero'
+  ],
+  'Ruhango': [
+    'Bweramana', 'Byimana', 'Kabagali', 'Kinazi', 'Kinihira', 'Mbuye', 
+    'Mukingo', 'Muyira', 'Ntongwe', 'Ruhango', 'Rusatira', 'Rweru', 'Shyira'
+  ],
+  'Rulindo': [
+    'Base', 'Burega', 'Bushoki', 'Buyoga', 'Cyinzuzi', 'Cyungo', 'Kinihira', 
+    'Kisaro', 'Masoro', 'Mbogo', 'Murambi', 'Ngoma', 'Nkoto', 'Rusiga', 'Rutare'
+  ],
+  'Rusizi': [
+    'Bugarama', 'Butare', 'Bweyeye', 'Gashonga', 'Giheke', 'Gihundwe', 
+    'Gikundamvura', 'Gitambi', 'Kamembe', 'Muganza', 'Mururu', 'Nkanka', 
+    'Nkombo', 'Nkungu', 'Nyakabuye', 'Nyakarenzo', 'Nzahaha', 'Rwimbogo'
+  ],
+  'Rutsiro': [
+    'Boneza', 'Gihango', 'Kigeyo', 'Kivumu', 'Manihira', 'Mukura', 'Murunda', 
+    'Musasa', 'Mushonyi', 'Mushubati', 'Nyabirasi', 'Ruhango', 'Rusebeya', 'Rusizi'
+  ],
+  'Rwamagana': [
+    'Fumbwe', 'Gahengeri', 'Gishari', 'Karenge', 'Kigabiro', 'Muhazi', 
+    'Munyaga', 'Munyiginya', 'Musaza', 'Mushonyi', 'Muyumbu', 'Mwulire', 
+    'Nyakaliro', 'Nzige', 'Rubona', 'Rukoma', 'Rukura', 'Rukura', 'Rurenge'
+  ]
+};
+
+// Sector-Cell mapping
+const sectorCellMapping = {
+  // Gasabo District Sectors
+  'Bumbogo': ['Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali'],
+  'Gatsata': ['Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru'],
+  'Gikomero': ['Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura'],
+  'Gisozi': ['Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko'],
+  'Jabana': ['Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya'],
+  'Jali': ['Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera'],
+  'Kacyiru': ['Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba'],
+  'Kimihurura': ['Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera'],
+  'Kimironko': ['Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo'],
+  'Kinyinya': ['Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
+  'Ndera': ['Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
+  'Nduba': ['Nduba', 'Remera', 'Rusororo', 'Rutunga'],
+  'Remera': ['Remera', 'Rusororo', 'Rutunga'],
+  'Rusororo': ['Rusororo', 'Rutunga'],
+  'Rutunga': ['Rutunga'],
+  
+  // Kicukiro District Sectors
+  'Gahanga': ['Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe'],
+  'Gatenga': ['Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro'],
+  'Gikondo': ['Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama'],
+  'Kagarama': ['Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka'],
+  'Kanombe': ['Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye'],
+  'Kicukiro': ['Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga'],
+  'Kigarama': ['Kigarama', 'Masaka', 'Niboye', 'Nyarugunga'],
+  'Masaka': ['Masaka', 'Niboye', 'Nyarugunga'],
+  'Niboye': ['Niboye', 'Nyarugunga'],
+  'Nyarugunga': ['Nyarugunga'],
+  
+  // Nyarugenge District Sectors
+  'Gitega': ['Gitega', 'Kanyinya', 'Kigali', 'Kimisagara', 'Mageragere'],
+  'Kanyinya': ['Kanyinya', 'Kigali', 'Kimisagara', 'Mageragere', 'Muhima'],
+  'Kigali': ['Kigali', 'Kimisagara', 'Mageragere', 'Muhima', 'Nyakabanda'],
+  'Kimisagara': ['Kimisagara', 'Mageragere', 'Muhima', 'Nyakabanda', 'Nyamirambo'],
+  'Mageragere': ['Mageragere', 'Muhima', 'Nyakabanda', 'Nyamirambo', 'Nyarugenge'],
+  'Muhima': ['Muhima', 'Nyakabanda', 'Nyamirambo', 'Nyarugenge', 'Rwezamenyo'],
+  'Nyakabanda': ['Nyakabanda', 'Nyamirambo', 'Nyarugenge', 'Rwezamenyo'],
+  'Nyamirambo': ['Nyamirambo', 'Nyarugenge', 'Rwezamenyo'],
+  'Nyarugenge': ['Nyarugenge', 'Rwezamenyo'],
+  'Rwezamenyo': ['Rwezamenyo'],
+  
+  // Bugesera District Sectors
+  'Gashora': ['Gashora', 'Juru', 'Kamabuye', 'Mareba', 'Mayange'],
+  'Juru': ['Juru', 'Kamabuye', 'Mareba', 'Mayange', 'Musenyi'],
+  'Kamabuye': ['Kamabuye', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo'],
+  'Mareba': ['Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka'],
+  'Mayange': ['Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama'],
+  'Musenyi': ['Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Nyamata'],
+  'Mwogo': ['Mwogo', 'Ngeruka', 'Ntarama', 'Nyamata', 'Nyarugenge'],
+  'Ngeruka': ['Ngeruka', 'Ntarama', 'Nyamata', 'Nyarugenge', 'Rilima'],
+  'Ntarama': ['Ntarama', 'Nyamata', 'Nyarugenge', 'Rilima', 'Ruhuha'],
+  'Nyamata': ['Nyamata', 'Nyarugenge', 'Rilima', 'Ruhuha', 'Rweru'],
+  'Nyarugenge': ['Nyarugenge', 'Rilima', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Rilima': ['Rilima', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ruhuha': ['Ruhuha', 'Rweru', 'Shyara'],
+  'Rweru': ['Rweru', 'Shyara'],
+  'Shyara': ['Shyara'],
+  
+  // Burera District Sectors
+  'Bungwe': ['Bungwe', 'Butaro', 'Cyanika', 'Cyeru', 'Gahunga'],
+  'Butaro': ['Butaro', 'Cyanika', 'Cyeru', 'Gahunga', 'Gatebe'],
+  'Cyanika': ['Cyanika', 'Cyeru', 'Gahunga', 'Gatebe', 'Gitovu'],
+  'Cyeru': ['Cyeru', 'Gahunga', 'Gatebe', 'Gitovu', 'Kagogo'],
+  'Gahunga': ['Gahunga', 'Gatebe', 'Gitovu', 'Kagogo', 'Kinoni'],
+  'Gatebe': ['Gatebe', 'Gitovu', 'Kagogo', 'Kinoni', 'Kinyababa'],
+  'Gitovu': ['Gitovu', 'Kagogo', 'Kinoni', 'Kinyababa', 'Kivuye'],
+  'Kagogo': ['Kagogo', 'Kinoni', 'Kinyababa', 'Kivuye', 'Nemba'],
+  'Kinoni': ['Kinoni', 'Kinyababa', 'Kivuye', 'Nemba', 'Rugarama'],
+  'Kinyababa': ['Kinyababa', 'Kivuye', 'Nemba', 'Rugarama', 'Rugengabari'],
+  'Kivuye': ['Kivuye', 'Nemba', 'Rugarama', 'Rugengabari', 'Ruhunde'],
+  'Nemba': ['Nemba', 'Rugarama', 'Rugengabari', 'Ruhunde', 'Rusarabuye'],
+  'Rugarama': ['Rugarama', 'Rugengabari', 'Ruhunde', 'Rusarabuye', 'Rwerere'],
+  'Rugengabari': ['Rugengabari', 'Ruhunde', 'Rusarabuye', 'Rwerere'],
+  'Ruhunde': ['Ruhunde', 'Rusarabuye', 'Rwerere'],
+  'Rusarabuye': ['Rusarabuye', 'Rwerere'],
+  'Rwerere': ['Rwerere'],
+  
+  // Gakenke District Sectors
+  'Busengo': ['Busengo', 'Coko', 'Cyabingo', 'Gakenke', 'Gashyita'],
+  'Coko': ['Coko', 'Cyabingo', 'Gakenke', 'Gashyita', 'Janja'],
+  'Cyabingo': ['Cyabingo', 'Gakenke', 'Gashyita', 'Janja', 'Kamubuga'],
+  'Gakenke': ['Gakenke', 'Gashyita', 'Janja', 'Kamubuga', 'Karambo'],
+  'Gashyita': ['Gashyita', 'Janja', 'Kamubuga', 'Karambo', 'Kivuruga'],
+  'Janja': ['Janja', 'Kamubuga', 'Karambo', 'Kivuruga', 'Mataba'],
+  'Kamubuga': ['Kamubuga', 'Karambo', 'Kivuruga', 'Mataba', 'Minazi'],
+  'Karambo': ['Karambo', 'Kivuruga', 'Mataba', 'Minazi', 'Mugunga'],
+  'Kivuruga': ['Kivuruga', 'Mataba', 'Minazi', 'Mugunga', 'Muhondo'],
+  'Mataba': ['Mataba', 'Minazi', 'Mugunga', 'Muhondo', 'Muyongwe'],
+  'Minazi': ['Minazi', 'Mugunga', 'Muhondo', 'Muyongwe', 'Muzo'],
+  'Mugunga': ['Mugunga', 'Muhondo', 'Muyongwe', 'Muzo', 'Nemba'],
+  'Muhondo': ['Muhondo', 'Muyongwe', 'Muzo', 'Nemba', 'Ruli'],
+  'Muyongwe': ['Muyongwe', 'Muzo', 'Nemba', 'Ruli', 'Rusasa'],
+  'Muzo': ['Muzo', 'Nemba', 'Ruli', 'Rusasa', 'Rushashi'],
+  'Nemba': ['Nemba', 'Ruli', 'Rusasa', 'Rushashi'],
+  'Ruli': ['Ruli', 'Rusasa', 'Rushashi'],
+  'Rusasa': ['Rusasa', 'Rushashi'],
+  'Rushashi': ['Rushashi'],
+  
+  // Add more sector-cell mappings for other districts...
+  // For brevity, I'll include a few more key districts
+  
+  // Huye District Sectors
+  'Busanze': ['Busanze', 'Butare', 'Gahororo', 'Gashora', 'Gikundamvura'],
+  'Butare': ['Butare', 'Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe'],
+  'Gahororo': ['Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 'Mareba'],
+  'Gashora': ['Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange'],
+  'Gikundamvura': ['Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi'],
+  'Kigembe': ['Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo'],
+  'Mareba': ['Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka'],
+  'Mayange': ['Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama'],
+  'Musenyi': ['Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha'],
+  'Mwogo': ['Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru'],
+  'Ngeruka': ['Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ntarama': ['Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ruhuha': ['Ruhuha', 'Rweru', 'Shyara'],
+  'Rweru': ['Rweru', 'Shyara'],
+  'Shyara': ['Shyara'],
+  
+  // Muhanga District Sectors
+  'Cyeza': ['Cyeza', 'Gacurabwenge', 'Gashali', 'Gitarama', 'Kibangu'],
+  'Gacurabwenge': ['Gacurabwenge', 'Gashali', 'Gitarama', 'Kibangu', 'Kiyumba'],
+  'Gashali': ['Gashali', 'Gitarama', 'Kibangu', 'Kiyumba', 'Muhanga'],
+  'Gitarama': ['Gitarama', 'Kibangu', 'Kiyumba', 'Muhanga', 'Munyinya'],
+  'Kibangu': ['Kibangu', 'Kiyumba', 'Muhanga', 'Munyinya', 'Musezero'],
+  'Kiyumba': ['Kiyumba', 'Muhanga', 'Munyinya', 'Musezero', 'Muyira'],
+  'Muhanga': ['Muhanga', 'Munyinya', 'Musezero', 'Muyira', 'Nkinda'],
+  'Munyinya': ['Munyinya', 'Musezero', 'Muyira', 'Nkinda', 'Nyabinoni'],
+  'Musezero': ['Musezero', 'Muyira', 'Nkinda', 'Nyabinoni', 'Nyamabuye'],
+  'Muyira': ['Muyira', 'Nkinda', 'Nyabinoni', 'Nyamabuye', 'Nyarusange'],
+  'Nkinda': ['Nkinda', 'Nyabinoni', 'Nyamabuye', 'Nyarusange', 'Rongi'],
+  'Nyabinoni': ['Nyabinoni', 'Nyamabuye', 'Nyarusange', 'Rongi', 'Rugendabari'],
+  'Nyamabuye': ['Nyamabuye', 'Nyarusange', 'Rongi', 'Rugendabari', 'Shyogwe'],
+  'Nyarusange': ['Nyarusange', 'Rongi', 'Rugendabari', 'Shyogwe'],
+  'Rongi': ['Rongi', 'Rugendabari', 'Shyogwe'],
+  'Rugendabari': ['Rugendabari', 'Shyogwe'],
+  'Shyogwe': ['Shyogwe'],
+  
+  // Kayonza District Sectors
+  'Gahini': ['Gahini', 'Kabarondo', 'Karengera', 'Kaziba', 'Kibungo'],
+  'Kabarondo': ['Kabarondo', 'Karengera', 'Kaziba', 'Kibungo', 'Mukarange'],
+  'Karengera': ['Karengera', 'Kaziba', 'Kibungo', 'Mukarange', 'Murama'],
+  'Kaziba': ['Kaziba', 'Kibungo', 'Mukarange', 'Murama', 'Murundi'],
+  'Kibungo': ['Kibungo', 'Mukarange', 'Murama', 'Murundi', 'Mwiri'],
+  'Mukarange': ['Mukarange', 'Murama', 'Murundi', 'Mwiri', 'Ndego'],
+  'Murama': ['Murama', 'Murundi', 'Mwiri', 'Ndego', 'Nyamirama'],
+  'Murundi': ['Murundi', 'Mwiri', 'Ndego', 'Nyamirama', 'Rukara'],
+  'Mwiri': ['Mwiri', 'Ndego', 'Nyamirama', 'Rukara', 'Ruramira'],
+  'Ndego': ['Ndego', 'Nyamirama', 'Rukara', 'Ruramira', 'Rwinkwavu'],
+  'Nyamirama': ['Nyamirama', 'Rukara', 'Ruramira', 'Rwinkwavu'],
+  'Rukara': ['Rukara', 'Ruramira', 'Rwinkwavu'],
+  'Ruramira': ['Ruramira', 'Rwinkwavu'],
+  'Rwinkwavu': ['Rwinkwavu'],
+  
+  // Gatsibo District Sectors
+  'Gatsibo_Gahini': ['Gahini', 'Gasange', 'Gatsibo', 'Gitoki', 'Kabarore'],
+  'Gasange': ['Gasange', 'Gatsibo', 'Gitoki', 'Kabarore', 'Kageyo'],
+  'Gatsibo': ['Gatsibo', 'Gitoki', 'Kabarore', 'Kageyo', 'Kiramuruzi'],
+  'Gitoki': ['Gitoki', 'Kabarore', 'Kageyo', 'Kiramuruzi', 'Kiziguro'],
+  'Kabarore': ['Kabarore', 'Kageyo', 'Kiramuruzi', 'Kiziguro', 'Muhura'],
+  'Kageyo': ['Kageyo', 'Kiramuruzi', 'Kiziguro', 'Muhura', 'Murambi'],
+  'Kiramuruzi': ['Kiramuruzi', 'Kiziguro', 'Muhura', 'Murambi', 'Ngarama'],
+  'Kiziguro': ['Kiziguro', 'Muhura', 'Murambi', 'Ngarama', 'Nyagihanga'],
+  'Muhura': ['Muhura', 'Murambi', 'Ngarama', 'Nyagihanga', 'Remera'],
+  'Murambi': ['Murambi', 'Ngarama', 'Nyagihanga', 'Remera', 'Rugarama'],
+  'Ngarama': ['Ngarama', 'Nyagihanga', 'Remera', 'Rugarama', 'Rwimbogo'],
+  'Nyagihanga': ['Nyagihanga', 'Remera', 'Rugarama', 'Rwimbogo'],
+  'Gatsibo_Remera': ['Remera', 'Rugarama', 'Rwimbogo'],
+  'Rugarama': ['Rugarama', 'Rwimbogo'],
+  'Rwimbogo': ['Rwimbogo'],
+  
+  // Gicumbi District Sectors
+  'Bukure': ['Bukure', 'Bwisige', 'Byumba', 'Cyumba', 'Giti'],
+  'Bwisige': ['Bwisige', 'Byumba', 'Cyumba', 'Giti', 'Kaniga'],
+  'Byumba': ['Byumba', 'Cyumba', 'Giti', 'Kaniga', 'Manyagiro'],
+  'Cyumba': ['Cyumba', 'Giti', 'Kaniga', 'Manyagiro', 'Miyove'],
+  'Giti': ['Giti', 'Kaniga', 'Manyagiro', 'Miyove', 'Kageyo'],
+  'Kaniga': ['Kaniga', 'Manyagiro', 'Miyove', 'Kageyo', 'Mukarange'],
+  'Manyagiro': ['Manyagiro', 'Miyove', 'Kageyo', 'Mukarange', 'Muko'],
+  'Miyove': ['Miyove', 'Kageyo', 'Mukarange', 'Muko', 'Mutete'],
+  'Kageyo': ['Kageyo', 'Mukarange', 'Muko', 'Mutete', 'Nyamiyaga'],
+  'Mukarange': ['Mukarange', 'Muko', 'Mutete', 'Nyamiyaga', 'Nyankenke'],
+  'Muko': ['Muko', 'Mutete', 'Nyamiyaga', 'Nyankenke', 'Rubaya'],
+  'Mutete': ['Mutete', 'Nyamiyaga', 'Nyankenke', 'Rubaya', 'Rukomo'],
+  'Nyamiyaga': ['Nyamiyaga', 'Nyankenke', 'Rubaya', 'Rukomo', 'Rushaki'],
+  'Nyankenke': ['Nyankenke', 'Rubaya', 'Rukomo', 'Rushaki', 'Rutare'],
+  'Rubaya': ['Rubaya', 'Rukomo', 'Rushaki', 'Rutare', 'Ruvune'],
+  'Rukomo': ['Rukomo', 'Rushaki', 'Rutare', 'Ruvune', 'Shangasha'],
+  'Rushaki': ['Rushaki', 'Rutare', 'Ruvune', 'Shangasha', 'Tumba'],
+  'Rutare': ['Rutare', 'Ruvune', 'Shangasha', 'Tumba'],
+  'Ruvune': ['Ruvune', 'Shangasha', 'Tumba'],
+  'Shangasha': ['Shangasha', 'Tumba'],
+  'Tumba': ['Tumba'],
+  
+  // Gisagara District Sectors
+  'Gikonko': ['Gikonko', 'Gishubi', 'Kansi', 'Kibirizi', 'Kigembe'],
+  'Gishubi': ['Gishubi', 'Kansi', 'Kibirizi', 'Kigembe', 'Mamba'],
+  'Kansi': ['Kansi', 'Kibirizi', 'Kigembe', 'Mamba', 'Muganza'],
+  'Kibirizi': ['Kibirizi', 'Kigembe', 'Mamba', 'Muganza', 'Mugombwa'],
+  'Kigembe': ['Kigembe', 'Mamba', 'Muganza', 'Mugombwa', 'Mukindo'],
+  'Mamba': ['Mamba', 'Muganza', 'Mugombwa', 'Mukindo', 'Musha'],
+  'Muganza': ['Muganza', 'Mugombwa', 'Mukindo', 'Musha', 'Ndora'],
+  'Mugombwa': ['Mugombwa', 'Mukindo', 'Musha', 'Ndora', 'Nyanza'],
+  'Mukindo': ['Mukindo', 'Musha', 'Ndora', 'Nyanza', 'Save'],
+  'Musha': ['Musha', 'Ndora', 'Nyanza', 'Save'],
+  'Ndora': ['Ndora', 'Nyanza', 'Save'],
+  'Nyanza': ['Nyanza', 'Save'],
+  'Save': ['Save'],
+  
+  // Kamonyi District Sectors
+  'Gacurabwenge': ['Gacurabwenge', 'Karama', 'Kayenzi', 'Kibuye', 'Mugina'],
+  'Karama': ['Karama', 'Kayenzi', 'Kibuye', 'Mugina', 'Musambira'],
+  'Kayenzi': ['Kayenzi', 'Kibuye', 'Mugina', 'Musambira', 'Ngamba'],
+  'Kibuye': ['Kibuye', 'Mugina', 'Musambira', 'Ngamba', 'Nyamiyaga'],
+  'Mugina': ['Mugina', 'Musambira', 'Ngamba', 'Nyamiyaga', 'Nyarubaka'],
+  'Musambira': ['Musambira', 'Ngamba', 'Nyamiyaga', 'Nyarubaka', 'Rugalika'],
+  'Ngamba': ['Ngamba', 'Nyamiyaga', 'Nyarubaka', 'Rugalika', 'Rukoma'],
+  'Nyamiyaga': ['Nyamiyaga', 'Nyarubaka', 'Rugalika', 'Rukoma', 'Runda'],
+  'Nyarubaka': ['Nyarubaka', 'Rugalika', 'Rukoma', 'Runda'],
+  'Rugalika': ['Rugalika', 'Rukoma', 'Runda'],
+  'Rukoma': ['Rukoma', 'Rukura', 'Rurenge'],
+  'Rukura': ['Rukura', 'Rurenge'],
+  'Rurenge': ['Rurenge'],
+  
+  // Karongi District Sectors
+  'Bwishyura': ['Bwishyura', 'Gashari', 'Gishyita', 'Gisovu', 'Gitesi'],
+  'Gashari': ['Gashari', 'Gishyita', 'Gisovu', 'Gitesi', 'Mubuga'],
+  'Gishyita': ['Gishyita', 'Gisovu', 'Gitesi', 'Mubuga', 'Murambi'],
+  'Gisovu': ['Gisovu', 'Gitesi', 'Mubuga', 'Murambi', 'Murundi'],
+  'Gitesi': ['Gitesi', 'Mubuga', 'Murambi', 'Murundi', 'Mutuntu'],
+  'Mubuga': ['Mubuga', 'Murambi', 'Murundi', 'Mutuntu', 'Rubengera'],
+  'Murambi': ['Murambi', 'Murundi', 'Mutuntu', 'Rubengera', 'Rugabano'],
+  'Murundi': ['Murundi', 'Mutuntu', 'Rubengera', 'Rugabano', 'Ruganda'],
+  'Mutuntu': ['Mutuntu', 'Rubengera', 'Rugabano', 'Ruganda', 'Rwankuba'],
+  'Rubengera': ['Rubengera', 'Rugabano', 'Ruganda', 'Rwankuba', 'Twumba'],
+  'Rugabano': ['Rugabano', 'Ruganda', 'Rwankuba', 'Twumba'],
+  'Ruganda': ['Ruganda', 'Rwankuba', 'Twumba'],
+  'Rwankuba': ['Rwankuba', 'Twumba'],
+  'Twumba': ['Twumba'],
+  
+  // Kirehe District Sectors
+  'Gahara': ['Gahara', 'Gatore', 'Kigarama', 'Kigina', 'Kirehe'],
+  'Gatore': ['Gatore', 'Kigarama', 'Kigina', 'Kirehe', 'Mahama'],
+  'Kigarama': ['Kigarama', 'Kigina', 'Kirehe', 'Mahama', 'Mpanga'],
+  'Kigina': ['Kigina', 'Kirehe', 'Mahama', 'Mpanga', 'Musaza'],
+  'Kirehe': ['Kirehe', 'Mahama', 'Mpanga', 'Musaza', 'Mushikiri'],
+  'Mahama': ['Mahama', 'Mpanga', 'Musaza', 'Mushikiri', 'Nasho'],
+  'Mpanga': ['Mpanga', 'Musaza', 'Mushikiri', 'Nasho', 'Nyamugari'],
+  'Musaza': ['Musaza', 'Mushikiri', 'Nasho', 'Nyamugari', 'Nyarubuye'],
+  'Mushikiri': ['Mushikiri', 'Nasho', 'Nyamugari', 'Nyarubuye', 'Rwabukenge'],
+  'Nasho': ['Nasho', 'Nyamugari', 'Nyarubuye', 'Rwabukenge', 'Rwanyamuhanga'],
+  'Nyamugari': ['Nyamugari', 'Nyarubuye', 'Rwabukenge', 'Rwanyamuhanga'],
+  'Nyarubuye': ['Nyarubuye', 'Rwabukenge', 'Rwanyamuhanga'],
+  'Rwabukenge': ['Rwabukenge', 'Rwanyamuhanga'],
+  'Rwanyamuhanga': ['Rwanyamuhanga'],
+  
+  // Musanze District Sectors
+  'Busogo': ['Busogo', 'Cyuve', 'Gacaca', 'Gashaki', 'Gataraga'],
+  'Cyuve': ['Cyuve', 'Gacaca', 'Gashaki', 'Gataraga', 'Kimonyi'],
+  'Gacaca': ['Gacaca', 'Gashaki', 'Gataraga', 'Kimonyi', 'Kinigi'],
+  'Gashaki': ['Gashaki', 'Gataraga', 'Kimonyi', 'Kinigi', 'Muhoza'],
+  'Gataraga': ['Gataraga', 'Kimonyi', 'Kinigi', 'Muhoza', 'Muko'],
+  'Kimonyi': ['Kimonyi', 'Kinigi', 'Muhoza', 'Muko', 'Musanze'],
+  'Kinigi': ['Kinigi', 'Muhoza', 'Muko', 'Musanze', 'Nkotsi'],
+  'Muhoza': ['Muhoza', 'Muko', 'Musanze', 'Nkotsi', 'Nyange'],
+  'Muko': ['Muko', 'Musanze', 'Nkotsi', 'Nyange', 'Remera'],
+  'Musanze': ['Musanze', 'Nkotsi', 'Nyange', 'Remera', 'Rwaza'],
+  'Nkotsi': ['Nkotsi', 'Nyange', 'Remera', 'Rwaza', 'Shingiro'],
+  'Nyange': ['Nyange', 'Remera', 'Rwaza', 'Shingiro'],
+  'Remera': ['Remera', 'Rwaza', 'Shingiro'],
+  'Rwaza': ['Rwaza', 'Shingiro'],
+  'Shingiro': ['Shingiro'],
+  
+  // Ngoma District Sectors
+  'Gashanda': ['Gashanda', 'Jarama', 'Karembo', 'Kazo', 'Kibungo'],
+  'Jarama': ['Jarama', 'Karembo', 'Kazo', 'Kibungo', 'Mugesera'],
+  'Karembo': ['Karembo', 'Kazo', 'Kibungo', 'Mugesera', 'Murama'],
+  'Kazo': ['Kazo', 'Kibungo', 'Mugesera', 'Murama', 'Mutenderi'],
+  'Kibungo': ['Kibungo', 'Mugesera', 'Murama', 'Mutenderi', 'Remera'],
+  'Mugesera': ['Mugesera', 'Murama', 'Mutenderi', 'Remera', 'Rukira'],
+  'Murama': ['Murama', 'Mutenderi', 'Remera', 'Rukira', 'Rukumberi'],
+  'Mutenderi': ['Mutenderi', 'Remera', 'Rukira', 'Rukumberi', 'Rurenge'],
+  'Remera': ['Remera', 'Rukira', 'Rukumberi', 'Rurenge', 'Sake'],
+  'Rukira': ['Rukira', 'Rukumberi', 'Rurenge', 'Sake', 'Zaza'],
+  'Rukumberi': ['Rukumberi', 'Rurenge', 'Sake', 'Zaza'],
+  'Rurenge': ['Rurenge', 'Sake', 'Zaza'],
+  'Sake': ['Sake', 'Zaza'],
+  'Zaza': ['Zaza'],
+  
+  // Ngororero District Sectors
+  'Bwira': ['Bwira', 'Gatumba', 'Hindiro', 'Kabaya', 'Kageyo'],
+  'Gatumba': ['Gatumba', 'Hindiro', 'Kabaya', 'Kageyo', 'Kavumu'],
+  'Hindiro': ['Hindiro', 'Kabaya', 'Kageyo', 'Kavumu', 'Matyazo'],
+  'Kabaya': ['Kabaya', 'Kageyo', 'Kavumu', 'Matyazo', 'Muhanda'],
+  'Kageyo': ['Kageyo', 'Kavumu', 'Matyazo', 'Muhanda', 'Muhororo'],
+  'Kavumu': ['Kavumu', 'Matyazo', 'Muhanda', 'Muhororo', 'Ndaro'],
+  'Matyazo': ['Matyazo', 'Muhanda', 'Muhororo', 'Ndaro', 'Ngororero'],
+  'Muhanda': ['Muhanda', 'Muhororo', 'Ndaro', 'Ngororero', 'Nyange'],
+  'Muhororo': ['Muhororo', 'Ndaro', 'Ngororero', 'Nyange', 'Sovu'],
+  'Ndaro': ['Ndaro', 'Ngororero', 'Nyange', 'Sovu'],
+  'Ngororero': ['Ngororero', 'Nyange', 'Sovu'],
+  'Nyange': ['Nyange', 'Sovu'],
+  'Sovu': ['Sovu'],
+  
+  // Nyabihu District Sectors
+  'Bigogwe': ['Bigogwe', 'Jenda', 'Jomba', 'Kabatwa', 'Karago'],
+  'Jenda': ['Jenda', 'Jomba', 'Kabatwa', 'Karago', 'Kintobo'],
+  'Jomba': ['Jomba', 'Kabatwa', 'Karago', 'Kintobo', 'Mukamira'],
+  'Kabatwa': ['Kabatwa', 'Karago', 'Kintobo', 'Mukamira', 'Muringa'],
+  'Karago': ['Karago', 'Kintobo', 'Mukamira', 'Muringa', 'Rambura'],
+  'Kintobo': ['Kintobo', 'Mukamira', 'Muringa', 'Rambura', 'Rugera'],
+  'Mukamira': ['Mukamira', 'Muringa', 'Rambura', 'Rugera', 'Rurembo'],
+  'Muringa': ['Muringa', 'Rambura', 'Rugera', 'Rurembo', 'Shyira'],
+  'Rambura': ['Rambura', 'Rugera', 'Rurembo', 'Shyira'],
+  'Rugera': ['Rugera', 'Rurembo', 'Shyira'],
+  'Rurembo': ['Rurembo', 'Shyira'],
+  'Shyira': ['Shyira'],
+  
+  // Nyagatare District Sectors
+  'Gatunda': ['Gatunda', 'Kiyombe', 'Karama', 'Musheli', 'Nyagatare'],
+  'Kiyombe': ['Kiyombe', 'Karama', 'Musheli', 'Nyagatare', 'Rukomo'],
+  'Karama': ['Karama', 'Musheli', 'Nyagatare', 'Rukomo', 'Rwempasha'],
+  'Musheli': ['Musheli', 'Nyagatare', 'Rukomo', 'Rwempasha', 'Rwimiyaga'],
+  'Nyagatare': ['Nyagatare', 'Rukomo', 'Rwempasha', 'Rwimiyaga', 'Tabagwe'],
+  'Rukomo': ['Rukomo', 'Rwempasha', 'Rwimiyaga', 'Tabagwe'],
+  'Rwempasha': ['Rwempasha', 'Rwimiyaga', 'Tabagwe'],
+  'Rwimiyaga': ['Rwimiyaga', 'Tabagwe'],
+  'Tabagwe': ['Tabagwe'],
+  
+  // Nyamagabe District Sectors
+  'Buruhukiro': ['Buruhukiro', 'Cyanika', 'Gasaka', 'Gatare', 'Kaduha'],
+  'Cyanika': ['Cyanika', 'Gasaka', 'Gatare', 'Kaduha', 'Kamegeli'],
+  'Gasaka': ['Gasaka', 'Gatare', 'Kaduha', 'Kamegeli', 'Kibirizi'],
+  'Gatare': ['Gatare', 'Kaduha', 'Kamegeli', 'Kibirizi', 'Kibumbwe'],
+  'Kaduha': ['Kaduha', 'Kamegeli', 'Kibirizi', 'Kibumbwe', 'Kitabi'],
+  'Kamegeli': ['Kamegeli', 'Kibirizi', 'Kibumbwe', 'Kitabi', 'Mbazi'],
+  'Kibirizi': ['Kibirizi', 'Kibumbwe', 'Kitabi', 'Mbazi', 'Mugano'],
+  'Kibumbwe': ['Kibumbwe', 'Kitabi', 'Mbazi', 'Mugano', 'Musange'],
+  'Kitabi': ['Kitabi', 'Mbazi', 'Mugano', 'Musange', 'Musebeya'],
+  'Mbazi': ['Mbazi', 'Mugano', 'Musange', 'Musebeya', 'Mushubi'],
+  'Mugano': ['Mugano', 'Musange', 'Musebeya', 'Mushubi', 'Nkomane'],
+  'Musange': ['Musange', 'Musebeya', 'Mushubi', 'Nkomane', 'Tare'],
+  'Musebeya': ['Musebeya', 'Mushubi', 'Nkomane', 'Tare', 'Uwinkingi'],
+  'Mushubi': ['Mushubi', 'Nkomane', 'Tare', 'Uwinkingi'],
+  'Nkomane': ['Nkomane', 'Tare', 'Uwinkingi'],
+  'Tare': ['Tare', 'Uwinkingi'],
+  'Uwinkingi': ['Uwinkingi'],
+  
+  // Nyamasheke District Sectors
+  'Bushekeri': ['Bushekeri', 'Bushenge', 'Cyato', 'Gihombo', 'Kagano'],
+  'Bushenge': ['Bushenge', 'Cyato', 'Gihombo', 'Kagano', 'Kanjongo'],
+  'Cyato': ['Cyato', 'Gihombo', 'Kagano', 'Kanjongo', 'Karambi'],
+  'Gihombo': ['Gihombo', 'Kagano', 'Kanjongo', 'Karambi', 'Karengera'],
+  'Kagano': ['Kagano', 'Kanjongo', 'Karambi', 'Karengera', 'Kirimbi'],
+  'Kanjongo': ['Kanjongo', 'Karambi', 'Karengera', 'Kirimbi', 'Macuba'],
+  'Karambi': ['Karambi', 'Karengera', 'Kirimbi', 'Macuba', 'Mahembe'],
+  'Karengera': ['Karengera', 'Kirimbi', 'Macuba', 'Mahembe', 'Nyabitekeri'],
+  'Kirimbi': ['Kirimbi', 'Macuba', 'Mahembe', 'Nyabitekeri', 'Rangiro'],
+  'Macuba': ['Macuba', 'Mahembe', 'Nyabitekeri', 'Rangiro', 'Ruharambuga'],
+  'Mahembe': ['Mahembe', 'Nyabitekeri', 'Rangiro', 'Ruharambuga', 'Shangi'],
+  'Nyabitekeri': ['Nyabitekeri', 'Rangiro', 'Ruharambuga', 'Shangi'],
+  'Rangiro': ['Rangiro', 'Ruharambuga', 'Shangi'],
+  'Ruharambuga': ['Ruharambuga', 'Shangi'],
+  'Shangi': ['Shangi'],
+  
+  // Nyanza District Sectors
+  'Busasamana': ['Busasamana', 'Busoro', 'Cyabakamyi', 'Kibilizi', 'Kigoma'],
+  'Busoro': ['Busoro', 'Cyabakamyi', 'Kibilizi', 'Kigoma', 'Mukingo'],
+  'Cyabakamyi': ['Cyabakamyi', 'Kibilizi', 'Kigoma', 'Mukingo', 'Muyira'],
+  'Kibilizi': ['Kibilizi', 'Kigoma', 'Mukingo', 'Muyira', 'Ntyazo'],
+  'Kigoma': ['Kigoma', 'Mukingo', 'Muyira', 'Ntyazo', 'Nyagisozi'],
+  'Mukingo': ['Mukingo', 'Muyira', 'Ntyazo', 'Nyagisozi', 'Rwabicuma'],
+  'Muyira': ['Muyira', 'Ntyazo', 'Nyagisozi', 'Rwabicuma'],
+  'Ntyazo': ['Ntyazo', 'Nyagisozi', 'Rwabicuma'],
+  'Nyagisozi': ['Nyagisozi', 'Rwabicuma'],
+  'Rwabicuma': ['Rwabicuma'],
+  
+  // Nyaruguru District Sectors
+  'Busanze': ['Busanze', 'Cyahinda', 'Kibeho', 'Kivu', 'Mata'],
+  'Cyahinda': ['Cyahinda', 'Kibeho', 'Kivu', 'Mata', 'Muganza'],
+  'Kibeho': ['Kibeho', 'Kivu', 'Mata', 'Muganza', 'Munini'],
+  'Kivu': ['Kivu', 'Mata', 'Muganza', 'Munini', 'Ngera'],
+  'Mata': ['Mata', 'Muganza', 'Munini', 'Ngera', 'Ngoma'],
+  'Muganza': ['Muganza', 'Munini', 'Ngera', 'Ngoma', 'Nyabimata'],
+  'Munini': ['Munini', 'Ngera', 'Ngoma', 'Nyabimata', 'Nyagisozi'],
+  'Ngera': ['Ngera', 'Ngoma', 'Nyabimata', 'Nyagisozi', 'Ruheru'],
+  'Ngoma': ['Ngoma', 'Nyabimata', 'Nyagisozi', 'Ruheru', 'Ruramba'],
+  'Nyabimata': ['Nyabimata', 'Nyagisozi', 'Ruheru', 'Ruramba', 'Rusenge'],
+  'Nyagisozi': ['Nyagisozi', 'Ruheru', 'Ruramba', 'Rusenge'],
+  'Ruheru': ['Ruheru', 'Ruramba', 'Rusenge'],
+  'Ruramba': ['Ruramba', 'Rusenge'],
+  'Rusenge': ['Rusenge'],
+  
+  // Rubavu District Sectors
+  'Bugeshi': ['Bugeshi', 'Busasamana', 'Cyanzarwe', 'Gisenyi', 'Kanama'],
+  'Busasamana': ['Busasamana', 'Cyanzarwe', 'Gisenyi', 'Kanama', 'Kanzenze'],
+  'Cyanzarwe': ['Cyanzarwe', 'Gisenyi', 'Kanama', 'Kanzenze', 'Mudende'],
+  'Gisenyi': ['Gisenyi', 'Kanama', 'Kanzenze', 'Mudende', 'Nyakiriba'],
+  'Kanama': ['Kanama', 'Kanzenze', 'Mudende', 'Nyakiriba', 'Nyamyumba'],
+  'Kanzenze': ['Kanzenze', 'Mudende', 'Nyakiriba', 'Nyamyumba', 'Nyundo'],
+  'Mudende': ['Mudende', 'Nyakiriba', 'Nyamyumba', 'Nyundo', 'Rubavu'],
+  'Nyakiriba': ['Nyakiriba', 'Nyamyumba', 'Nyundo', 'Rubavu', 'Rugerero'],
+  'Nyamyumba': ['Nyamyumba', 'Nyundo', 'Rubavu', 'Rugerero'],
+  'Nyundo': ['Nyundo', 'Rubavu', 'Rugerero'],
+  'Rubavu': ['Rubavu', 'Rugerero'],
+  'Rugerero': ['Rugerero'],
+  
+  // Ruhango District Sectors
+  'Bweramana': ['Bweramana', 'Byimana', 'Kabagali', 'Kinazi', 'Kinihira'],
+  'Byimana': ['Byimana', 'Kabagali', 'Kinazi', 'Kinihira', 'Mbuye'],
+  'Kabagali': ['Kabagali', 'Kinazi', 'Kinihira', 'Mbuye', 'Mukingo'],
+  'Kinazi': ['Kinazi', 'Kinihira', 'Mbuye', 'Mukingo', 'Muyira'],
+  'Kinihira': ['Kinihira', 'Mbuye', 'Mukingo', 'Muyira', 'Ntongwe'],
+  'Mbuye': ['Mbuye', 'Mukingo', 'Muyira', 'Ntongwe', 'Ruhango'],
+  'Mukingo': ['Mukingo', 'Muyira', 'Ntongwe', 'Ruhango', 'Rusatira'],
+  'Muyira': ['Muyira', 'Ntongwe', 'Ruhango', 'Rusatira', 'Rweru'],
+  'Ntongwe': ['Ntongwe', 'Ruhango', 'Rusatira', 'Rweru', 'Shyira'],
+  'Ruhango': ['Ruhango', 'Rusatira', 'Rweru', 'Shyira'],
+  'Rusatira': ['Rusatira', 'Rweru', 'Shyira'],
+  'Rweru': ['Rweru', 'Shyira'],
+  'Shyira': ['Shyira'],
+  
+  // Rulindo District Sectors
+  'Base': ['Base', 'Burega', 'Bushoki', 'Buyoga', 'Cyinzuzi'],
+  'Burega': ['Burega', 'Bushoki', 'Buyoga', 'Cyinzuzi', 'Cyungo'],
+  'Bushoki': ['Bushoki', 'Buyoga', 'Cyinzuzi', 'Cyungo', 'Kinihira'],
+  'Buyoga': ['Buyoga', 'Cyinzuzi', 'Cyungo', 'Kinihira', 'Kisaro'],
+  'Cyinzuzi': ['Cyinzuzi', 'Cyungo', 'Kinihira', 'Kisaro', 'Masoro'],
+  'Cyungo': ['Cyungo', 'Kinihira', 'Kisaro', 'Masoro', 'Mbogo'],
+  'Kinihira': ['Kinihira', 'Kisaro', 'Masoro', 'Mbogo', 'Murambi'],
+  'Kisaro': ['Kisaro', 'Masoro', 'Mbogo', 'Murambi', 'Ngoma'],
+  'Masoro': ['Masoro', 'Mbogo', 'Murambi', 'Ngoma', 'Nkoto'],
+  'Mbogo': ['Mbogo', 'Murambi', 'Ngoma', 'Nkoto', 'Rusiga'],
+  'Murambi': ['Murambi', 'Ngoma', 'Nkoto', 'Rusiga', 'Rutare'],
+  'Ngoma': ['Ngoma', 'Nkoto', 'Rusiga', 'Rutare'],
+  'Nkoto': ['Nkoto', 'Rusiga', 'Rutare'],
+  'Rusiga': ['Rusiga', 'Rutare'],
+  'Rutare': ['Rutare'],
+  
+  // Rusizi District Sectors
+  'Bugarama': ['Bugarama', 'Butare', 'Bweyeye', 'Gashonga', 'Giheke'],
+  'Butare': ['Butare', 'Bweyeye', 'Gashonga', 'Giheke', 'Gihundwe'],
+  'Bweyeye': ['Bweyeye', 'Gashonga', 'Giheke', 'Gihundwe', 'Gikundamvura'],
+  'Gashonga': ['Gashonga', 'Giheke', 'Gihundwe', 'Gikundamvura', 'Gitambi'],
+  'Giheke': ['Giheke', 'Gihundwe', 'Gikundamvura', 'Gitambi', 'Kamembe'],
+  'Gihundwe': ['Gihundwe', 'Gikundamvura', 'Gitambi', 'Kamembe', 'Muganza'],
+  'Gikundamvura': ['Gikundamvura', 'Gitambi', 'Kamembe', 'Muganza', 'Mururu'],
+  'Gitambi': ['Gitambi', 'Kamembe', 'Muganza', 'Mururu', 'Nkanka'],
+  'Kamembe': ['Kamembe', 'Muganza', 'Mururu', 'Nkanka', 'Nkombo'],
+  'Muganza': ['Muganza', 'Mururu', 'Nkanka', 'Nkombo', 'Nkungu'],
+  'Mururu': ['Mururu', 'Nkanka', 'Nkombo', 'Nkungu', 'Nyakabuye'],
+  'Nkanka': ['Nkanka', 'Nkombo', 'Nkungu', 'Nyakabuye', 'Nyakarenzo'],
+  'Nkombo': ['Nkombo', 'Nkungu', 'Nyakabuye', 'Nyakarenzo', 'Nzahaha'],
+  'Nkungu': ['Nkungu', 'Nyakabuye', 'Nyakarenzo', 'Nzahaha', 'Rwimbogo'],
+  'Nyakabuye': ['Nyakabuye', 'Nyakarenzo', 'Nzahaha', 'Rwimbogo'],
+  'Nyakarenzo': ['Nyakarenzo', 'Nzahaha', 'Rwimbogo'],
+  'Nzahaha': ['Nzahaha', 'Rwimbogo'],
+  'Rwimbogo': ['Rwimbogo'],
+  
+  // Rutsiro District Sectors
+  'Boneza': ['Boneza', 'Gihango', 'Kigeyo', 'Kivumu', 'Manihira'],
+  'Gihango': ['Gihango', 'Kigeyo', 'Kivumu', 'Manihira', 'Mukura'],
+  'Kigeyo': ['Kigeyo', 'Kivumu', 'Manihira', 'Mukura', 'Murunda'],
+  'Kivumu': ['Kivumu', 'Manihira', 'Mukura', 'Murunda', 'Musasa'],
+  'Manihira': ['Manihira', 'Mukura', 'Murunda', 'Musasa', 'Mushonyi'],
+  'Mukura': ['Mukura', 'Murunda', 'Musasa', 'Mushonyi', 'Mushubati'],
+  'Murunda': ['Murunda', 'Musasa', 'Mushonyi', 'Mushubati', 'Nyabirasi'],
+  'Musasa': ['Musasa', 'Mushonyi', 'Mushubati', 'Nyabirasi', 'Ruhango'],
+  'Mushonyi': ['Mushonyi', 'Mushubati', 'Nyabirasi', 'Ruhango', 'Rusebeya'],
+  'Mushubati': ['Mushubati', 'Nyabirasi', 'Ruhango', 'Rusebeya', 'Rusizi'],
+  'Nyabirasi': ['Nyabirasi', 'Ruhango', 'Rusebeya', 'Rusizi'],
+  'Ruhango': ['Ruhango', 'Rusebeya', 'Rusizi'],
+  'Rusebeya': ['Rusebeya', 'Rusizi'],
+  'Rusizi': ['Rusizi'],
+  
+  // Rwamagana District Sectors
+  'Fumbwe': ['Fumbwe', 'Gahengeri', 'Gishari', 'Karenge', 'Kigabiro'],
+  'Gahengeri': ['Gahengeri', 'Gishari', 'Karenge', 'Kigabiro', 'Muhazi'],
+  'Gishari': ['Gishari', 'Karenge', 'Kigabiro', 'Muhazi', 'Munyaga'],
+  'Karenge': ['Karenge', 'Kigabiro', 'Muhazi', 'Munyaga', 'Munyiginya'],
+  'Kigabiro': ['Kigabiro', 'Muhazi', 'Munyaga', 'Munyiginya', 'Musaza'],
+  'Muhazi': ['Muhazi', 'Munyaga', 'Munyiginya', 'Musaza', 'Mushonyi'],
+  'Munyaga': ['Munyaga', 'Munyiginya', 'Musaza', 'Mushonyi', 'Muyumbu'],
+  'Munyiginya': ['Munyiginya', 'Musaza', 'Mushonyi', 'Muyumbu', 'Mwulire'],
+  'Musaza': ['Musaza', 'Mushonyi', 'Muyumbu', 'Mwulire', 'Nyakaliro'],
+  'Mushonyi': ['Mushonyi', 'Muyumbu', 'Mwulire', 'Nyakaliro', 'Nzige'],
+  'Muyumbu': ['Muyumbu', 'Mwulire', 'Nyakaliro', 'Nzige', 'Rubona'],
+  'Mwulire': ['Mwulire', 'Nyakaliro', 'Nzige', 'Rubona', 'Rukoma'],
+  'Nyakaliro': ['Nyakaliro', 'Nzige', 'Rubona', 'Rukoma', 'Rukura'],
+  'Nzige': ['Nzige', 'Rubona', 'Rukoma', 'Rukura', 'Rurenge'],
+  'Rubona': ['Rubona', 'Rukoma', 'Rukura', 'Rurenge'],
+  'Rukoma': ['Rukoma', 'Rukura', 'Rurenge'],
+  'Rukura': ['Rukura', 'Rurenge'],
+  'Rurenge': ['Rurenge']
+};
 
 // Rwanda cells array (same as Profile.jsx)
 const rwandaCells = [
@@ -200,6 +730,36 @@ export default function PersonalInfo() {
   // Check if user is a business entity (waste collector or recycling center)
   const isBusinessEntity = userCredentials?.role === 'waste_collector' || userCredentials?.role === 'recycling_center';
 
+  // Get sectors for selected district
+  const getSectorsForDistrict = (district) => {
+    return districtSectorMapping[district] || [];
+  };
+
+  // Get cells for selected sector
+  const getCellsForSector = (sector) => {
+    // First try the exact sector name
+    if (sectorCellMapping[sector]) {
+      return sectorCellMapping[sector];
+    }
+    
+    // If not found, try with district prefix
+    if (form.district) {
+      const districtPrefixedSector = `${form.district}_${sector}`;
+      if (sectorCellMapping[districtPrefixedSector]) {
+        return sectorCellMapping[districtPrefixedSector];
+      }
+    }
+    
+    // If still not found, search for the sector in any district
+    for (const [key, cells] of Object.entries(sectorCellMapping)) {
+      if (key === sector || key.endsWith(`_${sector}`)) {
+        return cells;
+      }
+    }
+    
+    return [];
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -249,6 +809,26 @@ export default function PersonalInfo() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+    
+    // Reset dependent fields when district changes
+    if (name === 'district') {
+      setForm(prev => ({ 
+        ...prev, 
+        [name]: value,
+        sector: '', // Reset sector when district changes
+        cell: ''    // Reset cell when district changes
+      }));
+    }
+    
+    // Reset cell when sector changes
+    if (name === 'sector') {
+      setForm(prev => ({ 
+        ...prev, 
+        [name]: value,
+        cell: '' // Reset cell when sector changes
+      }));
+    }
+    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -563,10 +1143,11 @@ export default function PersonalInfo() {
                       value={form.sector}
                       onChange={handleChange}
                       required
-                      className={`w-full px-4 py-3 border ${errors.sector ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                      disabled={!form.district}
+                      className={`w-full px-4 py-3 border ${errors.sector ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white ${!form.district ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <option value="">Select</option>
-                      {rwandaSectors.map((sector) => (
+                      <option value="">{form.district ? 'Select Sector' : 'Select District First'}</option>
+                      {form.district && getSectorsForDistrict(form.district).map((sector) => (
                         <option key={sector} value={sector}>{sector}</option>
                       ))}
                     </select>
@@ -583,10 +1164,11 @@ export default function PersonalInfo() {
                       value={form.cell}
                       onChange={handleChange}
                       required
-                      className={`w-full px-4 py-3 border ${errors.cell ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                      disabled={!form.sector}
+                      className={`w-full px-4 py-3 border ${errors.cell ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white ${!form.sector ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <option value="">Select</option>
-                      {rwandaCells.map((cell) => (
+                      <option value="">{form.sector ? 'Select Cell' : 'Select Sector First'}</option>
+                      {form.sector && getCellsForSector(form.sector).map((cell) => (
                         <option key={cell} value={cell}>{cell}</option>
                       ))}
                     </select>
