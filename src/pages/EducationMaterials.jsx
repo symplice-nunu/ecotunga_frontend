@@ -254,7 +254,7 @@ export default function EducationMaterials() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex justify-between items-start">
+      <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('educationMaterials.title')}</h1>
           <p className="text-gray-600">{t('educationMaterials.subtitle')}</p>
