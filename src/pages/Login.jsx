@@ -164,7 +164,7 @@ export default function Login() {
             
             <div className="text-center mt-2">
               <span className="text-gray-500 text-sm">{t('auth.noAccount')} </span>
-              <a href="/signup" className="text-green-600 font-semibold hover:underline">{t('auth.signup')}</a>
+              <a href="/signup" className="text-green-600 font-semibold hover:underline">{t('common.signup')}</a>
             </div>
           </form>
         </div>
