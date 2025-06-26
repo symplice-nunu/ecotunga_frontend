@@ -180,45 +180,45 @@ const districtSectorMapping = {
 // Sector-Cell mapping
 const sectorCellMapping = {
   // Gasabo District Sectors
-  'Bumbogo': ['Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali'],
-  'Gatsata': ['Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru'],
-  'Gikomero': ['Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura'],
-  'Gisozi': ['Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko'],
-  'Jabana': ['Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya'],
-  'Jali': ['Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera'],
-  'Kacyiru': ['Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba'],
-  'Kimihurura': ['Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera'],
-  'Kimironko': ['Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo'],
-  'Kinyinya': ['Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
-  'Ndera': ['Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
-  'Nduba': ['Nduba', 'Remera', 'Rusororo', 'Rutunga'],
-  'Remera': ['Remera', 'Rusororo', 'Rutunga'],
-  'Rusororo': ['Rusororo', 'Rutunga'],
-  'Rutunga': ['Rutunga'],
+  'Bumbogo': ['Kinyaga', 'Musave', 'Mvuzo', 'Ngara', 'Nkuzuzu', 'Nyabikenke', 'Nyagasozi'],
+  'Gatsata': ['Karuruma', 'Nyamabuye', 'Nyamugari'],
+  'Gikomero': ['Gasagara', 'Gicaca', 'Kibara', 'Munini', 'Murambi'],
+  'Gisozi': ['Musezero', 'Ruhango'],
+  'Jabana': ['Akamatamu', 'Bweramvura', 'Kabuye', 'Kidashya', 'Ngiryi'],
+  'Jali': ['Agateko', 'Buhiza', 'Muko', 'Nkusi', 'Nyabuliba', 'Nyakabungo', 'Nyamitanga'],
+  'Kacyiru': ['Kamatamu', 'Kamutwa', 'Kibaza'],
+  'Kimihurura': ['Kamukina', 'Kimihurura', 'Rugando'],
+  'Kimironko': ['Bibare', 'Kibagabaga', 'Nyagatovu'],
+  'Kinyinya': ['Gacuriro', 'Gasharu', 'Kagugu', 'Murama'],
+  'Ndera': ['Bwiza', 'Cyaruzinge', 'Kibenga', 'Masoro', 'Mukuyu', 'Rudashya'],
+  'Nduba': ['Butare', 'Gasanze', 'Gasura', 'Gatunga', 'Muremure', 'Sha'],
+  'Remera': ['Nyabisindu', 'Nyarutarama'],
+  'Rusororo': ['Kabuga I', 'Kabuga II', 'Gasanze', 'Nyagahinga'],
+  'Rutunga': ['Gako', 'Kabuga', 'Karuruma', 'Kinyaga', 'Munini', 'Ngenda', 'Nyagahinga', 'Rudakabukirwa'],
   
   // Kicukiro District Sectors
-  'Gahanga': ['Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe'],
-  'Gatenga': ['Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro'],
-  'Gikondo': ['Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama'],
-  'Kagarama': ['Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka'],
-  'Kanombe': ['Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye'],
-  'Kicukiro': ['Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga'],
-  'Kigarama': ['Kigarama', 'Masaka', 'Niboye', 'Nyarugunga'],
-  'Masaka': ['Masaka', 'Niboye', 'Nyarugunga'],
-  'Niboye': ['Niboye', 'Nyarugunga'],
-  'Nyarugunga': ['Nyarugunga'],
+  'Gahanga': ['Gahanga', 'Kagasa', 'Karembure'],
+  'Gatenga': ['Gatenga', 'Karambo', 'Nyanza', 'Nyarurama'],
+  'Gikondo': ['Gikondo', 'Gatenga', 'Karugira'],
+  'Kagarama': ['Kagarama', 'Kanserege', 'Rukatsa'],
+  'Kanombe': ['Busanza', 'Kabeza', 'Karama', 'Rubirizi'],
+  'Kicukiro': ['Kicukiro', 'Gasharu', 'Kagina'],
+  'Kigarama': ['Kigarama', 'Nyenyeri', 'Rwimbogo'],
+  'Masaka': ['Masaka', 'Karama', 'Rwimbogo'],
+  'Niboye': ['Niboye', 'Nyakabanda', 'Gasharu'],
+  'Nyarugunga': ['Kamashashi', 'Nonko', 'Rwimbogo'],
   
   // Nyarugenge District Sectors
-  'Gitega': ['Gitega', 'Kanyinya', 'Kigali', 'Kimisagara', 'Mageragere'],
-  'Kanyinya': ['Kanyinya', 'Kigali', 'Kimisagara', 'Mageragere', 'Muhima'],
-  'Kigali': ['Kigali', 'Kimisagara', 'Mageragere', 'Muhima', 'Nyakabanda'],
-  'Kimisagara': ['Kimisagara', 'Mageragere', 'Muhima', 'Nyakabanda', 'Nyamirambo'],
-  'Mageragere': ['Mageragere', 'Muhima', 'Nyakabanda', 'Nyamirambo', 'Nyarugenge'],
-  'Muhima': ['Muhima', 'Nyakabanda', 'Nyamirambo', 'Nyarugenge', 'Rwezamenyo'],
-  'Nyakabanda': ['Nyakabanda', 'Nyamirambo', 'Nyarugenge', 'Rwezamenyo'],
-  'Nyamirambo': ['Nyamirambo', 'Nyarugenge', 'Rwezamenyo'],
-  'Nyarugenge': ['Nyarugenge', 'Rwezamenyo'],
-  'Rwezamenyo': ['Rwezamenyo'],
+  'Gitega': ['Akabahizi', 'Akabeza', 'Gacyamo', 'Kigarama', 'Kinyange', 'Kora'],
+  'Kanyinya': ['Nyamweru', 'Nzove', 'Taba'],
+  'Kigali': ['Kigali', 'Mwendo', 'Nyabugogo', 'Ruriba', 'Rwesero'],
+  'Kimisagara': ['Kamuhoza', 'Katabaro', 'Kimisagara'],
+  'Mageragere': ['Kankuba', 'Kavumu', 'Mataba', 'Ntungamo', 'Nyarufunzo', 'Nyarurenzi', 'Runzenze'],
+  'Muhima': ['Amahoro', 'Kabasengerezi', 'Kabeza', 'Nyabugogo', 'Rugenge', 'Tetero', 'Ubumwe'],
+  'Nyakabanda': ['Munanira I', 'Munanira II', 'Nyakabanda I', 'Nyakabanda II'],
+  'Nyamirambo': ['Cyivugiza', 'Gasharu', 'Mumena', 'Rugarama'],
+  'Nyarugenge': ['Agatare', 'Biryogo', 'Kiyovu', 'Rwampara'],
+  'Rwezamenyo': ['Kabuguru I', 'Kabuguru II', 'Rwezamenyo I', 'Rwezamenyo II'],
   
   // Bugesera District Sectors
   'Gashora': ['Gashora', 'Juru', 'Kamabuye', 'Mareba', 'Mayange'],
@@ -712,6 +712,7 @@ export default function PersonalInfo() {
     phone_number: '',
     ubudehe_category: '',
     company_name: '',
+    house_number: '',
     district: '',
     sector: '',
     cell: '',
@@ -781,6 +782,10 @@ export default function PersonalInfo() {
       }
       if (!form.ubudehe_category) {
         newErrors.ubudehe_category = t('errors.required');
+      }
+      // House number validation only for regular users
+      if (!form.house_number?.trim()) {
+        newErrors.house_number = t('errors.required');
       }
     }
     
@@ -885,18 +890,25 @@ export default function PersonalInfo() {
         gender: form.gender,
         phone_number: form.phone_number,
         ubudehe_category: form.ubudehe_category,
+        house_number: form.house_number,
         district: form.district,
         sector: form.sector,
         cell: form.cell,
         street: form.street
       };
 
+      console.log('Form state:', form);
+      console.log('Profile data being sent:', profileData);
+      console.log('Is business entity:', isBusinessEntity);
+
       // Update user profile with personal information
-      await API.put('/users/profile/me', profileData, {
+      const profileResponse = await API.put('/users/profile/me', profileData, {
         headers: {
           Authorization: `Bearer ${loginResponse.data.token}`
         }
       });
+
+      console.log('Profile update response:', profileResponse.data);
 
       // If user is a waste collector or recycling center, update the company record with additional info
       if (isBusinessEntity) {
@@ -1085,6 +1097,25 @@ export default function PersonalInfo() {
                           <option value="D">D</option>
                         </select>
                         {errors.ubudehe_category && <p className="mt-1 text-xs text-red-600">{errors.ubudehe_category}</p>}
+                      </div>
+                      
+                      {/* House Number Field - Only for regular users */}
+                      <div>
+                        <label htmlFor="house_number" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          House Number *
+                        </label>
+                        <input
+                          type="text"
+                          id="house_number"
+                          name="house_number"
+                          value={form.house_number}
+                          onChange={handleChange}
+                          required
+                          placeholder="Enter your house number"
+                          className={`w-full px-4 py-3 border ${errors.house_number ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                        />
+                        {errors.house_number && <p className="mt-1 text-xs text-red-600">{errors.house_number}</p>}
                       </div>
                     </>
                   )}

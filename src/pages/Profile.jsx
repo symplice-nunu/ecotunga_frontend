@@ -249,6 +249,61 @@ const rwandaCells = [
   'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
 ];
 
+// Cell mapping by sector - comprehensive mapping for Profile page
+const cellMapping = {
+  'Bumbogo': ['Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali'],
+  'Gatsata': ['Gatsata', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera'],
+  'Gikomero': ['Gikomero', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
+  'Gisozi': ['Gisozi', 'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga'],
+  'Jabana': ['Jabana', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera'],
+  'Jali': ['Jali', 'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo'],
+  'Kacyiru': ['Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura'],
+  'Kimihurura': ['Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nyagatovu'],
+  'Kimironko': ['Kimironko', 'Kinyinya', 'Ndera', 'Remera', 'Gatenga'],
+  'Kinyinya': ['Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo'],
+  'Ndera': ['Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
+  'Nduba': ['Nduba', 'Remera', 'Rusororo', 'Rutunga', 'Gahanga'],
+  'Remera': ['Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe'],
+  'Rusororo': ['Rusororo', 'Rutunga', 'Gahanga', 'Gatenga', 'Gikondo'],
+  'Rutunga': ['Rutunga', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama'],
+  'Gahanga': ['Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe'],
+  'Gatenga': ['Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro'],
+  'Gikondo': ['Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama'],
+  'Kagarama': ['Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka'],
+  'Kanombe': ['Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye'],
+  'Kicukiro': ['Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga'],
+  'Kigarama': ['Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Busanza'],
+  'Masaka': ['Masaka', 'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga'],
+  'Niboye': ['Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga'],
+  'Nyarugunga': ['Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo'],
+  // Add cells from database that weren't in the original mapping
+  'Gashora': ['Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Busanze': ['Busanze', 'Butare', 'Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Butare': ['Butare', 'Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Gahororo': ['Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Gikundamvura': ['Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Kigembe': ['Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Mareba': ['Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Mayange': ['Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Musenyi': ['Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Mwogo': ['Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ngeruka': ['Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ntarama': ['Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ruhuha': ['Ruhuha', 'Rweru', 'Shyara'],
+  'Rweru': ['Rweru', 'Shyara'],
+  'Shyara': ['Shyara'],
+  // Add more sector-cell mappings as needed
+};
+
+// Fallback cell options if no specific mapping is found
+const fallbackCellOptions = [
+  'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
+  'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka',
+  'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro',
+  'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana',
+  'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
+];
+
 const Profile = () => {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
@@ -259,6 +314,7 @@ const Profile = () => {
     gender: '',
     phone_number: '',
     ubudehe_category: '',
+    house_number: '',
     district: '',
     sector: '',
     cell: '',
@@ -268,6 +324,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [cellOptions, setCellOptions] = useState([]);
 
   // Helper function to determine if a field should be hidden based on user role
   const shouldHideField = (fieldName) => {
@@ -275,13 +332,13 @@ const Profile = () => {
     
     if (userRole === 'waste_collector' || userRole === 'recycling_center') {
       // Hide these fields for waste_collector and recycling_center roles
-      const hiddenFields = ['name', 'last_name', 'gender', 'ubudehe_category'];
+      const hiddenFields = ['name', 'last_name', 'gender', 'ubudehe_category', 'house_number'];
       return hiddenFields.includes(fieldName);
     }
     
     if (userRole === 'admin') {
       // Hide these fields for admin role
-      const hiddenFields = ['ubudehe_category', 'street', 'sector', 'cell', 'district'];
+      const hiddenFields = ['ubudehe_category', 'street', 'sector', 'cell', 'district', 'house_number'];
       return hiddenFields.includes(fieldName);
     }
     
@@ -324,12 +381,33 @@ const Profile = () => {
           sector: companyData.sector || '',
           cell: companyData.cell || '',
           street: companyData.street || '',
-          company_name: companyData.company_name || companyData.name || ''
+          company_name: companyData.company_name || companyData.name || '',
+          house_number: companyData.house_number || ''
         });
+        
+        // Set cell options based on company's sector
+        if (companyData.sector) {
+          const sectorCells = cellMapping[companyData.sector] || fallbackCellOptions;
+          let finalCellOptions = [...sectorCells];
+          if (companyData.cell && !sectorCells.includes(companyData.cell)) {
+            finalCellOptions = [companyData.cell, ...sectorCells];
+          }
+          setCellOptions(finalCellOptions);
+        }
       } else {
         // Fetch user profile for regular users and admins
         const response = await getUserProfile();
         setProfile(response.data);
+        
+        // Set cell options based on user's sector
+        if (response.data.sector) {
+          const sectorCells = cellMapping[response.data.sector] || fallbackCellOptions;
+          let finalCellOptions = [...sectorCells];
+          if (response.data.cell && !sectorCells.includes(response.data.cell)) {
+            finalCellOptions = [response.data.cell, ...sectorCells];
+          }
+          setCellOptions(finalCellOptions);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -343,12 +421,38 @@ const Profile = () => {
     fetchProfile();
   }, [fetchProfile]);
 
+  // Update cell options based on selected sector
+  useEffect(() => {
+    if (profile.sector) {
+      const sectorCells = cellMapping[profile.sector] || fallbackCellOptions;
+      
+      // If user has a cell that's not in the sector mapping, add it to the options
+      let finalCellOptions = [...sectorCells];
+      if (profile.cell && !sectorCells.includes(profile.cell)) {
+        finalCellOptions = [profile.cell, ...sectorCells];
+      }
+      
+      setCellOptions(finalCellOptions);
+    } else {
+      setCellOptions([]);
+    }
+  }, [profile.sector, profile.cell]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfile(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setProfile(prev => {
+      const newProfile = {
+        ...prev,
+        [name]: value
+      };
+      
+      // Reset cell when sector changes
+      if (name === 'sector') {
+        newProfile.cell = '';
+      }
+      
+      return newProfile;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -368,7 +472,8 @@ const Profile = () => {
           ubudehe_category: profile.ubudehe_category,
           gender: profile.gender,
           last_name: profile.last_name,
-          company_name: profile.company_name
+          company_name: profile.company_name,
+          house_number: profile.house_number
         };
         
         const response = await API.put('/companies/profile/me', companyData);
@@ -665,10 +770,11 @@ const Profile = () => {
                           name="cell"
                           value={profile.cell || ''}
                           onChange={handleInputChange}
-                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                          disabled={!profile.sector}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base ${!profile.sector ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          <option value="">Select</option>
-                          {rwandaCells.map((cell) => (
+                          <option value="">{profile.sector ? 'Select Cell' : 'Select Sector First'}</option>
+                          {cellOptions.map((cell) => (
                             <option key={cell} value={cell}>{cell}</option>
                           ))}
                         </select>
@@ -687,6 +793,24 @@ const Profile = () => {
                           value={profile.street || ''}
                           onChange={handleInputChange}
                           placeholder={t('profile.streetPlaceholder')}
+                          className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
+                        />
+                      </div>
+                    )}
+                    
+                    {!shouldHideField('house_number') && (
+                      <div>
+                        <label htmlFor="house_number" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          House Number
+                        </label>
+                        <input
+                          type="text"
+                          id="house_number"
+                          name="house_number"
+                          value={profile.house_number || ''}
+                          onChange={handleInputChange}
+                          placeholder="Enter your house number"
                           className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
                         />
                       </div>

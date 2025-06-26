@@ -48,7 +48,55 @@ const sectorOptions = [
   'Cyabingo', 'Gakenke', 'Gashyita', 'Janja', 'Kamubuga', 'Karambo', 'Kivuruga', 'Mataba', 'Minazi',
   'Mugunga', 'Muhondo', 'Muyongwe', 'Muzo', 'Nemba', 'Ruli', 'Rusasa', 'Rushashi'
 ];
-const cellOptions = [
+
+// Cell mapping by sector - this should be more comprehensive in a real application
+const cellMapping = {
+  'Bumbogo': ['Bumbogo', 'Gatsata', 'Gikomero', 'Gisozi', 'Jabana', 'Jali'],
+  'Gatsata': ['Gatsata', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera'],
+  'Gikomero': ['Gikomero', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
+  'Gisozi': ['Gisozi', 'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga'],
+  'Jabana': ['Jabana', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera'],
+  'Jali': ['Jali', 'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo'],
+  'Kacyiru': ['Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura'],
+  'Kimihurura': ['Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nyagatovu'],
+  'Kimironko': ['Kimironko', 'Kinyinya', 'Ndera', 'Remera', 'Gatenga'],
+  'Kinyinya': ['Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo'],
+  'Ndera': ['Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'],
+  'Nduba': ['Nduba', 'Remera', 'Rusororo', 'Rutunga', 'Gahanga'],
+  'Remera': ['Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe'],
+  'Rusororo': ['Rusororo', 'Rutunga', 'Gahanga', 'Gatenga', 'Gikondo'],
+  'Rutunga': ['Rutunga', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama'],
+  'Gahanga': ['Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe'],
+  'Gatenga': ['Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro'],
+  'Gikondo': ['Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama'],
+  'Kagarama': ['Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka'],
+  'Kanombe': ['Kanombe', 'Kicukiro', 'Kigarama', 'Masaka', 'Niboye'],
+  'Kicukiro': ['Kicukiro', 'Kigarama', 'Masaka', 'Niboye', 'Nyarugunga'],
+  'Kigarama': ['Kigarama', 'Masaka', 'Niboye', 'Nyarugunga', 'Busanza'],
+  'Masaka': ['Masaka', 'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga'],
+  'Niboye': ['Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga'],
+  'Nyarugunga': ['Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo'],
+  // Add cells from database that weren't in the original mapping
+  'Gashora': ['Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Busanze': ['Busanze', 'Butare', 'Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Butare': ['Butare', 'Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Gahororo': ['Gahororo', 'Gashora', 'Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Gikundamvura': ['Gikundamvura', 'Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Kigembe': ['Kigembe', 'Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Mareba': ['Mareba', 'Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Mayange': ['Mayange', 'Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Musenyi': ['Musenyi', 'Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Mwogo': ['Mwogo', 'Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ngeruka': ['Ngeruka', 'Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ntarama': ['Ntarama', 'Ruhuha', 'Rweru', 'Shyara'],
+  'Ruhuha': ['Ruhuha', 'Rweru', 'Shyara'],
+  'Rweru': ['Rweru', 'Shyara'],
+  'Shyara': ['Shyara'],
+  // Add more sector-cell mappings as needed
+};
+
+// Fallback cell options if no specific mapping is found
+const fallbackCellOptions = [
   'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
   'Nyagatovu', 'Remera', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro', 'Kigarama', 'Masaka',
   'Niboye', 'Nyarugunga', 'Busanza', 'Gahanga', 'Gatenga', 'Gikondo', 'Kagarama', 'Kanombe', 'Kicukiro',
@@ -65,6 +113,11 @@ export default function Collection() {
   const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [companiesLoading, setCompaniesLoading] = useState(false);
   const companiesFetchedRef = useRef(false);
+  const [cellOptions, setCellOptions] = useState([]);
+  
+  // Add state for dynamic options
+  const [availableDistricts, setAvailableDistricts] = useState([]);
+  const [availableSectors, setAvailableSectors] = useState([]);
   
   const [personalInfo, setPersonalInfo] = useState({
     name: '',
@@ -73,6 +126,7 @@ export default function Collection() {
     gender: '',
     phone_number: '',
     ubudehe_category: '',
+    house_number: '',
     district: '',
     sector: '',
     cell: '',
@@ -87,7 +141,8 @@ export default function Collection() {
   const [selectedLocation, setSelectedLocation] = useState({
     district: '',
     sector: '',
-    cell: ''
+    cell: '',
+    street: ''
   });
   const [errors, setErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -148,6 +203,7 @@ export default function Collection() {
             gender: response.data.gender || '',
             phone_number: response.data.phone_number || '',
             ubudehe_category: response.data.ubudehe_category || '',
+            house_number: response.data.house_number || '',
             district: response.data.district || '',
             sector: response.data.sector || '',
             cell: response.data.cell || '',
@@ -166,14 +222,23 @@ export default function Collection() {
           console.log('Setting location data:', locationData);
           setLocation(locationData);
           
-          // Pre-populate selected location for company filtering
-          const selectedLocationData = {
-            district: response.data.district || '',
-            sector: response.data.sector || '',
-            cell: response.data.cell || '',
-          };
-          console.log('Setting selected location data:', selectedLocationData);
-          setSelectedLocation(selectedLocationData);
+          // Set cell options based on user's sector
+          // if (response.data.sector) {
+          //   const sectorCells = cellMapping[response.data.sector] || fallbackCellOptions;
+          //   
+          //   // If user has a cell that's not in the sector mapping, add it to the options
+          //   let finalCellOptions = [...sectorCells];
+          //   if (response.data.cell && !sectorCells.includes(response.data.cell)) {
+          //     finalCellOptions = [response.data.cell, ...sectorCells];
+          //   }
+          //   
+          //   setCellOptions(finalCellOptions);
+          // }
+          
+          // Populate sectors if user has a district
+          if (userProfile.district) {
+            setAvailableSectors(sectorOptions);
+          }
         } else {
           console.log('No user found in auth context');
           setLoading(false);
@@ -192,6 +257,11 @@ export default function Collection() {
       setLoading(false);
     }
   }, [user]);
+
+  // Populate districts when component mounts
+  useEffect(() => {
+    setAvailableDistricts(districtOptions);
+  }, []);
 
   // Fetch companies on component mount
   useEffect(() => {
@@ -244,6 +314,32 @@ export default function Collection() {
       setFilteredCompanies(filtered);
     }
   }, [selectedLocation, companies]);
+
+  // Update cell options based on selected sector
+  useEffect(() => {
+    if (selectedLocation.sector) {
+      const sectorCells = cellMapping[selectedLocation.sector] || fallbackCellOptions;
+      
+      // If user has a cell that's not in the sector mapping, add it to the options
+      let finalCellOptions = [...sectorCells];
+      if (selectedLocation.cell && !sectorCells.includes(selectedLocation.cell)) {
+        finalCellOptions = [selectedLocation.cell, ...sectorCells];
+      }
+      
+      setCellOptions(finalCellOptions);
+      
+      // Don't reset cell if it's the user's original cell, even if not in mapping
+      // Only reset if it's a different cell that's not available
+      if (selectedLocation.cell && !finalCellOptions.includes(selectedLocation.cell)) {
+        setSelectedLocation(prev => ({
+          ...prev,
+          cell: ''
+        }));
+      }
+    } else {
+      setCellOptions([]);
+    }
+  }, [selectedLocation.sector]);
 
   // const villageOptions = [
   //   'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
@@ -388,6 +484,7 @@ export default function Collection() {
         phone_number: personalInfo.phone_number,
         gender: personalInfo.gender,
         ubudehe_category: personalInfo.ubudehe_category,
+        house_number: personalInfo.house_number,
         district: location.district,
         sector: location.sector,
         cell: location.cell,
@@ -488,7 +585,7 @@ export default function Collection() {
         <div className="mb-6">
           <div className="flex items-center justify-between my-4">
             <h3 className="text-lg font-semibold text-gray-800">Select Company Location</h3>
-            {userProfile && (userProfile.district || userProfile.sector || userProfile.cell) && (
+            {userProfile && (userProfile.district || userProfile.sector || userProfile.cell || userProfile.street) && (
               <button
                 type="button"
                 onClick={() => {
@@ -496,9 +593,15 @@ export default function Collection() {
                     district: userProfile.district || '',
                     sector: userProfile.sector || '',
                     cell: userProfile.cell || '',
+                    street: userProfile.street || '',
                   });
                   setSelectedCompany('');
                   setSelectedCompanyDetails(null);
+                  
+                  // Populate sectors if user has a district
+                  if (userProfile.district) {
+                    setAvailableSectors(sectorOptions);
+                  }
                 }}
                 className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
               >
@@ -506,7 +609,7 @@ export default function Collection() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* District Selection */}
             <div>
               <label className="block font-semibold mb-2 text-sm">District</label>
@@ -518,14 +621,27 @@ export default function Collection() {
                     ...prev,
                     district: e.target.value,
                     sector: '', // Reset sector when district changes
-                    cell: ''    // Reset cell when district changes
+                    cell: '',    // Reset cell when district changes
+                    street: ''   // Reset street when district changes
                   }));
                   setSelectedCompany(''); // Reset company selection
                   setSelectedCompanyDetails(null); // Reset company details
+                  
+                  // Populate sectors when district is selected
+                  if (e.target.value) {
+                    setAvailableSectors(sectorOptions);
+                  } else {
+                    setAvailableSectors([]);
+                  }
+                }}
+                onFocus={() => {
+                  if (availableDistricts.length === 0) {
+                    setAvailableDistricts(districtOptions);
+                  }
                 }}
               >
                 <option value="">Select District</option>
-                {districtOptions.map(district => (
+                {availableDistricts.map(district => (
                   <option key={district} value={district}>{district}</option>
                 ))}
               </select>
@@ -540,15 +656,26 @@ export default function Collection() {
                   setSelectedLocation(prev => ({
                     ...prev,
                     sector: e.target.value,
-                    cell: '' // Reset cell when sector changes
+                    cell: '', // Reset cell when sector changes
+                    street: '' // Reset street when sector changes
                   }));
                   setSelectedCompany(''); // Reset company selection
                   setSelectedCompanyDetails(null); // Reset company details
+                  
+                  // Clear sectors if sector is cleared
+                  if (!e.target.value) {
+                    setAvailableSectors([]);
+                  }
+                }}
+                onFocus={() => {
+                  if (availableSectors.length === 0) {
+                    setAvailableSectors(sectorOptions);
+                  }
                 }}
                 disabled={!selectedLocation.district}
               >
                 <option value="">Select Sector</option>
-                {selectedLocation.district && sectorOptions.map(sector => (
+                {selectedLocation.district && availableSectors.map(sector => (
                   <option key={sector} value={sector}>{sector}</option>
                 ))}
               </select>
@@ -562,7 +689,8 @@ export default function Collection() {
                 onChange={e => {
                   setSelectedLocation(prev => ({
                     ...prev,
-                    cell: e.target.value
+                    cell: e.target.value,
+                    street: '' // Reset street when cell changes
                   }));
                   setSelectedCompany(''); // Reset company selection
                   setSelectedCompanyDetails(null); // Reset company details
@@ -574,6 +702,25 @@ export default function Collection() {
                   <option key={cell} value={cell}>{cell}</option>
                 ))}
               </select>
+            </div>
+            {/* Street Selection */}
+            <div>
+              <label className="block font-semibold mb-2 text-sm">Street</label>
+              <input
+                type="text"
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={selectedLocation.street}
+                onChange={e => {
+                  setSelectedLocation(prev => ({
+                    ...prev,
+                    street: e.target.value
+                  }));
+                  setSelectedCompany(''); // Reset company selection
+                  setSelectedCompanyDetails(null); // Reset company details
+                }}
+                placeholder="Enter street name"
+                disabled={!selectedLocation.cell}
+              />
             </div>
           </div>
         </div>
@@ -649,7 +796,7 @@ export default function Collection() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">💰 Monthly Rate:</span>
-                      <span className="text-gray-700">${selectedCompanyDetails.amount_per_month}</span>
+                      <span className="text-gray-700">FRW {selectedCompanyDetails.amount_per_month}</span>
                     </div>
                   </div>
                   <div className="space-y-2">
