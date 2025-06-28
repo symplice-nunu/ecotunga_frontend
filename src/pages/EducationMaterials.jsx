@@ -285,7 +285,7 @@ export default function EducationMaterials() {
         
         <div className="flex flex-wrap gap-3">
           {/* Category Filters */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex flex-wrap gap-2 pb-2">
             {categories.map((category) => (
               <button
                 key={category.id}
@@ -303,7 +303,7 @@ export default function EducationMaterials() {
           </div>
 
           {/* Level Filters */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {levels.map((level) => (
               <button
                 key={level.id}
