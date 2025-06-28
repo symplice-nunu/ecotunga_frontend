@@ -150,6 +150,31 @@
         "title": "Fold or Flatten",
         "desc": "When possible, flatten or fold cardboard boxes and plastic..."
       }
+    },
+    "wasteCollections": {
+      "title": "All Requests",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "status": "Status",
+      "company": "Company",
+      "collections": "collections",
+      "noCollectionsFound": "No waste collections found",
+      "noCollectionsMessage": "Your waste collection requests will appear here",
+      "showing": "Showing {{shown}} of {{total}} collections",
+      "locationNotSpecified": "Location not specified",
+      "notAssigned": "Not assigned",
+      "filterByStatus": "Filter by status:",
+      "allStatuses": "All Statuses",
+      "noCollectionsWithStatus": "No collections found with status: {{status}}",
+      "tryDifferentStatus": "Try selecting a different status or view all collections",
+      "statuses": {
+        "approved": "Approved",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "completed": "Completed",
+        "unknown": "Unknown"
+      }
     }
   },
   "header": {
@@ -272,6 +297,7 @@
     "noEventsMatch": "Try adjusting your search or filter criteria",
     "joinEvent": "Join Event",
     "joined": "Joined",
+    "joinedEvent": "Successfully joined event!",
     "participants": "participants",
     "by": "by",
     "categories": {

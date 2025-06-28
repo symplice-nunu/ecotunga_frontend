@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Clock, Plus, Search, Filter, CalendarDays, Star, Heart, Edit, Trash2 } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Plus, Search, Filter, CalendarDays, Star, Heart, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { communityEventApi } from '../services/communityEventApi';
@@ -20,6 +20,7 @@ export default function CommunityEvents() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [notification, setNotification] = useState({ show: false, message: '', eventTitle: '' });
 
   const categories = [
     { id: 'all', label: 'All Events', icon: Calendar },
@@ -30,8 +31,13 @@ export default function CommunityEvents() {
 
   useEffect(() => {
     fetchEvents();
-    fetchUserEvents();
-  }, [selectedCategory, searchTerm]);
+    if (user) {
+      fetchUserEvents();
+    } else {
+      // Clear joined events when user logs out
+      setJoinedEvents(new Set());
+    }
+  }, [selectedCategory, searchTerm, user]);
 
   const fetchEvents = async () => {
     try {
@@ -67,6 +73,12 @@ export default function CommunityEvents() {
   };
 
   const handleJoinEvent = async (eventId) => {
+    // Check if user is authenticated
+    if (!user) {
+      setError('Please log in to join events');
+      return;
+    }
+
     try {
       if (joinedEvents.has(eventId)) {
         await communityEventApi.leaveEvent(eventId);
@@ -82,13 +94,36 @@ export default function CommunityEvents() {
           newSet.add(eventId);
           return newSet;
         });
+        
+        // Show notification when joining an event
+        const eventTitle = events.find(e => e.id === eventId)?.title;
+        setNotification({ 
+          show: true, 
+          message: t('communityEvents.joinedEvent'), 
+          eventTitle: eventTitle 
+        });
+        
+        // Auto-dismiss notification after 10 seconds
+        setTimeout(() => {
+          setNotification({ show: false, message: '', eventTitle: '' });
+        }, 10000);
       }
       
       // Refresh events to update participant count
       fetchEvents();
     } catch (err) {
       console.error('Error joining/leaving event:', err);
-      setError('Failed to join/leave event');
+      
+      // Handle specific error cases
+      if (err.response?.status === 401) {
+        setError('Please log in to join events. Your session may have expired.');
+      } else if (err.response?.status === 403) {
+        setError('You do not have permission to join this event.');
+      } else if (err.response?.status === 404) {
+        setError('Event not found.');
+      } else {
+        setError('Failed to join/leave event. Please try again.');
+      }
     }
   };
 
@@ -243,6 +278,18 @@ export default function CommunityEvents() {
         </div>
       )}
 
+      {/* Login Prompt Banner */}
+      {!user && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-800 px-6 py-4 rounded-lg mb-6 text-center font-medium shadow-sm flex items-center justify-center gap-3">
+          <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <span className="text-blue-900 font-semibold">Please log in to join community events and track your participation!</span>
+        </div>
+      )}
+
       {/* Featured Events */}
       {events.filter(e => e.featured).length > 0 && (
         <div className="mb-8">
@@ -314,13 +361,17 @@ export default function CommunityEvents() {
                       <span className="text-sm text-gray-500">{t('communityEvents.by')} {event.organizer}</span>
                       <button
                         onClick={() => handleJoinEvent(event.id)}
+                        disabled={!user}
                         className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                          joinedEvents.has(event.id)
+                          !user
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : joinedEvents.has(event.id)
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'bg-teal-600 text-white hover:bg-teal-700'
                         }`}
+                        title={!user ? 'Please log in to join events' : ''}
                       >
-                        {joinedEvents.has(event.id) ? t('communityEvents.joined') : t('communityEvents.joinEvent')}
+                        {!user ? 'Login to Join' : joinedEvents.has(event.id) ? t('communityEvents.joined') : t('communityEvents.joinEvent')}
                       </button>
                     </div>
                   </div>
@@ -397,13 +448,17 @@ export default function CommunityEvents() {
                     </div>
                     <button
                       onClick={() => handleJoinEvent(event.id)}
+                      disabled={!user}
                       className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                        joinedEvents.has(event.id)
+                        !user
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : joinedEvents.has(event.id)
                           ? 'bg-green-100 text-green-700 hover:bg-green-200'
                           : 'bg-teal-600 text-white hover:bg-teal-700'
                       }`}
+                      title={!user ? 'Please log in to join events' : ''}
                     >
-                      {joinedEvents.has(event.id) ? t('communityEvents.joined') : t('communityEvents.joinEvent')}
+                      {!user ? 'Login to Join' : joinedEvents.has(event.id) ? t('communityEvents.joined') : t('communityEvents.joinEvent')}
                     </button>
                   </div>
                 </div>
@@ -439,6 +494,35 @@ export default function CommunityEvents() {
         message={t('communityEvents.deleteConfirm')}
         itemName={selectedEvent?.title}
       />
+
+      {/* Notification Popup */}
+      {notification.show && (
+        <div className="fixed bottom-4 right-4 bg-white border border-green-200 rounded-lg shadow-lg p-4 max-w-sm z-50 animate-in slide-in-from-bottom-2 duration-300">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <CheckCircle className="h-6 w-6 text-green-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900">
+                {notification.message}
+              </p>
+              {notification.eventTitle && (
+                <p className="text-sm text-gray-600 mt-1">
+                  "{notification.eventTitle}"
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => setNotification({ show: false, message: '', eventTitle: '' })}
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

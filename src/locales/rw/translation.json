@@ -177,6 +177,31 @@
         "title": "Gupfunda cyangwa gupfobya",
         "desc": "Iyo bishoboka, pfobya amapaki y'urupapuro..."
       }
+    },
+    "wasteCollections": {
+      "title": "Ibisabwa Byose",
+      "date": "Itariki",
+      "time": "Isaha",
+      "location": "Ahantu",
+      "status": "Imiterere",
+      "company": "Isosiyete",
+      "collections": "gusura",
+      "noCollectionsFound": "Nta gusura imyanda kivumbuwe",
+      "noCollectionsMessage": "Ibisabwa byawe byo gusura imyanda bizagaragara hano",
+      "showing": "Kwerekana {{shown}} ku {{total}} gusura",
+      "locationNotSpecified": "Ahantu nta kintu",
+      "notAssigned": "Nta kintu",
+      "filterByStatus": "Shuzuma ku miterere:",
+      "allStatuses": "Imiterere Yose",
+      "noCollectionsWithStatus": "Nta gusura kivumbuwe n'imiterere: {{status}}",
+      "tryDifferentStatus": "Gerageza guhitamo imiterere itandukanye cyangwa reba gusura yose",
+      "statuses": {
+        "approved": "Byemewe",
+        "pending": "Bitaratangira",
+        "rejected": "Byanze",
+        "completed": "Byarangiye",
+        "unknown": "Nta kintu"
+      }
     }
   },
   "users": {
@@ -257,6 +282,7 @@
     "noEventsMatch": "Gerageza guhindura ibisubizo byawe cyangwa ibisuzuma",
     "joinEvent": "Jya mu Gikorwa",
     "joined": "Yinjiye",
+    "joinedEvent": "Igikorwa cyinjiwe neza!",
     "participants": "abajyanye",
     "by": "na",
     "categories": {

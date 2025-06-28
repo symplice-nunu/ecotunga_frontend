@@ -1,6 +1,6 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus } from 'lucide-react';
+import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
@@ -77,6 +77,16 @@ export default function Home() {
     wasteCollectionsByStatus: {}
   });
   const [statsLoading, setStatsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Filter collections based on status
+  const filteredCollections = collections.filter(collection => {
+    if (statusFilter === 'all') return true;
+    return collection.status === statusFilter;
+  });
+
+  // Get unique statuses for filter options
+  const availableStatuses = [...new Set(collections.map(collection => collection.status))].filter(Boolean);
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -228,6 +238,61 @@ export default function Home() {
     return Array.isArray(collections) ? collections.filter(c => c.status === status).length : 0;
   };
 
+  // Waste collection bar chart data (months) - moved before the function that uses it
+  const wasteData = [
+    { month: 'Sept 2024', thisPeriod: 80, lastPeriod: 60 },
+    { month: 'Nov 2024', thisPeriod: 70, lastPeriod: 50 },
+    { month: 'Dec 2024', thisPeriod: 60, lastPeriod: 80 },
+    { month: 'Jan 2025', thisPeriod: 50, lastPeriod: 70 },
+    { month: 'Feb 2025', thisPeriod: 70, lastPeriod: 50 },
+    { month: 'March 2025', thisPeriod: 90, lastPeriod: 60 },
+    { month: 'April 2025', thisPeriod: 85, lastPeriod: 45 },
+  ];
+
+  // Generate chart data for waste collectors based on their collections
+  const generateWasteCollectorChartData = () => {
+    if (!Array.isArray(collections) || collections.length === 0) {
+      return wasteData.map(item => ({
+        month: item.month,
+        completed: 0,
+        pending: 0,
+        denied: 0
+      }));
+    }
+
+    // Group collections by month
+    const collectionsByMonth = {};
+    
+    collections.forEach(collection => {
+      if (collection.pickup_date) {
+        const date = new Date(collection.pickup_date);
+        const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        if (!collectionsByMonth[monthKey]) {
+          collectionsByMonth[monthKey] = { completed: 0, pending: 0, denied: 0 };
+        }
+        
+        if (collection.status === 'completed' || collection.status === 'approved') {
+          collectionsByMonth[monthKey].completed++;
+        } else if (collection.status === 'pending') {
+          collectionsByMonth[monthKey].pending++;
+        } else if (collection.status === 'denied' || collection.status === 'rejected') {
+          collectionsByMonth[monthKey].denied++;
+        }
+      }
+    });
+
+    // Map to chart data format
+    return wasteData.map(item => ({
+      month: item.month,
+      completed: collectionsByMonth[item.month]?.completed || 0,
+      pending: collectionsByMonth[item.month]?.pending || 0,
+      denied: collectionsByMonth[item.month]?.denied || 0
+    }));
+  };
+
+  const wasteCollectorChartData = generateWasteCollectorChartData();
+
   // Stats cards data (updated)
   const stats = [
     {
@@ -254,17 +319,6 @@ export default function Home() {
       icon: <RefreshCcw className="w-6 h-6 text-teal-500" />,
       details: t('home.stats.viewDetails'),
     },
-  ];
-
-  // Waste collection bar chart data (months)
-  const wasteData = [
-    { month: 'Sept 2024', thisPeriod: 80, lastPeriod: 60 },
-    { month: 'Nov 2024', thisPeriod: 70, lastPeriod: 50 },
-    { month: 'Dec 2024', thisPeriod: 60, lastPeriod: 80 },
-    { month: 'Jan 2025', thisPeriod: 50, lastPeriod: 70 },
-    { month: 'Feb 2025', thisPeriod: 70, lastPeriod: 50 },
-    { month: 'March 2025', thisPeriod: 90, lastPeriod: 60 },
-    { month: 'April 2025', thisPeriod: 85, lastPeriod: 45 },
   ];
 
   // Recent activity - now managed by state from API data
@@ -582,95 +636,14 @@ export default function Home() {
         </div>
       )}
 
-      {/* Waste Collection Data for Waste Collectors */}
-      {/* {user?.role === 'waste_collector' && !loading && collections.length > 0 && (
-        <div className="mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Assigned Waste Collections</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Location
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pickup Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Time Slot
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Notes
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {collections.map((collection) => (
-                    <tr key={collection.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {collection.name} {collection.last_name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {collection.gender} • {collection.ubudehe_category}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{collection.email}</div>
-                        <div className="text-sm text-gray-500">{collection.phone_number}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{collection.street}</div>
-                        <div className="text-sm text-gray-500">
-                          {collection.cell}, {collection.sector}, {collection.district}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(collection.pickup_date).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{collection.time_slot}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          collection.status === 'approved' 
-                            ? 'bg-green-100 text-green-800'
-                            : collection.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {collection.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {collection.notes || '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )} */}
+      
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Chart & Activity */}
         <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
           {/* Book Waste Collection Button - Only show for users with role 'user' */}
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2'>
           {user?.role === 'user' && (
             <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between">
@@ -717,6 +690,7 @@ export default function Home() {
               </div>
             </div>
           )}
+          </div>
 
           {/* Bar Chart - Only show for admin users */}
           {user?.role === 'admin' && (
@@ -751,6 +725,179 @@ export default function Home() {
                     <span className="text-xs text-gray-500 mt-2 text-center truncate w-full">{item.month}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Collection Performance Chart - Only show for waste collectors */}
+          {user?.role === 'waste_collector' && (
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">My Collection Performance</h2>
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-3 h-3 rounded bg-blue-500"></span>
+                    Completed
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-3 h-3 rounded bg-yellow-500"></span>
+                    Pending
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-3 h-3 rounded bg-red-500"></span>
+                    Denied
+                  </span>
+                </div>
+              </div>
+              
+              {/* Graph Container */}
+              <div className="relative h-64 sm:h-80 bg-gray-50 rounded-lg p-4">
+                {/* Grid Lines */}
+                <div className="absolute inset-0 p-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-full border-t border-gray-200"
+                      style={{ top: `${(i * 25)}%` }}
+                    ></div>
+                  ))}
+                  {[...Array(7)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute h-full border-l border-gray-200"
+                      style={{ left: `${(i * 16.66)}%` }}
+                    ></div>
+                  ))}
+                </div>
+                
+                {/* Y-axis labels */}
+                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 p-4">
+                  <span>30</span>
+                  <span>24</span>
+                  <span>18</span>
+                  <span>12</span>
+                  <span>6</span>
+                  <span>0</span>
+                </div>
+                
+                {/* Graph Lines */}
+                <div className="relative h-full flex items-end justify-between px-8">
+                  {wasteCollectorChartData.map((item, idx) => {
+                    const maxValue = 30; // Maximum value for scaling
+                    const completedHeight = (item.completed / maxValue) * 100;
+                    const pendingHeight = (item.pending / maxValue) * 100;
+                    const deniedHeight = (item.denied / maxValue) * 100;
+                    
+                    return (
+                      <div key={idx} className="flex flex-col items-center relative group">
+                        {/* Completed Collections Bar */}
+                        <div
+                          className="w-6 sm:w-8 bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600 cursor-pointer"
+                          style={{ height: `${completedHeight}%` }}
+                          title={`${item.completed} completed in ${item.month}`}
+                        >
+                          {/* Value label on hover */}
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                            {item.completed}
+                          </div>
+                        </div>
+                        
+                        {/* Pending Collections Bar */}
+                        <div
+                          className="w-6 sm:w-8 bg-yellow-500 rounded-t transition-all duration-300 hover:bg-yellow-600 cursor-pointer"
+                          style={{ height: `${pendingHeight}%` }}
+                          title={`${item.pending} pending in ${item.month}`}
+                        >
+                          {/* Value label on hover */}
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                            {item.pending}
+                          </div>
+                        </div>
+                        
+                        {/* Denied Collections Bar */}
+                        <div
+                          className="w-6 sm:w-8 bg-red-500 rounded-t transition-all duration-300 hover:bg-red-600 cursor-pointer"
+                          style={{ height: `${deniedHeight}%` }}
+                          title={`${item.denied} denied in ${item.month}`}
+                        >
+                          {/* Value label on hover */}
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                            {item.denied}
+                          </div>
+                        </div>
+                        
+                        {/* Month label */}
+                        <span className="text-xs text-gray-600 mt-2 text-center truncate w-full">
+                          {item.month}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* X-axis */}
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-300"></div>
+                
+                {/* Y-axis */}
+                <div className="absolute top-0 bottom-0 left-8 w-px bg-gray-300"></div>
+              </div>
+              
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                  Showing your collection performance over the last 7 months
+                </p>
+              </div>
+              
+              {/* Performance Summary for Waste Collectors */}
+              <div className="mt-6 grid grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {wasteCollectorChartData.reduce((sum, item) => sum + item.completed, 0)}
+                  </div>
+                  <div className="text-xs text-blue-700 font-medium">Total Completed</div>
+                </div>
+                <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {wasteCollectorChartData.reduce((sum, item) => sum + item.pending, 0)}
+                  </div>
+                  <div className="text-xs text-yellow-700 font-medium">Total Pending</div>
+                </div>
+                <div className="bg-red-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-red-600">
+                    {wasteCollectorChartData.reduce((sum, item) => sum + item.denied, 0)}
+                  </div>
+                  <div className="text-xs text-red-700 font-medium">Total Denied</div>
+                </div>
+              </div>
+              
+              {/* Efficiency Rate */}
+              <div className="mt-4 bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Efficiency Rate</span>
+                  <span className="text-lg font-bold text-green-600">
+                    {(() => {
+                      const totalCompleted = wasteCollectorChartData.reduce((sum, item) => sum + item.completed, 0);
+                      const totalPending = wasteCollectorChartData.reduce((sum, item) => sum + item.pending, 0);
+                      const totalDenied = wasteCollectorChartData.reduce((sum, item) => sum + item.denied, 0);
+                      const total = totalCompleted + totalPending + totalDenied;
+                      return total > 0 ? Math.round((totalCompleted / total) * 100) : 0;
+                    })()}%
+                  </span>
+                </div>
+                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${(() => {
+                        const totalCompleted = wasteCollectorChartData.reduce((sum, item) => sum + item.completed, 0);
+                        const totalPending = wasteCollectorChartData.reduce((sum, item) => sum + item.pending, 0);
+                        const totalDenied = wasteCollectorChartData.reduce((sum, item) => sum + item.denied, 0);
+                        const total = totalCompleted + totalPending + totalDenied;
+                        return total > 0 ? (totalCompleted / total) * 100 : 0;
+                      })()}%` 
+                    }}
+                  ></div>
+                </div>
               </div>
             </div>
           )}
@@ -923,26 +1070,141 @@ export default function Home() {
           )}
         </div>
       </div>
-
-      {/* Sorting Guidelines - Only show for users with role 'user' */}
-      {/* {user?.role === 'user' && (
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('home.guidelines.title')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            {guidelines.map((guideline, idx) => (
-              <div key={idx} className="flex items-start gap-3 p-4 rounded-lg bg-gray-50">
-                <div className="flex-shrink-0">
-                  {guideline.icon}
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">{guideline.title}</h3>
-                  <p className="text-xs text-gray-600 leading-relaxed">{guideline.desc}</p>
-                </div>
+      {/* Waste Collections Table - Only show for users with role 'user' */}
+      {user?.role === 'user' && (
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">{t('home.wasteCollections.title')}</h2>
+            <div className="flex items-center gap-4">
+              {/* Status Filter */}
+              <div className="flex items-center gap-2">
+                <label htmlFor="statusFilter" className="text-sm text-gray-600">
+                  {t('home.wasteCollections.filterByStatus') || 'Filter by status:'}
+                </label>
+                <select
+                  id="statusFilter"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                >
+                  <option value="all">{t('home.wasteCollections.allStatuses') || 'All Statuses'}</option>
+                  {availableStatuses.map(status => (
+                    <option key={status} value={status}>
+                      {t(`home.wasteCollections.statuses.${status}`)}
+                    </option>
+                  ))}
+                </select>
               </div>
-            ))}
+              <div className="text-sm text-gray-500">
+                {loading ? t('common.loading') : `${filteredCollections.length} ${t('home.wasteCollections.collections')}`}
+              </div>
+            </div>
           </div>
+          
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-12 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <div className="text-red-400 mb-2">
+                <AlertCircle className="w-12 h-12 mx-auto" />
+              </div>
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          ) : filteredCollections.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('home.wasteCollections.date')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('home.wasteCollections.time')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('home.wasteCollections.location')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('home.wasteCollections.status')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('home.wasteCollections.company')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredCollections.slice(0, 10).map((collection, index) => (
+                    <tr key={collection.id || index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {collection.pickup_date ? new Date(collection.pickup_date).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {collection.time_slot || 'TBD'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div>
+                          <div className="font-medium">{collection.street || 'N/A'}</div>
+                          <div className="text-gray-500 text-xs">
+                            {collection.sector && collection.district 
+                              ? `${collection.sector}, ${collection.district}`
+                              : t('home.wasteCollections.locationNotSpecified')
+                            }
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          collection.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          collection.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          collection.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          collection.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {collection.status ? t(`home.wasteCollections.statuses.${collection.status}`) : t('home.wasteCollections.statuses.unknown')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {collection.company_name || t('home.wasteCollections.notAssigned')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredCollections.length > 10 && (
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-gray-500">
+                    {t('home.wasteCollections.showing', { shown: 10, total: filteredCollections.length })}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-2">
+                <FileText className="w-12 h-12 mx-auto" />
+              </div>
+              <p className="text-sm text-gray-500">
+                {statusFilter === 'all' 
+                  ? t('home.wasteCollections.noCollectionsFound')
+                  : t('home.wasteCollections.noCollectionsWithStatus', { status: t(`home.wasteCollections.statuses.${statusFilter}`) })
+                }
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {statusFilter === 'all' 
+                  ? t('home.wasteCollections.noCollectionsMessage')
+                  : t('home.wasteCollections.tryDifferentStatus')
+                }
+              </p>
+            </div>
+          )}
         </div>
-      )} */}
+      )}
     </div>
   );
 }

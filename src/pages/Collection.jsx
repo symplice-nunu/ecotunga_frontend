@@ -119,6 +119,21 @@ export default function Collection() {
   const [availableDistricts, setAvailableDistricts] = useState([]);
   const [availableSectors, setAvailableSectors] = useState([]);
   
+  // Add state for searchable district dropdown
+  const [districtSearchTerm, setDistrictSearchTerm] = useState('');
+  const [isDistrictDropdownOpen, setIsDistrictDropdownOpen] = useState(false);
+  const [filteredDistrictOptions, setFilteredDistrictOptions] = useState([]);
+  
+  // Add state for searchable sector dropdown
+  const [sectorSearchTerm, setSectorSearchTerm] = useState('');
+  const [isSectorDropdownOpen, setIsSectorDropdownOpen] = useState(false);
+  const [filteredSectorOptions, setFilteredSectorOptions] = useState([]);
+  
+  // Add state for searchable cell dropdown
+  const [cellSearchTerm, setCellSearchTerm] = useState('');
+  const [isCellDropdownOpen, setIsCellDropdownOpen] = useState(false);
+  const [filteredCellOptions, setFilteredCellOptions] = useState([]);
+  
   const [personalInfo, setPersonalInfo] = useState({
     name: '',
     email: '',
@@ -144,7 +159,6 @@ export default function Collection() {
     cell: '',
     street: ''
   });
-  const [errors, setErrors] = useState({});
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -171,7 +185,6 @@ export default function Collection() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [recipientPhone] = useState('0785847049');
 
@@ -236,7 +249,7 @@ export default function Collection() {
           // }
           
           // Populate sectors if user has a district
-          if (userProfile.district) {
+          if (userProfile?.district) {
             setAvailableSectors(sectorOptions);
           }
         } else {
@@ -339,7 +352,43 @@ export default function Collection() {
     } else {
       setCellOptions([]);
     }
-  }, [selectedLocation.sector]);
+  }, [selectedLocation.sector, selectedLocation.cell]);
+
+  // Filter district options based on search term
+  useEffect(() => {
+    if (districtSearchTerm.trim() === '') {
+      setFilteredDistrictOptions(availableDistricts);
+    } else {
+      const filtered = availableDistricts.filter(district =>
+        district.toLowerCase().includes(districtSearchTerm.toLowerCase())
+      );
+      setFilteredDistrictOptions(filtered);
+    }
+  }, [districtSearchTerm, availableDistricts]);
+
+  // Filter sector options based on search term
+  useEffect(() => {
+    if (sectorSearchTerm.trim() === '') {
+      setFilteredSectorOptions(availableSectors);
+    } else {
+      const filtered = availableSectors.filter(sector =>
+        sector.toLowerCase().includes(sectorSearchTerm.toLowerCase())
+      );
+      setFilteredSectorOptions(filtered);
+    }
+  }, [sectorSearchTerm, availableSectors]);
+
+  // Filter cell options based on search term
+  useEffect(() => {
+    if (cellSearchTerm.trim() === '') {
+      setFilteredCellOptions(cellOptions);
+    } else {
+      const filtered = cellOptions.filter(cell =>
+        cell.toLowerCase().includes(cellSearchTerm.toLowerCase())
+      );
+      setFilteredCellOptions(filtered);
+    }
+  }, [cellSearchTerm, cellOptions]);
 
   // const villageOptions = [
   //   'Kacyiru', 'Kagugu', 'Kamatamu', 'Kibagabaga', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera',
@@ -433,7 +482,6 @@ export default function Collection() {
     
     console.log('❌ Validation errors:', newErrors);
     
-    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -545,7 +593,6 @@ export default function Collection() {
       console.log('Payment response:', response);
 
       if (response.success && response.data) {
-        setPaymentDetails(response.data);
         setPaymentSuccess(true);
         
         // Check if there's a redirect URL for CAPTCHA verification
@@ -611,97 +658,217 @@ export default function Collection() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* District Selection */}
-            <div>
+            <div className="relative">
               <label className="block font-semibold mb-2 text-sm">District</label>
-              <select
-                className="w-full border rounded px-3 py-2 text-sm"
-                value={selectedLocation.district}
-                onChange={e => {
-                  setSelectedLocation(prev => ({
-                    ...prev,
-                    district: e.target.value,
-                    sector: '', // Reset sector when district changes
-                    cell: '',    // Reset cell when district changes
-                    street: ''   // Reset street when district changes
-                  }));
-                  setSelectedCompany(''); // Reset company selection
-                  setSelectedCompanyDetails(null); // Reset company details
-                  
-                  // Populate sectors when district is selected
-                  if (e.target.value) {
-                    setAvailableSectors(sectorOptions);
-                  } else {
-                    setAvailableSectors([]);
-                  }
-                }}
-                onFocus={() => {
-                  if (availableDistricts.length === 0) {
-                    setAvailableDistricts(districtOptions);
-                  }
-                }}
-              >
-                <option value="">Select District</option>
-                {availableDistricts.map(district => (
-                  <option key={district} value={district}>{district}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full border rounded px-3 py-2 text-sm pr-8 cursor-pointer"
+                  value={isDistrictDropdownOpen ? districtSearchTerm : selectedLocation.district}
+                  onChange={e => {
+                    if (isDistrictDropdownOpen) {
+                      setDistrictSearchTerm(e.target.value);
+                    }
+                  }}
+                  onFocus={() => {
+                    setIsDistrictDropdownOpen(true);
+                    setDistrictSearchTerm('');
+                    if (availableDistricts.length === 0) {
+                      setAvailableDistricts(districtOptions);
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay closing to allow clicking on options
+                    setTimeout(() => setIsDistrictDropdownOpen(false), 200);
+                  }}
+                  placeholder={selectedLocation.district || "Search or select district..."}
+                  readOnly={!isDistrictDropdownOpen}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                
+                {/* Dropdown Options */}
+                {isDistrictDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {filteredDistrictOptions.length > 0 ? (
+                      filteredDistrictOptions.map(district => (
+                        <div
+                          key={district}
+                          className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setSelectedLocation(prev => ({
+                              ...prev,
+                              district: district,
+                              sector: '', // Reset sector when district changes
+                              cell: '',    // Reset cell when district changes
+                              street: ''   // Reset street when district changes
+                            }));
+                            setSelectedCompany(''); // Reset company selection
+                            setSelectedCompanyDetails(null); // Reset company details
+                            setDistrictSearchTerm('');
+                            setIsDistrictDropdownOpen(false);
+                            
+                            // Populate sectors when district is selected
+                            if (district) {
+                              setAvailableSectors(sectorOptions);
+                            } else {
+                              setAvailableSectors([]);
+                            }
+                          }}
+                        >
+                          {district}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No districts found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             {/* Sector Selection */}
-            <div>
+            <div className="relative">
               <label className="block font-semibold mb-2 text-sm">Sector</label>
-              <select
-                className="w-full border rounded px-3 py-2 text-sm"
-                value={selectedLocation.sector}
-                onChange={e => {
-                  setSelectedLocation(prev => ({
-                    ...prev,
-                    sector: e.target.value,
-                    cell: '', // Reset cell when sector changes
-                    street: '' // Reset street when sector changes
-                  }));
-                  setSelectedCompany(''); // Reset company selection
-                  setSelectedCompanyDetails(null); // Reset company details
-                  
-                  // Clear sectors if sector is cleared
-                  if (!e.target.value) {
-                    setAvailableSectors([]);
-                  }
-                }}
-                onFocus={() => {
-                  if (availableSectors.length === 0) {
-                    setAvailableSectors(sectorOptions);
-                  }
-                }}
-                disabled={!selectedLocation.district}
-              >
-                <option value="">Select Sector</option>
-                {selectedLocation.district && availableSectors.map(sector => (
-                  <option key={sector} value={sector}>{sector}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full border rounded px-3 py-2 text-sm pr-8 cursor-pointer"
+                  value={isSectorDropdownOpen ? sectorSearchTerm : selectedLocation.sector}
+                  onChange={e => {
+                    if (isSectorDropdownOpen) {
+                      setSectorSearchTerm(e.target.value);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (selectedLocation.district) {
+                      setIsSectorDropdownOpen(true);
+                      setSectorSearchTerm('');
+                      if (availableSectors.length === 0) {
+                        setAvailableSectors(sectorOptions);
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay closing to allow clicking on options
+                    setTimeout(() => setIsSectorDropdownOpen(false), 200);
+                  }}
+                  placeholder={selectedLocation.sector || "Search or select sector..."}
+                  readOnly={!isSectorDropdownOpen}
+                  disabled={!selectedLocation.district}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                
+                {/* Dropdown Options */}
+                {isSectorDropdownOpen && selectedLocation.district && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {filteredSectorOptions.length > 0 ? (
+                      filteredSectorOptions.map(sector => (
+                        <div
+                          key={sector}
+                          className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setSelectedLocation(prev => ({
+                              ...prev,
+                              sector: sector,
+                              cell: '', // Reset cell when sector changes
+                              street: '' // Reset street when sector changes
+                            }));
+                            setSelectedCompany(''); // Reset company selection
+                            setSelectedCompanyDetails(null); // Reset company details
+                            setSectorSearchTerm('');
+                            setIsSectorDropdownOpen(false);
+                            
+                            // Clear sectors if sector is cleared
+                            if (!sector) {
+                              setAvailableSectors([]);
+                            }
+                          }}
+                        >
+                          {sector}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No sectors found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             {/* Cell Selection */}
-            <div>
+            <div className="relative">
               <label className="block font-semibold mb-2 text-sm">Cell</label>
-              <select
-                className="w-full border rounded px-3 py-2 text-sm"
-                value={selectedLocation.cell}
-                onChange={e => {
-                  setSelectedLocation(prev => ({
-                    ...prev,
-                    cell: e.target.value,
-                    street: '' // Reset street when cell changes
-                  }));
-                  setSelectedCompany(''); // Reset company selection
-                  setSelectedCompanyDetails(null); // Reset company details
-                }}
-                disabled={!selectedLocation.sector}
-              >
-                <option value="">Select Cell</option>
-                {selectedLocation.sector && cellOptions.map(cell => (
-                  <option key={cell} value={cell}>{cell}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full border rounded px-3 py-2 text-sm pr-8 cursor-pointer"
+                  value={isCellDropdownOpen ? cellSearchTerm : selectedLocation.cell}
+                  onChange={e => {
+                    if (isCellDropdownOpen) {
+                      setCellSearchTerm(e.target.value);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (selectedLocation.sector) {
+                      setIsCellDropdownOpen(true);
+                      setCellSearchTerm('');
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay closing to allow clicking on options
+                    setTimeout(() => setIsCellDropdownOpen(false), 200);
+                  }}
+                  placeholder={selectedLocation.cell || "Search or select cell..."}
+                  readOnly={!isCellDropdownOpen}
+                  disabled={!selectedLocation.sector}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                
+                {/* Dropdown Options */}
+                {isCellDropdownOpen && selectedLocation.sector && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {filteredCellOptions.length > 0 ? (
+                      filteredCellOptions.map(cell => (
+                        <div
+                          key={cell}
+                          className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setSelectedLocation(prev => ({
+                              ...prev,
+                              cell: cell,
+                              street: '' // Reset street when cell changes
+                            }));
+                            setSelectedCompany(''); // Reset company selection
+                            setSelectedCompanyDetails(null); // Reset company details
+                            setCellSearchTerm('');
+                            setIsCellDropdownOpen(false);
+                          }}
+                        >
+                          {cell}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No cells found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             {/* Street Selection */}
             <div>

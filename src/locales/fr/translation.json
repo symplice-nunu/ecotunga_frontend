@@ -154,6 +154,31 @@
         "title": "Plier ou aplatir",
         "desc": "Si possible, aplatissez ou pliez les boîtes en carton et le plastique..."
       }
+    },
+    "wasteCollections": {
+      "title": "Toutes les Demandes",
+      "date": "Date",
+      "time": "Heure",
+      "location": "Lieu",
+      "status": "Statut",
+      "company": "Entreprise",
+      "collections": "collectes",
+      "noCollectionsFound": "Aucune collecte de déchets trouvée",
+      "noCollectionsMessage": "Vos demandes de collecte de déchets apparaîtront ici",
+      "showing": "Affichage de {{shown}} sur {{total}} collectes",
+      "locationNotSpecified": "Lieu non spécifié",
+      "notAssigned": "Non assigné",
+      "filterByStatus": "Filtrer par statut :",
+      "allStatuses": "Tous les Statuts",
+      "noCollectionsWithStatus": "Aucune collecte trouvée avec le statut : {{status}}",
+      "tryDifferentStatus": "Essayez de sélectionner un statut différent ou voir toutes les collectes",
+      "statuses": {
+        "approved": "Approuvé",
+        "pending": "En attente",
+        "rejected": "Rejeté",
+        "completed": "Terminé",
+        "unknown": "Inconnu"
+      }
     }
   },
   "header": {
@@ -258,6 +283,7 @@
     "noEventsMatch": "Essayez d'ajuster vos critères de recherche ou de filtrage",
     "joinEvent": "Rejoindre l'Événement",
     "joined": "Rejoint",
+    "joinedEvent": "Événement rejoint avec succès !",
     "participants": "participants",
     "by": "par",
     "categories": {
