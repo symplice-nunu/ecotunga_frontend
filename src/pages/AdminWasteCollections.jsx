@@ -312,7 +312,7 @@ export default function AdminWasteCollections() {
 
                   {/* Content */}
                   <div className="p-6">
-                    <div className="grid lg:grid-cols-3 gap-8 mb-6">
+                    <div className="grid lg:grid-cols-2 gap-8 mb-6">
                       {/* Personal Information */}
                       <div className="space-y-4">
                         <div className="flex items-center gap-3 mb-4">
@@ -334,9 +334,17 @@ export default function AdminWasteCollections() {
                             <span className="text-gray-500 font-medium">Gender</span>
                             <span className="text-gray-800 font-semibold">{collection.gender}</span>
                           </div>
-                          <div className="flex justify-between items-center py-2">
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-gray-500 font-medium">Category</span>
                             <span className="text-gray-800 font-semibold">{collection.ubudehe_category}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-gray-500 font-medium">Pickup Date</span>
+                            <span className="text-gray-800 font-semibold">{formatDate(collection.pickup_date)}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2">
+                            <span className="text-gray-500 font-medium">Pickup Time</span>
+                            <span className="text-gray-800 font-semibold">{collection.time_slot}</span>
                           </div>
                         </div>
                       </div>
@@ -362,50 +370,10 @@ export default function AdminWasteCollections() {
                             <span className="text-gray-500 font-medium">Cell</span>
                             <span className="text-gray-800 font-semibold">{collection.cell}</span>
                           </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Village</span>
-                            <span className="text-gray-800 font-semibold">{collection.village}</span>
-                          </div>
                           {collection.street && (
                             <div className="flex justify-between items-center py-2">
                               <span className="text-gray-500 font-medium">Street</span>
                               <span className="text-gray-800 font-semibold">{collection.street}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Pickup Details */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <Clock className="w-5 h-5 text-purple-600" />
-                          </div>
-                          <h4 className="text-lg font-semibold text-gray-800">Pickup Details</h4>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Date</span>
-                            <span className="text-gray-800 font-semibold">{formatDate(collection.pickup_date)}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Time</span>
-                            <span className="text-gray-800 font-semibold">{collection.time_slot}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Company</span>
-                            <span className="text-gray-800 font-semibold">{collection.company_name}</span>
-                          </div>
-                          {collection.company_email && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-500 font-medium">Company Email</span>
-                              <span className="text-gray-800 font-semibold">{collection.company_email}</span>
-                            </div>
-                          )}
-                          {collection.company_phone && (
-                            <div className="flex justify-between items-center py-2">
-                              <span className="text-gray-500 font-medium">Company Phone</span>
-                              <span className="text-gray-800 font-semibold">{collection.company_phone}</span>
                             </div>
                           )}
                         </div>

@@ -1,26 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
 import { useAuth } from '../contexts/AuthContext';
-import collection from '../assets/e682b31ec1c636f1fc957bef07cbbcd23f22fe33.png';
-import { Calendar, MapPin, Clock, User, FileText, CheckCircle, AlertCircle, Clock as ClockIcon, XCircle, Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
+import { AlertCircle, FileText, Calendar, Clock, MapPin, Building2, Filter, RefreshCw, TrendingUp } from 'lucide-react';
 
 export default function WasteCollections() {
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
 
   useEffect(() => {
     const fetchCollections = async () => {
       try {
         setLoading(true);
         setError('');
-        const response = await wasteCollectionApi.getUserWasteCollections();
+        
+        console.log('🔍 Fetching waste collections for user:', user);
+        console.log('👤 User role:', user?.role);
+        
+        let response;
+        if (user?.role === 'admin') {
+          // For admin users, get all waste collections
+          console.log('🔍 Admin user - fetching all waste collections');
+          response = await wasteCollectionApi.getAllWasteCollections();
+        } else if (user?.role === 'waste_collector') {
+          // For waste collectors, get collections assigned to their company
+          console.log('🔍 Waste collector - fetching collections by company');
+          response = await wasteCollectionApi.getWasteCollectionsByCompany();
+        } else {
+          // For regular users, get their own collections
+          console.log('🔍 Regular user - fetching user waste collections');
+          response = await wasteCollectionApi.getUserWasteCollections();
+        }
+        
+        console.log('✅ API response received:', response);
         setCollections(response || []);
       } catch (err) {
-        setError('Failed to load your waste collections');
-        console.error('Error fetching collections:', err);
+        console.error('❌ Error fetching collections:', err);
+        console.error('❌ Error details:', {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          config: err.config
+        });
+        
+        let errorMessage = 'Failed to load waste collections';
+        
+        if (err.response?.status === 401) {
+          errorMessage = 'Authentication failed. Please log in again.';
+        } else if (err.response?.status === 403) {
+          errorMessage = 'Access denied. You do not have permission to view these collections.';
+        } else if (err.response?.status === 404) {
+          errorMessage = 'No collections found for your account.';
+        } else if (err.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -28,416 +72,266 @@ export default function WasteCollections() {
 
     if (user) {
       fetchCollections();
+    } else {
+      console.log('⚠️ No user found, skipping fetch');
+      setLoading(false);
     }
   }, [user]);
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getStatusBadge = (pickupDate) => {
-    const today = new Date();
-    const pickup = new Date(pickupDate);
-    const diffTime = pickup - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) {
-      return {
-        text: 'Completed',
-        icon: <CheckCircle size={16} />,
-        className: 'bg-green-100 text-green-800 border-green-200'
-      };
-    } else if (diffDays === 0) {
-      return {
-        text: 'Today',
-        icon: <AlertCircle size={16} />,
-        className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      };
-    } else if (diffDays <= 7) {
-      return {
-        text: 'Upcoming',
-        icon: <ClockIcon size={16} />,
-        className: 'bg-blue-100 text-blue-800 border-blue-200'
-      };
-    } else {
-      return {
-        text: 'Scheduled',
-        icon: <ClockIcon size={16} />,
-        className: 'bg-gray-100 text-gray-800 border-gray-200'
-      };
+  // Update status filter when URL parameters change
+  useEffect(() => {
+    const statusFromUrl = searchParams.get('status');
+    if (statusFromUrl) {
+      setStatusFilter(statusFromUrl);
     }
-  };
-
-  const getApprovalStatusBadge = (status) => {
-    const statusConfig = {
-      pending: {
-        text: 'Pending Approval',
-        icon: <Clock size={16} />,
-        className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      },
-      approved: {
-        text: 'Approved',
-        icon: <CheckCircle size={16} />,
-        className: 'bg-green-100 text-green-800 border-green-200'
-      },
-      denied: {
-        text: 'Denied',
-        icon: <XCircle size={16} />,
-        className: 'bg-red-100 text-red-800 border-red-200'
-      }
-    };
-    return statusConfig[status] || statusConfig.pending;
-  };
+  }, [searchParams, user]);
 
   // Filter collections based on status
   const filteredCollections = collections.filter(collection => {
     if (statusFilter === 'all') return true;
+    if (statusFilter === 'denied') {
+      return collection.status === 'denied' || collection.status === 'rejected';
+    }
     return collection.status === statusFilter;
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-50 py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-6"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 bg-green-600 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">Loading Collections</h3>
-              <p className="text-gray-500">Fetching your waste collection history...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Get unique statuses for filter options
+  const availableStatuses = [...new Set(collections.map(collection => collection.status))].filter(Boolean);
+
+  // Calculate statistics
+  // const totalCollections = collections.length;
+  // const approvedCollections = collections.filter(c => c.status === 'approved').length;
+  // const pendingCollections = collections.filter(c => c.status === 'pending').length;
+  // const completedCollections = collections.filter(c => c.status === 'completed').length;
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'approved': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'denied':
+      case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
+      case 'completed': return 'bg-blue-50 text-blue-700 border-blue-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'approved': return '✓';
+      case 'pending': return '⏳';
+      case 'denied':
+      case 'rejected': return '✗';
+      case 'completed': return '✓';
+      default: return '?';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Enhanced Header */}
-        <div className="mb-12">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <img src={collection} alt="Waste Collection" className="w-10 h-10" />
-              </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">{collections.length}</span>
-              </div>
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg">
+              <TrendingUp className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
-                My Waste Collections
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                {user?.role === 'admin' ? t('home.wasteCollections.adminTitle') : (t('home.wasteCollections.title') || 'My Waste Collections')}
               </h1>
-              <p className="text-gray-600 mt-2">Track and manage your waste collection bookings</p>
-            </div>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Total Requests</p>
-                  <p className="text-3xl font-bold text-gray-800">{collections.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-600">
-                    {collections.filter(c => c.status === 'pending').length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-yellow-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Approved</p>
-                  <p className="text-3xl font-bold text-green-600">
-                    {collections.filter(c => c.status === 'approved').length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Denied</p>
-                  <p className="text-3xl font-bold text-red-600">
-                    {collections.filter(c => c.status === 'denied').length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                  <XCircle className="w-6 h-6 text-red-600" />
-                </div>
-              </div>
+              <p className="text-gray-600 mt-1 text-lg">
+                {user?.role === 'admin' ? t('home.wasteCollections.adminSubtitle') : t('home.wasteCollections.userSubtitle')}
+              </p>
             </div>
           </div>
         </div>
+        
 
-        {/* Filter Section */}
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Filter className="w-5 h-5 text-blue-600" />
+        {/* Main Content Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Header with Filter */}
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <FileText className="w-5 h-5 text-emerald-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {user?.role === 'admin' ? t('home.wasteCollections.allWasteCollections') : (t('home.wasteCollections.title') || 'Waste Collections')}
+                </h2>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">Filter Collections</h3>
-                <p className="text-sm text-gray-600">Show collections by status</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-              >
-                <option value="all">All Collections ({collections.length})</option>
-                <option value="pending">Pending ({collections.filter(c => c.status === 'pending').length})</option>
-                <option value="approved">Approved ({collections.filter(c => c.status === 'approved').length})</option>
-                <option value="denied">Denied ({collections.filter(c => c.status === 'denied').length})</option>
-              </select>
-              {statusFilter !== 'all' && (
-                <button
-                  onClick={() => setStatusFilter('all')}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  Clear Filter
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8 shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-red-800">Error Loading Collections</h3>
-                <p className="text-red-700">{error}</p>
+              
+              <div className="flex items-center gap-4">
+                {/* Status Filter */}
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-gray-500" />
+                  <label htmlFor="statusFilter" className="text-sm font-medium text-gray-700">
+                    {t('home.wasteCollections.filterByStatus') || 'Filter by status:'}
+                  </label>
+                  <select
+                    id="statusFilter"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white shadow-sm"
+                  >
+                    <option value="all">{t('home.wasteCollections.allStatuses') || 'All Statuses'}</option>
+                    {availableStatuses.map(status => (
+                      <option key={status} value={status}>
+                        {t(`home.wasteCollections.statuses.${status}`) || status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? t('common.loading') || 'Loading...' : `${filteredCollections.length} ${t('home.wasteCollections.collections') || 'collections'}`}
+                </div>
               </div>
             </div>
           </div>
-        )}
-
-        {filteredCollections.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-xl p-12 text-center border border-gray-100">
-            <div className="w-24 h-24 bg-gradient-to-r from-green-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FileText className="w-12 h-12 text-green-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">
-              {statusFilter === 'all' ? 'No Collections Found' : `No ${statusFilter} Collections`}
-            </h3>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              {statusFilter === 'all' 
-                ? 'You haven\'t booked any waste collections yet. Start your journey towards a cleaner environment!'
-                : `No ${statusFilter} waste collection requests found.`
-              }
-            </p>
-            {statusFilter === 'all' && (
-              <a
-                href="/collection"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-teal-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-green-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                <Calendar className="w-5 h-5" />
-                Book Your First Collection
-              </a>
+          
+          {/* Table Content */}
+          <div className="p-6">
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-16 bg-gray-200 rounded-xl"></div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                  <AlertCircle className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Collections</h3>
+                <p className="text-gray-600">{error}</p>
+              </div>
+            ) : filteredCollections.length > 0 ? (
+              <div className="overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            {t('home.wasteCollections.date') || 'Date'}
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            {t('home.wasteCollections.time') || 'Time'}
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4" />
+                            {t('home.wasteCollections.location') || 'Location'}
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          {t('home.wasteCollections.status') || 'Status'}
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4" />
+                            {t('home.wasteCollections.company') || 'Company'}
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredCollections.slice(0, 10).map((collection, index) => (
+                        <tr key={collection.id || index} className="hover:bg-gray-50 transition-colors duration-150">
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {collection.pickup_date ? new Date(collection.pickup_date).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              }) : 'N/A'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900 font-medium">
+                              {collection.time_slot || 'TBD'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-start gap-3">
+                              <div className="p-2 bg-blue-50 rounded-lg">
+                                <MapPin className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{collection.street || 'N/A'}</div>
+                                <div className="text-sm text-gray-500">
+                                  {collection.sector && collection.district 
+                                    ? `${collection.sector}, ${collection.district}`
+                                    : t('home.wasteCollections.locationNotSpecified') || 'Location not specified'
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-full border ${getStatusColor(collection.status)}`}>
+                              <span className="text-lg">{getStatusIcon(collection.status)}</span>
+                              {collection.status ? t(`home.wasteCollections.statuses.${collection.status}`) || collection.status : t('home.wasteCollections.statuses.unknown') || 'Unknown'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-purple-50 rounded-lg">
+                                <Building2 className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {collection.company_name || t('home.wasteCollections.notAssigned') || 'Not Assigned'}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {filteredCollections.length > 10 && (
+                  <div className="mt-6 text-center">
+                    <div className="inline-flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-full">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <p className="text-sm text-gray-600">
+                        {t('home.wasteCollections.showing', { shown: 10, total: filteredCollections.length }) || `Showing 10 of ${filteredCollections.length} collections`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+                  <FileText className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {statusFilter === 'all' 
+                    ? t('home.wasteCollections.noCollectionsFound') || 'No waste collections found'
+                    : t('home.wasteCollections.noCollectionsWithStatus', { status: t(`home.wasteCollections.statuses.${statusFilter}`) || statusFilter }) || `No collections with status: ${statusFilter}`
+                  }
+                </h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  {statusFilter === 'all' 
+                    ? t('home.wasteCollections.noCollectionsMessage') || 'You haven\'t booked any waste collections yet. Start by scheduling your first collection!'
+                    : t('home.wasteCollections.tryDifferentStatus') || 'Try selecting a different status filter to see more collections.'
+                  }
+                </p>
+              </div>
             )}
           </div>
-        ) : (
-          <div className="space-y-8">
-            {filteredCollections.map((collection, index) => {
-              const status = getStatusBadge(collection.pickup_date);
-              return (
-                <div 
-                  key={collection.id} 
-                  className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {/* Header */}
-                  <div className="bg-gradient-to-r from-green-50 to-teal-50 p-6 border-b border-gray-100">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                      <div className="flex items-center gap-4 mb-4 lg:mb-0">
-                        <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
-                          <span className="text-white text-2xl">🗑️</span>
-                        </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-800">
-                            Collection #{collection.id}
-                          </h3>
-                          <p className="text-gray-600 flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            {collection.name} {collection.last_name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${status.className}`}>
-                          {status.icon}
-                          <span className="font-semibold">{status.text}</span>
-                        </div>
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${getApprovalStatusBadge(collection.status).className}`}>
-                          {getApprovalStatusBadge(collection.status).icon}
-                          <span className="font-semibold">{getApprovalStatusBadge(collection.status).text}</span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">Created</p>
-                          <p className="font-semibold text-gray-700">{formatDate(collection.created_at)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-6">
-                    <div className="grid lg:grid-cols-3 gap-8">
-                      {/* Personal Information */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <User className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <h4 className="text-lg font-semibold text-gray-800">Personal Info</h4>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Email</span>
-                            <span className="text-gray-800 font-semibold">{collection.email}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Phone</span>
-                            <span className="text-gray-800 font-semibold">{collection.phone_number}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Gender</span>
-                            <span className="text-gray-800 font-semibold">{collection.gender}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2">
-                            <span className="text-gray-500 font-medium">Category</span>
-                            <span className="text-gray-800 font-semibold">{collection.ubudehe_category}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Location */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <MapPin className="w-5 h-5 text-green-600" />
-                          </div>
-                          <h4 className="text-lg font-semibold text-gray-800">Location</h4>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">District</span>
-                            <span className="text-gray-800 font-semibold">{collection.district}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Sector</span>
-                            <span className="text-gray-800 font-semibold">{collection.sector}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Cell</span>
-                            <span className="text-gray-800 font-semibold">{collection.cell}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Village</span>
-                            <span className="text-gray-800 font-semibold">{collection.village}</span>
-                          </div>
-                          {collection.street && (
-                            <div className="flex justify-between items-center py-2">
-                              <span className="text-gray-500 font-medium">Street</span>
-                              <span className="text-gray-800 font-semibold">{collection.street}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Pickup Details */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <Clock className="w-5 h-5 text-purple-600" />
-                          </div>
-                          <h4 className="text-lg font-semibold text-gray-800">Pickup Details</h4>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Date</span>
-                            <span className="text-gray-800 font-semibold">{formatDate(collection.pickup_date)}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Time</span>
-                            <span className="text-gray-800 font-semibold">{collection.time_slot}</span>
-                          </div>
-                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-gray-500 font-medium">Company</span>
-                            <span className="text-gray-800 font-semibold">{collection.company_name}</span>
-                          </div>
-                          {collection.company_email && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-500 font-medium">Company Email</span>
-                              <span className="text-gray-800 font-semibold">{collection.company_email}</span>
-                            </div>
-                          )}
-                          {collection.company_phone && (
-                            <div className="flex justify-between items-center py-2">
-                              <span className="text-gray-500 font-medium">Company Phone</span>
-                              <span className="text-gray-800 font-semibold">{collection.company_phone}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {collection.notes && (
-                      <div className="mt-8 pt-6 border-t border-gray-100">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <FileText className="w-5 h-5 text-orange-600" />
-                          </div>
-                          <h4 className="text-lg font-semibold text-gray-800">Notes</h4>
-                        </div>
-                        <div className="bg-gradient-to-r from-orange-50 to-yellow-50 p-4 rounded-xl border border-orange-100">
-                          <p className="text-gray-700 leading-relaxed">{collection.notes}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

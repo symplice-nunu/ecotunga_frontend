@@ -168,10 +168,15 @@
       "allStatuses": "All Statuses",
       "noCollectionsWithStatus": "No collections found with status: {{status}}",
       "tryDifferentStatus": "Try selecting a different status or view all collections",
+      "adminTitle": "Waste Collections Management",
+      "adminSubtitle": "Manage and track all waste collection requests",
+      "userSubtitle": "Track and manage your waste collection bookings",
+      "allWasteCollections": "All Waste Collections",
       "statuses": {
         "approved": "Approved",
         "pending": "Pending",
         "rejected": "Rejected",
+        "denied": "Rejected",
         "completed": "Completed",
         "unknown": "Unknown"
       }

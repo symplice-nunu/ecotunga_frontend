@@ -172,10 +172,15 @@
       "allStatuses": "Tous les Statuts",
       "noCollectionsWithStatus": "Aucune collecte trouvée avec le statut : {{status}}",
       "tryDifferentStatus": "Essayez de sélectionner un statut différent ou voir toutes les collectes",
+      "adminTitle": "Gestion des Collectes de Déchets",
+      "adminSubtitle": "Gérer et suivre toutes les demandes de collecte de déchets",
+      "userSubtitle": "Suivre et gérer vos réservations de collecte de déchets",
+      "allWasteCollections": "Toutes les Collectes de Déchets",
       "statuses": {
         "approved": "Approuvé",
         "pending": "En attente",
         "rejected": "Rejeté",
+        "denied": "Rejeté",
         "completed": "Terminé",
         "unknown": "Inconnu"
       }

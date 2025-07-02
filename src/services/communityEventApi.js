@@ -52,5 +52,17 @@ export const communityEventApi = {
   getUserEvents: async () => {
     const response = await api.get('/community-events/user/events');
     return response.data;
+  },
+
+  // Get tomorrow's events count
+  getTomorrowEventsCount: async () => {
+    const response = await api.get('/community-events/tomorrow/count');
+    return response.data;
+  },
+
+  // Get tomorrow's events list
+  getTomorrowEvents: async () => {
+    const response = await api.get('/community-events/tomorrow/events');
+    return response.data;
   }
 }; 

@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BellIcon, GlobeAltIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { communityEventApi } from '../services/communityEventApi';
+import TomorrowEventsModal from './TomorrowEventsModal';
 
 const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const [tomorrowEventsCount, setTomorrowEventsCount] = useState(0);
+  const [isLoadingCount, setIsLoadingCount] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tomorrowEvents, setTomorrowEvents] = useState([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   
   // Use actual user data from AuthContext, with fallback for demo
   const userInfo = user ? {
@@ -26,6 +33,40 @@ const Header = ({ onMenuClick }) => {
     { code: 'rw', name: 'Kinyarwanda', flag: '🇷🇼' }
   ];
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+
+  // Fetch tomorrow's events count
+  useEffect(() => {
+    const fetchTomorrowEventsCount = async () => {
+      try {
+        setIsLoadingCount(true);
+        const data = await communityEventApi.getTomorrowEventsCount();
+        setTomorrowEventsCount(data.count);
+      } catch (error) {
+        console.error('Error fetching tomorrow events count:', error);
+        setTomorrowEventsCount(0);
+      } finally {
+        setIsLoadingCount(false);
+      }
+    };
+
+    fetchTomorrowEventsCount();
+  }, []);
+
+  // Handle badge click to show tomorrow's events
+  const handleBadgeClick = async () => {
+    setIsModalOpen(true);
+    setIsLoadingEvents(true);
+    
+    try {
+      const events = await communityEventApi.getTomorrowEvents();
+      setTomorrowEvents(events);
+    } catch (error) {
+      console.error('Error fetching tomorrow events:', error);
+      setTomorrowEvents([]);
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  };
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -86,13 +127,21 @@ const Header = ({ onMenuClick }) => {
             )}
           </div>
 
-          {/* Notification */}
-          <button 
-            className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50"
-            aria-label={t('header.notifications')}
-          >
-            <BellIcon className="h-5 w-5 lg:h-6 lg:w-6 text-gray-500" />
-          </button>
+          {/* Notification - Only show for logged-in users with role "user" */}
+          {user && user.role === 'user' && (
+            <button 
+              className="relative w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+              aria-label={t('header.notifications')}
+              onClick={handleBadgeClick}
+            >
+              <BellIcon className="h-5 w-5 lg:h-6 lg:w-6 text-gray-500" />
+              {!isLoadingCount && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium cursor-pointer hover:bg-red-600 transition-colors">
+                  {tomorrowEventsCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* User */}
           <div className="flex items-center gap-2 lg:gap-3">
@@ -108,6 +157,14 @@ const Header = ({ onMenuClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Tomorrow's Events Modal */}
+      <TomorrowEventsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        events={tomorrowEvents}
+        isLoading={isLoadingEvents}
+      />
     </header>
   );
 };

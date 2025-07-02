@@ -195,10 +195,15 @@
       "allStatuses": "Imiterere Yose",
       "noCollectionsWithStatus": "Nta gusura kivumbuwe n'imiterere: {{status}}",
       "tryDifferentStatus": "Gerageza guhitamo imiterere itandukanye cyangwa reba gusura yose",
+      "adminTitle": "Gukurikirana no Gukurikirana Gusura Imyanda",
+      "adminSubtitle": "Gukurikirana no gukurikirana ibisabwa byose byo gusura imyanda",
+      "userSubtitle": "Gukurikirana no gukurikirana ibisabwa byawe byo gusura imyanda",
+      "allWasteCollections": "Gusura Imyanda Yose",
       "statuses": {
         "approved": "Byemewe",
         "pending": "Bitaratangira",
         "rejected": "Byanze",
+        "denied": "Byanze",
         "completed": "Byarangiye",
         "unknown": "Nta kintu"
       }

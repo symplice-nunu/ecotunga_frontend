@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { getUserProfile } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
 import { getCompanies, getCompanyById } from '../services/companyApi';
 import { initiateMobileMoneyPayment } from '../services/paymentService';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 // import wasteTruck from '../assets/eb2216243ee44e2c328a1dea4bc045e2ad26c104.jpg';
@@ -106,6 +107,7 @@ const fallbackCellOptions = [
 
 export default function Collection() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -188,11 +190,43 @@ export default function Collection() {
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [recipientPhone] = useState('0785847049');
 
+  // Payment Modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [tempBookingData, setTempBookingData] = useState(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
+  
+  // Card payment state
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: '',
+    cardHolderName: '',
+    expiryMonth: '',
+    expiryYear: '',
+    cvv: ''
+  });
+  const [showCardForm, setShowCardForm] = useState(false);
+  
+  // Mobile money payment state
+  const [mobileMoneyDetails, setMobileMoneyDetails] = useState({
+    phoneNumber: ''
+  });
+  const [showMobileMoneyForm, setShowMobileMoneyForm] = useState(false);
+
   // Helper to ensure select options include the profile value
   // const districtOptionsWithProfile = getOptionsWithProfileValue(districtOptions, location.district);
   // const sectorOptionsWithProfile = getOptionsWithProfileValue(sectorOptions, location.sector);
   // const cellOptionsWithProfile = getOptionsWithProfileValue(cellOptions, location.cell);
   // const genderOptionsWithProfile = getOptionsWithProfileValue(genderOptions, personalInfo.gender);
+
+  // Check authentication and redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      console.log('No user found - redirecting to login');
+      navigate('/login');
+      return;
+    }
+  }, [user, navigate]);
 
   // Fetch user profile on component mount
   useEffect(() => {
@@ -266,8 +300,9 @@ export default function Collection() {
     if (user) {
       fetchUserProfile();
     } else {
-      console.log('No user found in auth context');
+      console.log('No user found in auth context - redirecting to login');
       setLoading(false);
+      navigate('/login');
     }
   }, [user]);
 
@@ -412,36 +447,7 @@ export default function Collection() {
           <div>Book your waste collection in minutes</div>
           </div>
         </h2>
-        <div className="relative w-full max-w-4xl flex flex-col items-center mb-2" style={{ minHeight: 60 }}>
-          {/* Gray line (full width) */}
-          <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 z-0" style={{ transform: 'translateY(-50%)' }} />
-          {/* Green line (progress) */}
-          <div
-            className="absolute top-1/2 left-0 h-1 bg-green-700 z-10 transition-all duration-300"
-            style={{
-              width: `calc(${percent}% - 50px * ${step === 0 ? 0 : 0.5})`,
-              maxWidth: '100%',
-              transform: 'translateY(-50%)',
-            }}
-          />
-          {/* Steps */}
-          <div className="relative flex w-full justify-between items-center z-20">
-            {steps.map((label, idx) => (
-              <div key={label} className="flex flex-col items-left flex-1 mt-6">
-                <div className={`flex items-center justify-center rounded-full w-10 h-10 mb-1 text-lg font-bold  ${
-                  idx < step
-                    ? 'bg-green-700 text-white border-green-700 shadow'
-                    : idx === step
-                      ? 'bg-green-700 text-white border-green-700 shadow'
-                      : 'bg-gray-300 text-black border-gray-300'
-                }`}>
-                  {idx + 1}
-                </div>
-                <span className="text-sm text-gray-600 mt-1 whitespace-nowrap">{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        
         <hr className='w-full max-w-4xl mt-7 border-2 border-[#0C9488]' />
       </div>
     );
@@ -521,44 +527,95 @@ export default function Collection() {
       return;
     }
 
+    // Prepare booking data
+    const bookingData = {
+      name: personalInfo.name,
+      last_name: personalInfo.last_name,
+      email: personalInfo.email,
+      phone_number: personalInfo.phone_number,
+      gender: personalInfo.gender,
+      ubudehe_category: personalInfo.ubudehe_category,
+      house_number: personalInfo.house_number,
+      district: location.district,
+      sector: location.sector,
+      cell: location.cell,
+      street: location.street,
+      pickup_date: pickupDate.toISOString().split('T')[0],
+      time_slot: timeSlot,
+      company_id: selectedCompany,
+      notes: notes
+    };
+
+    // Set payment amount based on selected company
+    if (selectedCompanyDetails) {
+      setPaymentAmount(selectedCompanyDetails.amount_per_month);
+    }
+
+    // Store booking data temporarily and show payment modal
+    setTempBookingData(bookingData);
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedPaymentMethod) {
+      setPaymentError('Please select a payment method');
+      return;
+    }
+
+    // Check authentication before proceeding
+    const token = localStorage.getItem('token');
+    console.log('Current user:', user);
+    console.log('Token in localStorage:', token);
+    console.log('User profile:', userProfile);
+
+    if (!user || !token) {
+      setPaymentError('You must be logged in to book a pickup. Please log in and try again.');
+      return;
+    }
+
     try {
       setSubmitLoading(true);
       setSubmitError('');
 
-      const bookingData = {
-        name: personalInfo.name,
-        last_name: personalInfo.last_name,
-        email: personalInfo.email,
-        phone_number: personalInfo.phone_number,
-        gender: personalInfo.gender,
-        ubudehe_category: personalInfo.ubudehe_category,
-        house_number: personalInfo.house_number,
-        district: location.district,
-        sector: location.sector,
-        cell: location.cell,
-        street: location.street,
-        pickup_date: pickupDate.toISOString().split('T')[0],
-        time_slot: timeSlot,
-        company_id: selectedCompany,
-        notes: notes
-      };
+      console.log('Submitting booking data:', tempBookingData);
+      const response = await wasteCollectionApi.createWasteCollection(tempBookingData);
+      console.log('Booking response:', response);
 
-      console.log('Submitting booking data:', bookingData);
-      const response = await wasteCollectionApi.createWasteCollection(bookingData);
-      console.log('Booking response:', response.data);
+      // Check if response exists
+      if (!response) {
+        throw new Error('Invalid response from server');
+      }
 
-      setBookingDetails(response.data);
+      setBookingDetails(response);
       setSubmitSuccess(true);
       
-      // Set payment amount based on selected company
-      if (selectedCompanyDetails) {
-        setPaymentAmount(selectedCompanyDetails.amount_per_month);
-      }
+      // Prepare receipt data
+      const receipt = {
+        bookingId: response.id || 'N/A',
+        customerName: `${tempBookingData.name} ${tempBookingData.last_name}`,
+        email: tempBookingData.email,
+        phone: tempBookingData.phone_number,
+        pickupDate: tempBookingData.pickup_date,
+        timeSlot: tempBookingData.time_slot,
+        location: `${tempBookingData.district}, ${tempBookingData.sector}`,
+        amount: paymentAmount,
+        paymentMethod: selectedPaymentMethod === 'mobile_money' ? 'Mobile Money' : 'Credit/Debit Card',
+        paymentStatus: 'Pending',
+        transactionDate: new Date().toLocaleString(),
+        company: selectedCompanyDetails?.name || 'Selected Company'
+      };
       
-      setStep(1); // Move to payment step
+      setReceiptData(receipt);
+      setShowReceipt(true);
+      setShowPaymentModal(false); // Hide payment modal when showing receipt
+      console.log('Receipt should now be shown:', receipt);
     } catch (error) {
       console.error('Error submitting booking:', error);
-      setSubmitError(error.response?.data?.message || 'Failed to book pickup. Please try again.');
+      if (error.response?.status === 401) {
+        setPaymentError('Your session has expired. Please log in again to continue.');
+      } else {
+        setSubmitError(error.response?.data?.message || 'Failed to book pickup. Please try again.');
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -1066,124 +1123,14 @@ export default function Collection() {
             <span className="text-green-600 text-xl">✅</span>
             <h3 className="text-lg font-semibold text-green-800">Booking Successful!</h3>
           </div>
-          <div className="text-sm text-green-700 space-y-1">
-            <p><strong>Booking ID:</strong> #{bookingDetails.id}</p>
-            <p><strong>Name:</strong> {bookingDetails.name} {bookingDetails.last_name}</p>
-            <p><strong>Company:</strong> {bookingDetails.company}</p>
-            <p><strong>Pickup Date:</strong> {bookingDetails.pickup_date}</p>
-            <p><strong>Time Slot:</strong> {bookingDetails.time_slot}</p>
-            <p><strong>Location:</strong> {bookingDetails.district}, {bookingDetails.sector}</p>
-          </div>
+          
           <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-blue-700 text-xs">
             <strong>📧 Email Confirmation:</strong> A confirmation email has been sent to {bookingDetails.email} with all your booking details.
           </div>
         </div>
       )}
 
-      <div className="w-full">
-        <h3 className="text-2xl font-bold mb-6 text-center">Payment Process</h3>
-        
-        {/* Payment Details */}
-        <div className="bg-gray-50 rounded-lg p-6 mb-6">
-          <h4 className="text-lg font-semibold mb-4">Payment Details</h4>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Service:</span>
-              <span className="font-medium">Waste Collection</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Amount:</span>
-              <span className="font-bold text-lg text-green-600">RWF {paymentAmount?.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Payment Method:</span>
-              <span className="font-medium">Mobile Money (Rwanda)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">From Phone:</span>
-              <span className="font-medium">{userProfile?.phone_number || 'Not set'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">To Phone:</span>
-              <span className="font-medium">{recipientPhone}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Payment Instructions */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h4 className="font-semibold text-blue-800 mb-2">📱 Payment Instructions</h4>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• You will be redirected to a secure verification page</li>
-            <li>• Enter the OTP sent to your phone via SMS/WhatsApp</li>
-            <li>• Complete the CAPTCHA verification if prompted</li>
-            <li>• Payment will be processed securely via Flutterwave</li>
-            <li>• You'll receive a confirmation after successful payment</li>
-          </ul>
-        </div>
-
-        {/* Error Message */}
-        {paymentError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-red-600">❌</span>
-              <span className="text-red-800 font-medium">Payment Error</span>
-            </div>
-            <p className="text-red-700 text-sm mt-1">{paymentError}</p>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {paymentSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-green-600">✅</span>
-              <span className="text-green-800 font-medium">Payment Initiated Successfully</span>
-            </div>
-            <p className="text-green-700 text-sm mt-1">
-              You will be redirected to a secure verification page. Please complete the CAPTCHA verification to finalize your payment.
-            </p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <button
-            className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-gray-600 transition"
-            onClick={() => setStep(0)}
-            disabled={paymentLoading}
-          >
-            Back
-          </button>
-          <button
-            className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition disabled:bg-gray-400"
-            onClick={handlePayment}
-            disabled={paymentLoading || !userProfile?.phone_number}
-          >
-            {paymentLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Processing...
-              </div>
-            ) : (
-              'Pay Now'
-            )}
-          </button>
-        </div>
-
-        {/* Phone Number Warning */}
-        {!userProfile?.phone_number && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-600">⚠️</span>
-              <span className="text-yellow-800 font-medium">Phone Number Required</span>
-            </div>
-            <p className="text-yellow-700 text-sm mt-1">
-              Please update your profile with a valid phone number to proceed with payment.
-            </p>
-          </div>
-        )}
-      </div>
+      
     </div>
   );
 
@@ -1258,6 +1205,481 @@ export default function Collection() {
     </div>
   );
 
+  // Payment Receipt Component
+  const PaymentReceipt = () => {
+    if (!showReceipt || !receiptData) return null;
+
+    const handlePrintReceipt = () => {
+      window.print();
+    };
+
+    const handleCloseReceipt = () => {
+      setShowReceipt(false);
+      setShowPaymentModal(false);
+      setStep(1); // Move to payment step
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          {/* Receipt Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Payment Receipt</h3>
+              <button
+                onClick={handleCloseReceipt}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-600 mt-2">Your booking has been confirmed successfully!</p>
+          </div>
+
+          {/* Receipt Content */}
+          <div className="p-6">
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="text-center mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <span className="text-green-600 text-xl">✅</span>
+                </div>
+                <h4 className="text-lg font-semibold text-green-800">Booking Confirmed</h4>
+                <p className="text-sm text-gray-600">Receipt #{receiptData.bookingId}</p>
+              </div>
+            </div>
+
+            {/* Receipt Details */}
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Customer:</span>
+                <span className="font-medium">{receiptData.customerName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Email:</span>
+                <span className="font-medium">{receiptData.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Phone:</span>
+                <span className="font-medium">{receiptData.phone}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Company:</span>
+                <span className="font-medium">{receiptData.company}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Pickup Date:</span>
+                <span className="font-medium">{receiptData.pickupDate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Time Slot:</span>
+                <span className="font-medium">{receiptData.timeSlot}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Location:</span>
+                <span className="font-medium">{receiptData.location}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Payment Method:</span>
+                <span className="font-medium">{receiptData.paymentMethod}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Transaction Date:</span>
+                <span className="font-medium">{receiptData.transactionDate}</span>
+              </div>
+            </div>
+
+            {/* Total Amount */}
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-semibold text-green-800">Total Amount:</span>
+                <span className="text-2xl font-bold text-green-600">RWF {receiptData.amount?.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handlePrintReceipt}
+                className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition"
+              >
+                📄 Print Receipt
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Payment Modal Component
+  const PaymentModal = () => {
+    // Memoize the button disabled state to prevent unnecessary re-renders
+    const isButtonDisabled = useMemo(() => {
+      if (submitLoading || !selectedPaymentMethod) return true;
+      
+      if (showCardForm) {
+        return !cardDetails.cardNumber || !cardDetails.cardHolderName || 
+               !cardDetails.expiryMonth || !cardDetails.expiryYear || !cardDetails.cvv;
+      }
+      
+      if (showMobileMoneyForm) {
+        return !mobileMoneyDetails.phoneNumber;
+      }
+      
+      return false;
+    }, [submitLoading, selectedPaymentMethod, showCardForm, showMobileMoneyForm, cardDetails, mobileMoneyDetails]);
+
+    if (!showPaymentModal) return null;
+
+    const paymentMethods = [
+      {
+        id: 'mobile_money',
+        name: 'Mobile Money',
+        description: 'Pay with MTN Mobile Money or Airtel Money',
+        icon: '📱',
+        color: 'bg-green-50 border-green-200',
+        textColor: 'text-green-800'
+      },
+      {
+        id: 'card',
+        name: 'Credit/Debit Card',
+        description: 'Pay with Visa, Mastercard, or other cards',
+        icon: '💳',
+        color: 'bg-blue-50 border-blue-200',
+        textColor: 'text-blue-800'
+      }
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Choose Payment Method</h3>
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setSelectedPaymentMethod('');
+                  setPaymentError('');
+                  setShowCardForm(false);
+                  setShowMobileMoneyForm(false);
+                  setShowReceipt(false);
+                  setReceiptData(null);
+                  setCardDetails({
+                    cardNumber: '',
+                    cardHolderName: '',
+                    expiryMonth: '',
+                    expiryYear: '',
+                    cvv: ''
+                  });
+                  setMobileMoneyDetails({
+                    phoneNumber: ''
+                  });
+                }}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-600 mt-2">Select your preferred payment method to complete your booking</p>
+          </div>
+
+          {/* Payment Amount */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Total Amount:</span>
+                <span className="text-2xl font-bold text-green-600">RWF {paymentAmount?.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div className="p-6">
+            <div className="space-y-3">
+              {paymentMethods.map((method) => (
+                <div
+                  key={method.id}
+                  className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    selectedPaymentMethod === method.id
+                      ? `${method.color} border-2 border-green-500`
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => {
+                    setSelectedPaymentMethod(method.id);
+                    if (method.id === 'card') {
+                      setShowCardForm(true);
+                      setShowMobileMoneyForm(false);
+                    } else if (method.id === 'mobile_money') {
+                      setShowMobileMoneyForm(true);
+                      setShowCardForm(false);
+                    } else {
+                      setShowCardForm(false);
+                      setShowMobileMoneyForm(false);
+                    }
+                  }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="text-2xl">{method.icon}</div>
+                    <div className="flex-1">
+                      <h4 className={`font-semibold ${method.textColor}`}>{method.name}</h4>
+                      <p className="text-sm text-gray-600">{method.description}</p>
+                    </div>
+                    {selectedPaymentMethod === method.id && (
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Card Details Form */}
+            {showCardForm && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-800 mb-4">Card Details</h4>
+                <div className="space-y-4">
+                  {/* Card Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Card Number
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="1234 5678 9012 3456"
+                      value={cardDetails.cardNumber}
+                      onChange={(e) => {
+                        const input = e.target;
+                        const cursorPosition = input.selectionStart;
+                        const value = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+                        setCardDetails(prev => ({ ...prev, cardNumber: value }));
+                        
+                        // Restore cursor position after state update
+                        setTimeout(() => {
+                          input.setSelectionRange(cursorPosition, cursorPosition);
+                        }, 0);
+                      }}
+                      maxLength="19"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Card Holder Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Card Holder Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="John Doe"
+                      value={cardDetails.cardHolderName}
+                      onChange={(e) => setCardDetails(prev => ({ ...prev, cardHolderName: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Expiry Date and CVV */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Month
+                      </label>
+                      <select
+                        value={cardDetails.expiryMonth}
+                        onChange={(e) => setCardDetails(prev => ({ ...prev, expiryMonth: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="">MM</option>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                          <option key={month} value={month.toString().padStart(2, '0')}>
+                            {month.toString().padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Year
+                      </label>
+                      <select
+                        value={cardDetails.expiryYear}
+                        onChange={(e) => setCardDetails(prev => ({ ...prev, expiryYear: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      >
+                        <option value="">YYYY</option>
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        CVV
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="123"
+                        value={cardDetails.cvv}
+                                              onChange={(e) => {
+                        const input = e.target;
+                        const cursorPosition = input.selectionStart;
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        setCardDetails(prev => ({ ...prev, cvv: value }));
+                        
+                        // Restore cursor position after state update
+                        setTimeout(() => {
+                          input.setSelectionRange(cursorPosition, cursorPosition);
+                        }, 0);
+                      }}
+                        maxLength="4"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Security Notice */}
+                  <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
+                    🔒 Your card details are encrypted and secure. We use industry-standard SSL encryption.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Money Form */}
+            {showMobileMoneyForm && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-gray-800 mb-4">Mobile Money Details</h4>
+                <div className="space-y-4">
+                  {/* Phone Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-500 text-sm">+250</span>
+                      <input
+                        type="tel"
+                        placeholder="7X XXX XXXX"
+                        value={mobileMoneyDetails.phoneNumber}
+                        onChange={(e) => {
+                          const input = e.target;
+                          const cursorPosition = input.selectionStart;
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                          setMobileMoneyDetails(prev => ({ ...prev, phoneNumber: value }));
+                          
+                          // Restore cursor position after state update
+                          setTimeout(() => {
+                            input.setSelectionRange(cursorPosition, cursorPosition);
+                          }, 0);
+                        }}
+                        maxLength="9"
+                        className="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter your MTN or Airtel phone number (without country code)
+                    </p>
+                  </div>
+
+                  {/* Mobile Money Instructions */}
+                  {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 className="font-medium text-blue-800 mb-2">📱 Payment Instructions</h5>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>• You'll receive a payment prompt on your phone</li>
+                      <li>• Enter your mobile money PIN to confirm</li>
+                      <li>• Payment will be processed instantly</li>
+                      <li>• You'll receive a confirmation SMS</li>
+                    </ul>
+                  </div> */}
+
+                  {/* Security Notice */}
+                  <div className="text-xs text-gray-500 bg-green-50 p-2 rounded">
+                    🔒 Mobile money payments are secure and instant. No card details required.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {paymentError && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-red-600">❌</span>
+                  <span className="text-red-800 text-sm">{paymentError}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setSelectedPaymentMethod('');
+                  setPaymentError('');
+                  setShowCardForm(false);
+                  setShowMobileMoneyForm(false);
+                  setShowReceipt(false);
+                  setReceiptData(null);
+                  setCardDetails({
+                    cardNumber: '',
+                    cardHolderName: '',
+                    expiryMonth: '',
+                    expiryYear: '',
+                    cvv: ''
+                  });
+                  setMobileMoneyDetails({
+                    phoneNumber: ''
+                  });
+                }}
+                className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition"
+                disabled={submitLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmBooking}
+                className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400"
+                disabled={isButtonDisabled}
+              >
+                {submitLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </div>
+                ) : (
+                  'Confirm & Pay'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Show loading while checking authentication
+  if (loading || !user) {
+    return (
+      <div className="py-8 px-2 md:px-8 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="py-8 px-2 md:px-8">
       
@@ -1265,6 +1687,12 @@ export default function Collection() {
       {step === 0 && <BookPickup />}
       {step === 1 && <PaymentProcess />}
       {step === 2 && <Confirmation />}
+      
+      {/* Payment Modal */}
+      {!showReceipt && <PaymentModal />}
+      
+      {/* Payment Receipt */}
+      {showReceipt && <PaymentReceipt />}
     </div>
   );
 } 

@@ -1,11 +1,11 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, AlertCircle } from 'lucide-react';
+import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Function to transform waste collection data into activities (moved outside component)
 const transformCollectionsToActivities = (collectionsData, t) => {
@@ -63,6 +63,7 @@ const transformCollectionsToActivities = (collectionsData, t) => {
 export default function Home() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [collections, setCollections] = useState([]);
   const [nextPickup, setNextPickup] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -77,16 +78,16 @@ export default function Home() {
     wasteCollectionsByStatus: {}
   });
   const [statsLoading, setStatsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
+  // const [statusFilter] = useState('all');
 
   // Filter collections based on status
-  const filteredCollections = collections.filter(collection => {
-    if (statusFilter === 'all') return true;
-    return collection.status === statusFilter;
-  });
+  // const filteredCollections = collections.filter(collection => {
+  //   if (statusFilter === 'all') return true;
+  //   return collection.status === statusFilter;
+  // });
 
   // Get unique statuses for filter options
-  const availableStatuses = [...new Set(collections.map(collection => collection.status))].filter(Boolean);
+  // const availableStatuses = [...new Set(collections.map(collection => collection.status))].filter(Boolean);
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -238,6 +239,11 @@ export default function Home() {
     return Array.isArray(collections) ? collections.filter(c => c.status === status).length : 0;
   };
 
+  // Function to navigate to waste collections page with status filter
+  const navigateToWasteCollections = (status = 'all') => {
+    navigate(`/waste-collections?status=${status}`);
+  };
+
   // Waste collection bar chart data (months) - moved before the function that uses it
   const wasteData = [
     { month: 'Sept 2024', thisPeriod: 80, lastPeriod: 60 },
@@ -355,23 +361,23 @@ export default function Home() {
   ];
 
   // Sorting guidelines
-  const guidelines = [
-    {
-      icon: <RefreshCcw className="w-6 h-6 text-green-500" />,
-      title: t('home.guidelines.separateBins.title'),
-      desc: t('home.guidelines.separateBins.desc'),
-    },
-    {
-      icon: <Tag className="w-6 h-6 text-yellow-500" />,
-      title: t('home.guidelines.clearLabeling.title'),
-      desc: t('home.guidelines.clearLabeling.desc'),
-    },
-    {
-      icon: <Truck className="w-6 h-6 text-indigo-500" />,
-      title: t('home.guidelines.foldFlatten.title'),
-      desc: t('home.guidelines.foldFlatten.desc'),
-    },
-  ];
+  // const guidelines = [
+  //   {
+  //     icon: <RefreshCcw className="w-6 h-6 text-green-500" />,
+  //     title: t('home.guidelines.separateBins.title'),
+  //     desc: t('home.guidelines.separateBins.desc'),
+  //   },
+  //   {
+  //     icon: <Tag className="w-6 h-6 text-yellow-500" />,
+  //     title: t('home.guidelines.clearLabeling.title'),
+  //     desc: t('home.guidelines.clearLabeling.desc'),
+  //   },
+  //   {
+  //     icon: <Truck className="w-6 h-6 text-indigo-500" />,
+  //     title: t('home.guidelines.foldFlatten.title'),
+  //     desc: t('home.guidelines.foldFlatten.desc'),
+  //   },
+  // ];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
@@ -417,7 +423,10 @@ export default function Home() {
       {/* Waste Collection Stats Cards for Admin Users */}
       {user?.role === 'admin' && !loading && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('all')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">All Requests</p>
@@ -429,7 +438,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('pending')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Pending</p>
@@ -443,7 +455,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('approved')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Approved</p>
@@ -457,7 +472,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('denied')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Denied</p>
@@ -490,13 +508,13 @@ export default function Home() {
       {/* Waste Collection Stats Cards - Only show for users with role 'user' */}
       {user?.role === 'user' && !loading && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('all')}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">
-                  {user?.role === 'admin' ? 'All Requests' : 
-                   user?.role === 'waste_collector' ? 'Assigned Requests' : 'Total Requests'}
-                </p>
+                <p className="text-gray-500 text-sm font-medium">Total Requests</p>
                 <p className="text-3xl font-bold text-gray-800">{getCollectionsCount()}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -505,7 +523,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('pending')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Pending</p>
@@ -519,7 +540,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('approved')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Approved</p>
@@ -533,7 +557,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('denied')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Denied</p>
@@ -566,7 +593,10 @@ export default function Home() {
       {/* Waste Collection Stats Cards for Waste Collectors */}
       {user?.role === 'waste_collector' && !loading && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('all')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Assigned Requests</p>
@@ -578,7 +608,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('pending')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Pending</p>
@@ -592,7 +625,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('approved')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Approved</p>
@@ -606,7 +642,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div 
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
+            onClick={() => navigateToWasteCollections('denied')}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Denied</p>
@@ -1072,138 +1111,139 @@ export default function Home() {
       </div>
       {/* Waste Collections Table - Only show for users with role 'user' */}
       {user?.role === 'user' && (
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">{t('home.wasteCollections.title')}</h2>
-            <div className="flex items-center gap-4">
-              {/* Status Filter */}
-              <div className="flex items-center gap-2">
-                <label htmlFor="statusFilter" className="text-sm text-gray-600">
-                  {t('home.wasteCollections.filterByStatus') || 'Filter by status:'}
-                </label>
-                <select
-                  id="statusFilter"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                >
-                  <option value="all">{t('home.wasteCollections.allStatuses') || 'All Statuses'}</option>
-                  {availableStatuses.map(status => (
-                    <option key={status} value={status}>
-                      {t(`home.wasteCollections.statuses.${status}`)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="text-sm text-gray-500">
-                {loading ? t('common.loading') : `${filteredCollections.length} ${t('home.wasteCollections.collections')}`}
-              </div>
-            </div>
-          </div>
+        <div></div>
+        // <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mt-6">
+        //   <div className="flex items-center justify-between mb-4">
+        //     <h2 className="text-lg font-semibold text-gray-900">{t('home.wasteCollections.title')}</h2>
+        //     <div className="flex items-center gap-4">
+        //       {/* Status Filter */}
+        //       <div className="flex items-center gap-2">
+        //         <label htmlFor="statusFilter" className="text-sm text-gray-600">
+        //           {t('home.wasteCollections.filterByStatus') || 'Filter by status:'}
+        //         </label>
+        //         <select
+        //           id="statusFilter"
+        //           value={statusFilter}
+        //           onChange={(e) => setStatusFilter(e.target.value)}
+        //           className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+        //         >
+        //           <option value="all">{t('home.wasteCollections.allStatuses') || 'All Statuses'}</option>
+        //           {availableStatuses.map(status => (
+        //             <option key={status} value={status}>
+        //               {t(`home.wasteCollections.statuses.${status}`)}
+        //             </option>
+        //           ))}
+        //         </select>
+        //       </div>
+        //       <div className="text-sm text-gray-500">
+        //         {loading ? t('common.loading') : `${filteredCollections.length} ${t('home.wasteCollections.collections')}`}
+        //       </div>
+        //     </div>
+        //   </div>
           
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-12 bg-gray-200 rounded"></div>
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <div className="text-red-400 mb-2">
-                <AlertCircle className="w-12 h-12 mx-auto" />
-              </div>
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          ) : filteredCollections.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('home.wasteCollections.date')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('home.wasteCollections.time')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('home.wasteCollections.location')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('home.wasteCollections.status')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('home.wasteCollections.company')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredCollections.slice(0, 10).map((collection, index) => (
-                    <tr key={collection.id || index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {collection.pickup_date ? new Date(collection.pickup_date).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {collection.time_slot || 'TBD'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div>
-                          <div className="font-medium">{collection.street || 'N/A'}</div>
-                          <div className="text-gray-500 text-xs">
-                            {collection.sector && collection.district 
-                              ? `${collection.sector}, ${collection.district}`
-                              : t('home.wasteCollections.locationNotSpecified')
-                            }
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          collection.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          collection.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          collection.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                          collection.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {collection.status ? t(`home.wasteCollections.statuses.${collection.status}`) : t('home.wasteCollections.statuses.unknown')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {collection.company_name || t('home.wasteCollections.notAssigned')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredCollections.length > 10 && (
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-500">
-                    {t('home.wasteCollections.showing', { shown: 10, total: filteredCollections.length })}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-400 mb-2">
-                <FileText className="w-12 h-12 mx-auto" />
-              </div>
-              <p className="text-sm text-gray-500">
-                {statusFilter === 'all' 
-                  ? t('home.wasteCollections.noCollectionsFound')
-                  : t('home.wasteCollections.noCollectionsWithStatus', { status: t(`home.wasteCollections.statuses.${statusFilter}`) })
-                }
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {statusFilter === 'all' 
-                  ? t('home.wasteCollections.noCollectionsMessage')
-                  : t('home.wasteCollections.tryDifferentStatus')
-                }
-              </p>
-            </div>
-          )}
-        </div>
+        //   {loading ? (
+        //     <div className="space-y-3">
+        //       {[1, 2, 3].map((i) => (
+        //         <div key={i} className="animate-pulse">
+        //           <div className="h-12 bg-gray-200 rounded"></div>
+        //         </div>
+        //       ))}
+        //     </div>
+        //   ) : error ? (
+        //     <div className="text-center py-8">
+        //       <div className="text-red-400 mb-2">
+        //         <AlertCircle className="w-12 h-12 mx-auto" />
+        //       </div>
+        //       <p className="text-sm text-red-600">{error}</p>
+        //     </div>
+        //   ) : filteredCollections.length > 0 ? (
+        //     <div className="overflow-x-auto">
+        //       <table className="min-w-full divide-y divide-gray-200">
+        //         <thead className="bg-gray-50">
+        //           <tr>
+        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        //               {t('home.wasteCollections.date')}
+        //             </th>
+        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        //               {t('home.wasteCollections.time')}
+        //             </th>
+        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        //               {t('home.wasteCollections.location')}
+        //             </th>
+        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        //               {t('home.wasteCollections.status')}
+        //             </th>
+        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        //               {t('home.wasteCollections.company')}
+        //             </th>
+        //           </tr>
+        //         </thead>
+        //         <tbody className="bg-white divide-y divide-gray-200">
+        //           {filteredCollections.slice(0, 10).map((collection, index) => (
+        //             <tr key={collection.id || index} className="hover:bg-gray-50">
+        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        //                 {collection.pickup_date ? new Date(collection.pickup_date).toLocaleDateString() : 'N/A'}
+        //               </td>
+        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        //                 {collection.time_slot || 'TBD'}
+        //               </td>
+        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        //                 <div>
+        //                   <div className="font-medium">{collection.street || 'N/A'}</div>
+        //                   <div className="text-gray-500 text-xs">
+        //                     {collection.sector && collection.district 
+        //                       ? `${collection.sector}, ${collection.district}`
+        //                       : t('home.wasteCollections.locationNotSpecified')
+        //                     }
+        //                   </div>
+        //                 </div>
+        //               </td>
+        //               <td className="px-6 py-4 whitespace-nowrap">
+        //                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+        //                   collection.status === 'approved' ? 'bg-green-100 text-green-800' :
+        //                   collection.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+        //                   collection.status === 'rejected' ? 'bg-red-100 text-red-800' :
+        //                   collection.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+        //                   'bg-gray-100 text-gray-800'
+        //                 }`}>
+        //                   {collection.status ? t(`home.wasteCollections.statuses.${collection.status}`) : t('home.wasteCollections.statuses.unknown')}
+        //                 </span>
+        //               </td>
+        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        //                 {collection.company_name || t('home.wasteCollections.notAssigned')}
+        //               </td>
+        //             </tr>
+        //           ))}
+        //         </tbody>
+        //       </table>
+        //       {filteredCollections.length > 10 && (
+        //         <div className="mt-4 text-center">
+        //           <p className="text-sm text-gray-500">
+        //             {t('home.wasteCollections.showing', { shown: 10, total: filteredCollections.length })}
+        //           </p>
+        //         </div>
+        //       )}
+        //     </div>
+        //   ) : (
+        //     <div className="text-center py-8">
+        //       <div className="text-gray-400 mb-2">
+        //         <FileText className="w-12 h-12 mx-auto" />
+        //       </div>
+        //       <p className="text-sm text-gray-500">
+        //         {statusFilter === 'all' 
+        //           ? t('home.wasteCollections.noCollectionsFound')
+        //           : t('home.wasteCollections.noCollectionsWithStatus', { status: t(`home.wasteCollections.statuses.${statusFilter}`) })
+        //         }
+        //       </p>
+        //       <p className="text-xs text-gray-400 mt-1">
+        //         {statusFilter === 'all' 
+        //           ? t('home.wasteCollections.noCollectionsMessage')
+        //           : t('home.wasteCollections.tryDifferentStatus')
+        //         }
+        //       </p>
+        //     </div>
+        //   )}
+        // </div>
       )}
     </div>
   );
