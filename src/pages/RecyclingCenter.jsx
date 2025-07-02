@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { MapPinIcon, PhoneIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { getUserProfile } from '../services/userApi';
 import { getCompanies, getCompanyById } from '../services/companyApi';
+import { createRecyclingCenterBooking } from '../services/recyclingCenterApi';
 import { useAuth } from '../contexts/AuthContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -293,8 +294,24 @@ const RecyclingCenter = () => {
       setSubmitLoading(true);
       setSubmitError('');
       
-      // Create booking details (this would typically be sent to backend)
+      // Prepare booking data for API
+      const bookingData = {
+        company_id: selectedCompany,
+        dropoff_date: dropoffDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        time_slot: timeSlot,
+        notes: notes,
+        district: selectedLocation.district,
+        sector: selectedLocation.sector,
+        cell: selectedLocation.cell,
+        street: selectedLocation.street
+      };
+      
+      // Send booking to backend
+      const response = await createRecyclingCenterBooking(bookingData);
+      
+      // Create booking details for UI display
       const booking = {
+        id: response.id,
         companyId: selectedCompany,
         companyDetails: selectedCompanyDetails,
         dropoffDate: dropoffDate,
@@ -309,7 +326,7 @@ const RecyclingCenter = () => {
       setStep(2);
     } catch (error) {
       console.error('Error booking dropoff:', error);
-      setSubmitError('Failed to book dropoff. Please try again.');
+      setSubmitError(error.response?.data?.error || 'Failed to book dropoff. Please try again.');
     } finally {
       setSubmitLoading(false);
     }
@@ -655,7 +672,7 @@ const RecyclingCenter = () => {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="flex gap-3">
           <button
             onClick={() => {
               setStep(0);

@@ -1,10 +1,11 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus } from 'lucide-react';
+import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, Phone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
+import { getRecyclingCenterBookingsByCompany } from '../services/recyclingCenterApi';
 import { Link, useNavigate } from 'react-router-dom';
 
 // Function to transform waste collection data into activities (moved outside component)
@@ -78,6 +79,9 @@ export default function Home() {
     wasteCollectionsByStatus: {}
   });
   const [statsLoading, setStatsLoading] = useState(true);
+  const [recyclingBookings, setRecyclingBookings] = useState([]);
+  const [recyclingLoading, setRecyclingLoading] = useState(true);
+  const [recyclingError, setRecyclingError] = useState('');
   // const [statusFilter] = useState('all');
 
   // Filter collections based on status
@@ -222,10 +226,32 @@ export default function Home() {
       }
     };
 
+    const fetchRecyclingBookings = async () => {
+      try {
+        setRecyclingLoading(true);
+        setRecyclingError('');
+        const response = await getRecyclingCenterBookingsByCompany();
+        setRecyclingBookings(response.bookings || []);
+      } catch (err) {
+        const errorMessage = err.response?.data?.error || err.message || t('recyclingCenter.errorLoadingBookings');
+        setRecyclingError(errorMessage);
+        console.error('Error fetching recycling bookings:', err);
+        console.error('Error response:', err.response?.data);
+        setRecyclingBookings([]);
+      } finally {
+        setRecyclingLoading(false);
+      }
+    };
+
     if (user) {
       fetchCollections();
       fetchNextPickup();
       fetchDashboardStats();
+      
+      // Fetch recycling center bookings for recycling center users
+      if (user.role === 'recycling_center') {
+        fetchRecyclingBookings();
+      }
     }
   }, [user]);
 
@@ -1109,141 +1135,443 @@ export default function Home() {
           )}
         </div>
       </div>
-      {/* Waste Collections Table - Only show for users with role 'user' */}
-      {user?.role === 'user' && (
-        <div></div>
-        // <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mt-6">
-        //   <div className="flex items-center justify-between mb-4">
-        //     <h2 className="text-lg font-semibold text-gray-900">{t('home.wasteCollections.title')}</h2>
-        //     <div className="flex items-center gap-4">
-        //       {/* Status Filter */}
-        //       <div className="flex items-center gap-2">
-        //         <label htmlFor="statusFilter" className="text-sm text-gray-600">
-        //           {t('home.wasteCollections.filterByStatus') || 'Filter by status:'}
-        //         </label>
-        //         <select
-        //           id="statusFilter"
-        //           value={statusFilter}
-        //           onChange={(e) => setStatusFilter(e.target.value)}
-        //           className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-        //         >
-        //           <option value="all">{t('home.wasteCollections.allStatuses') || 'All Statuses'}</option>
-        //           {availableStatuses.map(status => (
-        //             <option key={status} value={status}>
-        //               {t(`home.wasteCollections.statuses.${status}`)}
-        //             </option>
-        //           ))}
-        //         </select>
-        //       </div>
-        //       <div className="text-sm text-gray-500">
-        //         {loading ? t('common.loading') : `${filteredCollections.length} ${t('home.wasteCollections.collections')}`}
-        //       </div>
-        //     </div>
-        //   </div>
+      {/* Recycling Center Dashboard - Only show for users with role 'recycling_center' */}
+      {user?.role === 'recycling_center' && (
+        <div className="mt-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">{t('recyclingCenter.dashboard')}</h2>
           
-        //   {loading ? (
-        //     <div className="space-y-3">
-        //       {[1, 2, 3].map((i) => (
-        //         <div key={i} className="animate-pulse">
-        //           <div className="h-12 bg-gray-200 rounded"></div>
-        //         </div>
-        //       ))}
-        //     </div>
-        //   ) : error ? (
-        //     <div className="text-center py-8">
-        //       <div className="text-red-400 mb-2">
-        //         <AlertCircle className="w-12 h-12 mx-auto" />
-        //       </div>
-        //       <p className="text-sm text-red-600">{error}</p>
-        //     </div>
-        //   ) : filteredCollections.length > 0 ? (
-        //     <div className="overflow-x-auto">
-        //       <table className="min-w-full divide-y divide-gray-200">
-        //         <thead className="bg-gray-50">
-        //           <tr>
-        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        //               {t('home.wasteCollections.date')}
-        //             </th>
-        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        //               {t('home.wasteCollections.time')}
-        //             </th>
-        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        //               {t('home.wasteCollections.location')}
-        //             </th>
-        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        //               {t('home.wasteCollections.status')}
-        //             </th>
-        //             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-        //               {t('home.wasteCollections.company')}
-        //             </th>
-        //           </tr>
-        //         </thead>
-        //         <tbody className="bg-white divide-y divide-gray-200">
-        //           {filteredCollections.slice(0, 10).map((collection, index) => (
-        //             <tr key={collection.id || index} className="hover:bg-gray-50">
-        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        //                 {collection.pickup_date ? new Date(collection.pickup_date).toLocaleDateString() : 'N/A'}
-        //               </td>
-        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        //                 {collection.time_slot || 'TBD'}
-        //               </td>
-        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        //                 <div>
-        //                   <div className="font-medium">{collection.street || 'N/A'}</div>
-        //                   <div className="text-gray-500 text-xs">
-        //                     {collection.sector && collection.district 
-        //                       ? `${collection.sector}, ${collection.district}`
-        //                       : t('home.wasteCollections.locationNotSpecified')
-        //                     }
-        //                   </div>
-        //                 </div>
-        //               </td>
-        //               <td className="px-6 py-4 whitespace-nowrap">
-        //                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-        //                   collection.status === 'approved' ? 'bg-green-100 text-green-800' :
-        //                   collection.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-        //                   collection.status === 'rejected' ? 'bg-red-100 text-red-800' :
-        //                   collection.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-        //                   'bg-gray-100 text-gray-800'
-        //                 }`}>
-        //                   {collection.status ? t(`home.wasteCollections.statuses.${collection.status}`) : t('home.wasteCollections.statuses.unknown')}
-        //                 </span>
-        //               </td>
-        //               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        //                 {collection.company_name || t('home.wasteCollections.notAssigned')}
-        //               </td>
-        //             </tr>
-        //           ))}
-        //         </tbody>
-        //       </table>
-        //       {filteredCollections.length > 10 && (
-        //         <div className="mt-4 text-center">
-        //           <p className="text-sm text-gray-500">
-        //             {t('home.wasteCollections.showing', { shown: 10, total: filteredCollections.length })}
-        //           </p>
-        //         </div>
-        //       )}
-        //     </div>
-        //   ) : (
-        //     <div className="text-center py-8">
-        //       <div className="text-gray-400 mb-2">
-        //         <FileText className="w-12 h-12 mx-auto" />
-        //       </div>
-        //       <p className="text-sm text-gray-500">
-        //         {statusFilter === 'all' 
-        //           ? t('home.wasteCollections.noCollectionsFound')
-        //           : t('home.wasteCollections.noCollectionsWithStatus', { status: t(`home.wasteCollections.statuses.${statusFilter}`) })
-        //         }
-        //       </p>
-        //       <p className="text-xs text-gray-400 mt-1">
-        //         {statusFilter === 'all' 
-        //           ? t('home.wasteCollections.noCollectionsMessage')
-        //           : t('home.wasteCollections.tryDifferentStatus')
-        //         }
-        //       </p>
-        //     </div>
-        //   )}
-        // </div>
+          {/* Error Display for Recycling Bookings */}
+          {recyclingError && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <XCircle className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <p>{recyclingError}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Statistics Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {recyclingLoading ? '...' : recyclingBookings.length}
+                      </p>
+                      <p className="text-xs text-green-600 mt-1">+12% from last month</p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-6 h-6 text-blue-600" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Today's Bookings</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {recyclingLoading ? '...' : (() => {
+                          const today = new Date().toISOString().split('T')[0];
+                          return recyclingBookings.filter(booking => 
+                            booking.dropoff_date === today
+                          ).length;
+                        })()}
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">Active today</p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">This Week</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {recyclingLoading ? '...' : (() => {
+                          const today = new Date();
+                          const startOfWeek = new Date(today);
+                          startOfWeek.setDate(today.getDate() - today.getDay());
+                          const endOfWeek = new Date(startOfWeek);
+                          endOfWeek.setDate(startOfWeek.getDate() + 6);
+                          
+                          return recyclingBookings.filter(booking => {
+                            const bookingDate = new Date(booking.dropoff_date);
+                            return bookingDate >= startOfWeek && bookingDate <= endOfWeek;
+                          }).length;
+                        })()}
+                      </p>
+                      <p className="text-xs text-purple-600 mt-1">Scheduled</p>
+                    </div>
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-6 h-6 text-purple-600" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Capacity</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {recyclingLoading ? '...' : (() => {
+                          const today = new Date().toISOString().split('T')[0];
+                          const todayBookings = recyclingBookings.filter(booking => 
+                            booking.dropoff_date === today
+                          ).length;
+                          const capacity = 50; // Assuming 50 bookings per day capacity
+                          return Math.round((todayBookings / capacity) * 100);
+                        })()}%
+                      </p>
+                      <p className="text-xs text-orange-600 mt-1">Daily usage</p>
+                    </div>
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <RefreshCcw className="w-6 h-6 text-orange-600" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Chart */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Weekly Performance</h3>
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className="flex items-center gap-1">
+                      <span className="inline-block w-3 h-3 rounded bg-teal-500"></span>
+                      Bookings
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="inline-block w-3 h-3 rounded bg-blue-500"></span>
+                      Target
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Weekly Chart */}
+                <div className="relative h-64 bg-gray-50 rounded-lg p-4">
+                  {/* Grid Lines */}
+                  <div className="absolute inset-0 p-4">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute w-full border-t border-gray-200"
+                        style={{ top: `${(i * 25)}%` }}
+                      ></div>
+                    ))}
+                  </div>
+                  
+                  {/* Y-axis labels */}
+                  <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 p-4">
+                    <span>20</span>
+                    <span>15</span>
+                    <span>10</span>
+                    <span>5</span>
+                    <span>0</span>
+                  </div>
+                  
+                  {/* Chart Bars */}
+                  <div className="relative h-full flex items-end justify-between px-8">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
+                      const bookings = recyclingLoading ? 0 : (() => {
+                        const today = new Date();
+                        const startOfWeek = new Date(today);
+                        startOfWeek.setDate(today.getDate() - today.getDay());
+                        const targetDate = new Date(startOfWeek);
+                        targetDate.setDate(startOfWeek.getDate() + idx);
+                        const targetDateStr = targetDate.toISOString().split('T')[0];
+                        
+                        return recyclingBookings.filter(booking => 
+                          booking.dropoff_date === targetDateStr
+                        ).length;
+                      })();
+                      
+                      const height = (bookings / 20) * 100; // Max 20 bookings
+                      const targetHeight = 60; // 60% for target line
+                      
+                      return (
+                        <div key={idx} className="flex flex-col items-center relative group">
+                          {/* Target Line */}
+                          <div
+                            className="w-8 bg-blue-200 rounded-t opacity-50"
+                            style={{ height: `${targetHeight}%` }}
+                          ></div>
+                          
+                          {/* Actual Bookings */}
+                          <div
+                            className="w-8 bg-teal-500 rounded-t transition-all duration-300 hover:bg-teal-600 cursor-pointer absolute bottom-0"
+                            style={{ height: `${height}%` }}
+                            title={`${bookings} bookings on ${day}`}
+                          >
+                            {/* Value label on hover */}
+                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-teal-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                              {bookings}
+                            </div>
+                          </div>
+                          
+                          {/* Day label */}
+                          <span className="text-xs text-gray-600 mt-2 text-center">
+                            {day}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* X-axis */}
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-300"></div>
+                  
+                  {/* Y-axis */}
+                  <div className="absolute top-0 bottom-0 left-8 w-px bg-gray-300"></div>
+                </div>
+                
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-gray-600">
+                    Weekly booking performance vs target
+                  </p>
+                </div>
+              </div>
+
+              {/* Recent Bookings */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Recent Bookings</h3>
+                  <button 
+                    onClick={() => navigate('/recycling-center')}
+                    className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                  >
+                    View All
+                  </button>
+                </div>
+                
+                {recyclingLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : recyclingBookings.length > 0 ? (
+                  <div className="space-y-4">
+                    {recyclingBookings.slice(0, 5).map((booking) => {
+                      const bookingDate = new Date(booking.dropoff_date);
+                      const formattedDate = bookingDate.toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric'
+                      });
+                      
+                      return (
+                        <div key={booking.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                              <Users className="w-5 h-5 text-teal-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {booking.user_name} {booking.user_last_name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {booking.sector}, {booking.district}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-900">{formattedDate}</p>
+                            <p className="text-xs text-gray-500">{booking.time_slot}</p>
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Confirmed
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-gray-400 mb-2">
+                      <Calendar className="w-12 h-12 mx-auto" />
+                    </div>
+                    <p className="text-sm text-gray-500">No bookings found</p>
+                    <p className="text-xs text-gray-400 mt-1">New bookings will appear here</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Today's Schedule */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-md font-semibold text-gray-900 mb-3">Today's Schedule</h3>
+                {recyclingLoading ? (
+                  <div className="space-y-3">
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ) : (() => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const todayBookings = recyclingBookings.filter(booking => 
+                    booking.dropoff_date === today
+                  );
+                  
+                  return todayBookings.length > 0 ? (
+                    <div className="space-y-3">
+                      {todayBookings.map((booking) => (
+                        <div key={booking.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                          <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-teal-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {booking.user_name} {booking.user_last_name}
+                            </p>
+                            <p className="text-xs text-gray-500">{booking.time_slot}</p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {booking.sector}, {booking.district}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">
+                      No bookings scheduled for today
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Upcoming Bookings */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-md font-semibold text-gray-900 mb-3">Upcoming Bookings</h3>
+                {recyclingLoading ? (
+                  <div className="space-y-3">
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ) : (() => {
+                  const today = new Date();
+                  const upcomingBookings = recyclingBookings.filter(booking => {
+                    const bookingDate = new Date(booking.dropoff_date);
+                    return bookingDate > today;
+                  }).slice(0, 3);
+                  
+                  return upcomingBookings.length > 0 ? (
+                    <div className="space-y-3">
+                      {upcomingBookings.map((booking) => {
+                        const bookingDate = new Date(booking.dropoff_date);
+                        const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
+                        
+                        return (
+                          <div key={booking.id} className="flex items-center gap-3 p-3 rounded-lg bg-blue-50">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Calendar className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {booking.user_name} {booking.user_last_name}
+                              </p>
+                              <p className="text-xs text-gray-500">{booking.time_slot}</p>
+                              <p className="text-xs text-blue-600 font-medium">
+                                {daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">
+                      No upcoming bookings
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Quick Stats */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-md font-semibold text-gray-900 mb-3">Quick Stats</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Average Daily Bookings</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {recyclingLoading ? '...' : (() => {
+                        const lastWeek = recyclingBookings.filter(booking => {
+                          const bookingDate = new Date(booking.dropoff_date);
+                          const weekAgo = new Date();
+                          weekAgo.setDate(weekAgo.getDate() - 7);
+                          return bookingDate >= weekAgo;
+                        });
+                        return lastWeek.length > 0 ? Math.round(lastWeek.length / 7) : 0;
+                      })()}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Peak Hours</span>
+                    <span className="text-sm font-semibold text-gray-900">9 AM - 2 PM</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Most Active Day</span>
+                    <span className="text-sm font-semibold text-gray-900">Wednesday</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Customer Satisfaction</span>
+                    <span className="text-sm font-semibold text-green-600">4.8/5.0</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Center Information */}
+              <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl shadow-sm p-4 sm:p-6 text-white">
+                <h3 className="text-md font-semibold mb-3">Center Information</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-teal-200" />
+                    <div>
+                      <p className="text-sm font-medium">Location</p>
+                      <p className="text-xs text-teal-200">KG 50 St, Kigali</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-4 h-4 text-teal-200" />
+                    <div>
+                      <p className="text-sm font-medium">Operating Hours</p>
+                      <p className="text-xs text-teal-200">8:00 AM - 6:00 PM</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-teal-200" />
+                    <div>
+                      <p className="text-sm font-medium">Contact</p>
+                      <p className="text-xs text-teal-200">+250 788 123 456</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

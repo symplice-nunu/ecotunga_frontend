@@ -355,5 +355,22 @@
       "video": "Video",
       "article": "Article"
     }
+  },
+  "recyclingCenter": {
+    "dashboard": "Recycling Center Dashboard",
+    "totalBookings": "Total Bookings",
+    "todaysBookings": "Today's Bookings",
+    "thisWeek": "This Week",
+    "recentBookings": "Recent Bookings",
+    "viewAll": "View All",
+    "todaysSchedule": "Today's Schedule",
+    "quickActions": "Quick Actions",
+    "manageBookings": "Manage Bookings",
+    "updateProfile": "Update Profile",
+    "noBookingsFound": "No bookings found",
+    "noBookingsMessage": "New recycling center bookings will appear here",
+    "noBookingsToday": "No bookings scheduled for today",
+    "loadingBookings": "Loading bookings...",
+    "errorLoadingBookings": "Failed to load recycling center bookings"
   }
 } 
