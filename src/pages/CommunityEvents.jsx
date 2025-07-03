@@ -21,12 +21,19 @@ export default function CommunityEvents() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [notification, setNotification] = useState({ show: false, message: '', eventTitle: '' });
+  const [activeTab, setActiveTab] = useState('available');
 
   const categories = [
     { id: 'all', label: 'All Events', icon: Calendar },
     { id: 'cleanup', label: 'Cleanup', icon: Users },
     { id: 'education', label: 'Education', icon: CalendarDays },
     { id: 'planting', label: 'Tree Planting', icon: Star }
+  ];
+
+  // Tab options
+  const tabs = [
+    { id: 'available', label: 'Available Events', icon: Plus },
+    { id: 'joined', label: 'Joined Events', icon: CheckCircle }
   ];
 
   useEffect(() => {
@@ -36,6 +43,8 @@ export default function CommunityEvents() {
     } else {
       // Clear joined events when user logs out
       setJoinedEvents(new Set());
+      // Reset to 'available' tab when user logs out
+      setActiveTab('available');
     }
   }, [selectedCategory, searchTerm, user]);
 
@@ -200,6 +209,41 @@ export default function CommunityEvents() {
     }
   };
 
+  // Filter events based on active tab
+  const getFilteredEvents = () => {
+    let filteredEvents = events;
+
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      filteredEvents = filteredEvents.filter(event => event.category === selectedCategory);
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      filteredEvents = filteredEvents.filter(event =>
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply tab filter
+    switch (activeTab) {
+      case 'joined':
+        filteredEvents = filteredEvents.filter(event => joinedEvents.has(event.id));
+        break;
+      case 'available':
+        filteredEvents = filteredEvents.filter(event => !joinedEvents.has(event.id));
+        break;
+      default:
+        // Default to available events
+        filteredEvents = filteredEvents.filter(event => !joinedEvents.has(event.id));
+        break;
+    }
+
+    return filteredEvents;
+  };
+
   const isAdmin = user && user.role === 'admin';
 
   if (loading) {
@@ -259,6 +303,35 @@ export default function CommunityEvents() {
         </div>
       </div>
 
+      {/* Event Tabs - Only show when user is logged in */}
+      {user && (
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-teal-500 text-teal-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <tab.icon size={16} />
+                  <span>{tab.label}</span>
+                  {tab.id === 'joined' && joinedEvents.size > 0 && (
+                    <span className="ml-1 bg-teal-100 text-teal-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                      {joinedEvents.size}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
+
       {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -291,14 +364,14 @@ export default function CommunityEvents() {
       )}
 
       {/* Featured Events */}
-      {events.filter(e => e.featured).length > 0 && (
+      {getFilteredEvents().filter(e => e.featured).length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Star className="text-yellow-500" size={20} />
             {t('communityEvents.featuredEvents')}
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {events
+            {getFilteredEvents()
               .filter(event => event.featured)
               .map((event) => (
                 <div key={event.id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
@@ -383,16 +456,22 @@ export default function CommunityEvents() {
 
       {/* All Events */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('communityEvents.allEvents')}</h2>
-        {events.length === 0 ? (
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          {activeTab === 'joined' ? 'My Joined Events' : 'Available Events'}
+        </h2>
+        {getFilteredEvents().length === 0 ? (
           <div className="text-center py-12">
             <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('communityEvents.noEventsFound')}</h3>
-            <p className="text-gray-500">{t('communityEvents.noEventsMatch')}</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {activeTab === 'joined' ? 'No joined events found' : 'No available events found'}
+            </h3>
+            <p className="text-gray-500">
+              {activeTab === 'joined' ? 'You haven\'t joined any events yet' : 'All events are currently full or you\'ve joined all available events'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
+            {getFilteredEvents().map((event) => (
               <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="relative">
                   <img

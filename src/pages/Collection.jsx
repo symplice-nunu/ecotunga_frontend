@@ -197,6 +197,9 @@ export default function Collection() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   
+  // Pay on Pickup Modal state
+  const [showPayOnPickupModal, setShowPayOnPickupModal] = useState(false);
+  
   // Card payment state
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '',
@@ -577,8 +580,15 @@ export default function Collection() {
       setSubmitLoading(true);
       setSubmitError('');
 
-      console.log('Submitting booking data:', tempBookingData);
-      const response = await wasteCollectionApi.createWasteCollection(tempBookingData);
+      // Add payment method to booking data
+      const bookingDataWithPayment = {
+        ...tempBookingData,
+        payment_method: selectedPaymentMethod,
+        payment_status: selectedPaymentMethod === 'pay_on_pickup' ? 'pending' : 'pending'
+      };
+
+      console.log('Submitting booking data:', bookingDataWithPayment);
+      const response = await wasteCollectionApi.createWasteCollection(bookingDataWithPayment);
       console.log('Booking response:', response);
 
       // Check if response exists
@@ -599,8 +609,9 @@ export default function Collection() {
         timeSlot: tempBookingData.time_slot,
         location: `${tempBookingData.district}, ${tempBookingData.sector}`,
         amount: paymentAmount,
-        paymentMethod: selectedPaymentMethod === 'mobile_money' ? 'Mobile Money' : 'Credit/Debit Card',
-        paymentStatus: 'Pending',
+        paymentMethod: selectedPaymentMethod === 'mobile_money' ? 'Mobile Money' : 
+                      selectedPaymentMethod === 'card' ? 'Credit/Debit Card' : 'Pay on Pickup',
+        paymentStatus: selectedPaymentMethod === 'pay_on_pickup' ? 'Pending (Pay on Pickup)' : 'Pending',
         transactionDate: new Date().toLocaleString(),
         company: selectedCompanyDetails?.name || 'Selected Company'
       };
@@ -612,7 +623,7 @@ export default function Collection() {
     } catch (error) {
       console.error('Error submitting booking:', error);
       if (error.response?.status === 401) {
-        setPaymentError('Your session has expired. Please log in again to continue.');
+        setPaymentError('Your session has expired. Please log in and try again.');
       } else {
         setSubmitError(error.response?.data?.message || 'Failed to book pickup. Please try again.');
       }
@@ -1109,7 +1120,14 @@ export default function Collection() {
         className="mt-4 flex justify-center w-[420px] bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition"
         disabled={submitLoading}
       >
-        {submitLoading ? 'Booking...' : 'Book Now'}
+        {submitLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            Processing...
+          </div>
+        ) : (
+          'Proceed'
+        )}
       </button>
     </form>
   );
@@ -1177,23 +1195,47 @@ export default function Collection() {
         </div>
       )}
 
-      <div className="w-full space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-800 mb-2">📱 Payment Status</h4>
-          <p className="text-blue-700 text-sm">
-            Payment has been initiated via mobile money. Please check your phone for the payment prompt and complete the transaction.
-          </p>
-        </div>
+              <div className="w-full space-y-4">
+          {selectedPaymentMethod === 'pay_on_pickup' ? (
+            <>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h4 className="font-semibold text-orange-800 mb-2">💰 Payment Status</h4>
+                <p className="text-orange-700 text-sm">
+                  Payment will be collected when the waste collector arrives at your location. No payment is required now.
+                </p>
+              </div>
 
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="font-semibold text-green-800 mb-2">📧 Next Steps</h4>
-          <ul className="text-green-700 text-sm space-y-1">
-            <li>• Complete the mobile money payment on your phone</li>
-            <li>• You'll receive a confirmation email with booking details</li>
-            <li>• The waste collection company will contact you before pickup</li>
-            <li>• Keep your phone nearby for any updates</li>
-          </ul>
-        </div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-800 mb-2">📧 Next Steps</h4>
+                <ul className="text-green-700 text-sm space-y-1">
+                  <li>• You'll receive a confirmation email with booking details</li>
+                  <li>• The waste collection company will contact you before pickup</li>
+                  <li>• Have <strong>RWF {paymentAmount?.toLocaleString()}</strong> ready for payment</li>
+                  <li>• Pay the collector when they arrive (cash or mobile money)</li>
+                  <li>• Keep your phone nearby for any updates</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-2">📱 Payment Status</h4>
+                <p className="text-blue-700 text-sm">
+                  Payment has been initiated via {selectedPaymentMethod === 'mobile_money' ? 'mobile money' : 'card'}. Please check your phone for the payment prompt and complete the transaction.
+                </p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-800 mb-2">📧 Next Steps</h4>
+                <ul className="text-green-700 text-sm space-y-1">
+                  <li>• Complete the payment on your {selectedPaymentMethod === 'mobile_money' ? 'phone' : 'card'}</li>
+                  <li>• You'll receive a confirmation email with booking details</li>
+                  <li>• The waste collection company will contact you before pickup</li>
+                  <li>• Keep your phone nearby for any updates</li>
+                </ul>
+              </div>
+            </>
+          )}
 
         <button
           className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition"
@@ -1216,7 +1258,20 @@ export default function Collection() {
     const handleCloseReceipt = () => {
       setShowReceipt(false);
       setShowPaymentModal(false);
-      setStep(1); // Move to payment step
+      
+      // For Pay on Pickup, the booking is already submitted, so just reset
+      if (selectedPaymentMethod === 'pay_on_pickup') {
+        // Reset all states
+        setSelectedPaymentMethod('');
+        setTempBookingData(null);
+        setReceiptData(null);
+        setBookingDetails(null);
+        setSubmitSuccess(false);
+        setSubmitError('');
+        setSubmitLoading(false);
+      } else {
+        setStep(1); // Move to payment step for other payment methods
+      }
     };
 
     return (
@@ -1298,6 +1353,24 @@ export default function Collection() {
               </div>
             </div>
 
+            {/* Pay on Pickup Notice */}
+            {/* {receiptData.paymentMethod === 'Pay on Pickup' && (
+              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <span className="text-orange-600 text-lg">💰</span>
+                  <div className="text-sm text-orange-700">
+                    <strong>Payment Instructions:</strong>
+                    <ul className="mt-2 space-y-1 list-disc list-inside">
+                      <li>No payment required now</li>
+                      <li>Pay RWF {receiptData.amount?.toLocaleString()} when collector arrives</li>
+                      <li>Cash or mobile money accepted</li>
+                      <li>Keep this receipt for reference</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )} */}
+
             {/* Action Buttons */}
             <div className="flex gap-3 mt-6">
               <button
@@ -1319,6 +1392,10 @@ export default function Collection() {
     const isButtonDisabled = useMemo(() => {
       if (submitLoading || !selectedPaymentMethod) return true;
       
+      if (selectedPaymentMethod === 'pay_on_pickup') {
+        return false; // No additional validation needed for pay on pickup
+      }
+      
       if (showCardForm) {
         return !cardDetails.cardNumber || !cardDetails.cardHolderName || 
                !cardDetails.expiryMonth || !cardDetails.expiryYear || !cardDetails.cvv;
@@ -1334,6 +1411,14 @@ export default function Collection() {
     if (!showPaymentModal) return null;
 
     const paymentMethods = [
+      {
+        id: 'pay_on_pickup',
+        name: 'Pay on Pickup',
+        description: 'Pay when the waste collector arrives at your location',
+        icon: '💰',
+        color: 'bg-orange-50 border-orange-200',
+        textColor: 'text-orange-800'
+      },
       {
         id: 'mobile_money',
         name: 'Mobile Money',
@@ -1412,15 +1497,21 @@ export default function Collection() {
                   }`}
                   onClick={() => {
                     setSelectedPaymentMethod(method.id);
-                    if (method.id === 'card') {
+                    if (method.id === 'pay_on_pickup') {
+                      setShowPayOnPickupModal(true);
+                      setShowPaymentModal(false);
+                    } else if (method.id === 'card') {
                       setShowCardForm(true);
                       setShowMobileMoneyForm(false);
+                      setShowPayOnPickupModal(false);
                     } else if (method.id === 'mobile_money') {
                       setShowMobileMoneyForm(true);
                       setShowCardForm(false);
+                      setShowPayOnPickupModal(false);
                     } else {
                       setShowCardForm(false);
                       setShowMobileMoneyForm(false);
+                      setShowPayOnPickupModal(false);
                     }
                   }}
                 >
@@ -1441,6 +1532,38 @@ export default function Collection() {
                 </div>
               ))}
             </div>
+
+            {/* Pay on Pickup Instructions */}
+            {selectedPaymentMethod === 'pay_on_pickup' && (
+              <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <h4 className="font-semibold text-orange-800 mb-4">💰 Pay on Pickup Instructions</h4>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <span className="text-orange-600 text-lg">📋</span>
+                    <div className="text-sm text-orange-700">
+                      <strong>How it works:</strong>
+                      <ul className="mt-2 space-y-1 list-disc list-inside">
+                        <li>Your booking will be confirmed immediately</li>
+                        <li>No payment is required now</li>
+                        <li>Pay the waste collector when they arrive</li>
+                        <li>Payment amount: <strong>RWF {paymentAmount?.toLocaleString()}</strong></li>
+                        <li>Cash or mobile money accepted on pickup</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white border border-orange-200 rounded-lg p-3">
+                    <h5 className="font-medium text-orange-800 mb-2">⚠️ Important Notes</h5>
+                    <ul className="text-xs text-orange-700 space-y-1">
+                      <li>• Please have the exact amount ready</li>
+                      <li>• Keep your phone nearby for any updates</li>
+                      <li>• The collector will contact you before arrival</li>
+                      <li>• Payment is due immediately upon pickup</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Card Details Form */}
             {showCardForm && (
@@ -1658,7 +1781,280 @@ export default function Collection() {
                     Processing...
                   </div>
                 ) : (
-                  'Confirm & Pay'
+                  selectedPaymentMethod === 'pay_on_pickup' ? 'Confirm Booking' : 'Confirm & Pay'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Pay on Pickup Modal Component
+  const PayOnPickupModal = () => {
+    if (!showPayOnPickupModal || !tempBookingData) return null;
+
+    const handleConfirmPayOnPickup = async () => {
+      try {
+        setSubmitLoading(true);
+        setSubmitError('');
+
+        // Add payment method to booking data
+        const bookingDataWithPayment = {
+          ...tempBookingData,
+          payment_method: 'pay_on_pickup',
+          payment_status: 'pending'
+        };
+
+        console.log('Submitting Pay on Pickup booking data:', bookingDataWithPayment);
+        const response = await wasteCollectionApi.createWasteCollection(bookingDataWithPayment);
+        console.log('Pay on Pickup booking response:', response);
+
+        // Check if response exists
+        if (!response) {
+          throw new Error('Invalid response from server');
+        }
+
+        setBookingDetails(response);
+        setSubmitSuccess(true);
+        
+        // Prepare receipt data
+        const receipt = {
+          bookingId: response.id || 'N/A',
+          customerName: `${tempBookingData.name} ${tempBookingData.last_name}`,
+          email: tempBookingData.email,
+          phone: tempBookingData.phone_number,
+          pickupDate: tempBookingData.pickup_date,
+          timeSlot: tempBookingData.time_slot,
+          location: `${tempBookingData.district}, ${tempBookingData.sector}`,
+          amount: paymentAmount,
+          paymentMethod: 'Pay on Pickup',
+          paymentStatus: 'Pending (Pay on Pickup)',
+          transactionDate: new Date().toLocaleString(),
+          company: selectedCompanyDetails?.name || 'Selected Company'
+        };
+        
+        setReceiptData(receipt);
+        setShowReceipt(true);
+        setShowPayOnPickupModal(false);
+        console.log('Pay on Pickup receipt should now be shown:', receipt);
+      } catch (error) {
+        console.error('Error submitting Pay on Pickup booking:', error);
+        if (error.response?.status === 401) {
+          setSubmitError('Your session has expired. Please log in and try again.');
+        } else {
+          setSubmitError(error.response?.data?.message || 'Failed to book pickup. Please try again.');
+        }
+      } finally {
+        setSubmitLoading(false);
+      }
+    };
+
+    const handleClosePayOnPickupModal = () => {
+      setShowPayOnPickupModal(false);
+      setSelectedPaymentMethod('');
+      setSubmitError('');
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          {/* Receipt Header */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Pay on Pickup Receipt</h3>
+              <button
+                onClick={handleClosePayOnPickupModal}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-600 mt-2">Review your booking details before confirming</p>
+          </div>
+
+          {/* Receipt Content */}
+          <div className="p-6">
+            {/* Receipt Header with Logo */}
+            {/* <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 mb-6 border border-green-200">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-600 text-2xl">💰</span>
+                </div>
+                <h4 className="text-xl font-bold text-green-800">Pay on Pickup Booking</h4>
+                <p className="text-sm text-gray-600">Booking Preview</p>
+              </div>
+            </div> */}
+
+            {/* Receipt Details */}
+            <div className="space-y-4 mb-6">
+              {/* Customer Information */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-blue-500">👤</span>
+                  Customer Information
+                </h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Name:</span>
+                    <span className="font-medium">{tempBookingData.name} {tempBookingData.last_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Email:</span>
+                    <span className="font-medium">{tempBookingData.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Phone:</span>
+                    <span className="font-medium">{tempBookingData.phone_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">House Number:</span>
+                    <span className="font-medium">{tempBookingData.house_number || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pickup Details */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-green-500">🗓️</span>
+                  Pickup Details
+                </h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Pickup Date:</span>
+                    <span className="font-medium">
+                      {new Date(tempBookingData.pickup_date).toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Time Slot:</span>
+                    <span className="font-medium">{tempBookingData.time_slot}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location Details */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-purple-500">📍</span>
+                  Location Details
+                </h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">District:</span>
+                    <span className="font-medium">{tempBookingData.district}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Sector:</span>
+                    <span className="font-medium">{tempBookingData.sector}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Cell:</span>
+                    <span className="font-medium">{tempBookingData.cell}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Street:</span>
+                    <span className="font-medium">{tempBookingData.street || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Company Details */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-orange-500">🏢</span>
+                  Company Details
+                </h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Company:</span>
+                    <span className="font-medium">{selectedCompanyDetails?.name || 'Selected Company'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Payment Method:</span>
+                    <span className="font-medium text-green-600">Pay on Pickup</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {tempBookingData.notes && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <span className="text-gray-500">📝</span>
+                    Additional Notes
+                  </h5>
+                  <div className="text-sm text-gray-700">
+                    {tempBookingData.notes}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Total Amount */}
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-semibold text-green-800">Total Amount:</span>
+                <span className="text-2xl font-bold text-green-600">RWF {paymentAmount?.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Pay on Pickup Notice */}
+            {/* <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <span className="text-orange-600 text-lg">💰</span>
+                <div className="text-sm text-orange-700">
+                  <strong>Payment Instructions:</strong>
+                  <ul className="mt-2 space-y-1 list-disc list-inside">
+                    <li>No payment required now</li>
+                    <li>Pay RWF {paymentAmount?.toLocaleString()} when collector arrives</li>
+                    <li>Cash or mobile money accepted</li>
+                    <li>Keep this receipt for reference</li>
+                  </ul>
+                </div>
+              </div>
+            </div> */}
+
+            {/* Error Message */}
+            {submitError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-red-600">❌</span>
+                  <span className="text-red-800 text-sm">{submitError}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleClosePayOnPickupModal}
+                className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition"
+                disabled={submitLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmPayOnPickup}
+                className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:bg-gray-400"
+                disabled={submitLoading}
+              >
+                {submitLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </div>
+                ) : (
+                  'Confirm'
                 )}
               </button>
             </div>
@@ -1690,6 +2086,9 @@ export default function Collection() {
       
       {/* Payment Modal */}
       {!showReceipt && <PaymentModal />}
+      
+      {/* Pay on Pickup Modal */}
+      <PayOnPickupModal />
       
       {/* Payment Receipt */}
       {showReceipt && <PaymentReceipt />}

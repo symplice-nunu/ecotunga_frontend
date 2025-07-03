@@ -15,7 +15,8 @@
     "dashboard": "Dashboard",
     "scheduleCollection": "Schedule Collection",
     "loading": "Loading...",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "close": "Close"
   },
   "auth": {
     "email": "Email",
@@ -172,14 +173,35 @@
       "adminSubtitle": "Manage and track all waste collection requests",
       "userSubtitle": "Track and manage your waste collection bookings",
       "allWasteCollections": "All Waste Collections",
-      "statuses": {
-        "approved": "Approved",
-        "pending": "Pending",
-        "rejected": "Rejected",
-        "denied": "Rejected",
-        "completed": "Completed",
-        "unknown": "Unknown"
-      }
+      "collectionDetails": "Collection Details",
+      "pickupDate": "Pickup Date",
+      "timeSlot": "Time Slot",
+      "companyLocation": "Company Location",
+      "assignedCompany": "Assigned Company",
+      "customer": "Customer",
+      "customerLocation": "Customer Location",
+              "adminNotes": "Admin Notes",
+        "collectionId": "Collection ID",
+        "paymentStatus": "Payment Status",
+        "paymentAmount": "Payment Amount",
+        "paymentMethod": "Payment Method",
+        "transactionId": "Transaction ID",
+        "paymentDate": "Payment Date",
+        "statuses": {
+          "approved": "Approved",
+          "pending": "Pending",
+          "rejected": "Rejected",
+          "denied": "Rejected",
+          "completed": "Completed",
+          "unknown": "Unknown"
+        },
+        "paymentStatuses": {
+          "pending": "Pending",
+          "paid": "Paid",
+          "failed": "Failed",
+          "refunded": "Refunded",
+          "cancelled": "Cancelled"
+        }
     }
   },
   "header": {

@@ -20,6 +20,7 @@ export default function EducationMaterialForm({
     author: '',
     image_url: '',
     content_url: '',
+    youtube_url: '',
     featured: false,
     tags: []
   });
@@ -59,6 +60,7 @@ export default function EducationMaterialForm({
         author: material.author,
         image_url: material.image_url || '',
         content_url: material.content_url || '',
+        youtube_url: material.youtube_url || '',
         featured: material.featured,
         tags: material.tags || []
       });
@@ -78,6 +80,7 @@ export default function EducationMaterialForm({
       author: '',
       image_url: '',
       content_url: '',
+      youtube_url: '',
       featured: false,
       tags: []
     });
@@ -231,6 +234,18 @@ export default function EducationMaterialForm({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">YouTube URL</label>
+            <input
+              type="url"
+              value={formData.youtube_url}
+              onChange={(e) => setFormData({...formData, youtube_url: e.target.value})}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Optional: Add a YouTube video URL for video content</p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

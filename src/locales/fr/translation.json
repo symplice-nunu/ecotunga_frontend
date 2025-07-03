@@ -14,7 +14,8 @@
     "appName": "Eco Tunga",
     "dashboard": "Tableau de bord",
     "loading": "Chargement...",
-    "saving": "Enregistrement..."
+    "saving": "Enregistrement...",
+    "close": "Fermer"
   },
   "auth": {
     "email": "E-mail",
@@ -176,6 +177,15 @@
       "adminSubtitle": "Gérer et suivre toutes les demandes de collecte de déchets",
       "userSubtitle": "Suivre et gérer vos réservations de collecte de déchets",
       "allWasteCollections": "Toutes les Collectes de Déchets",
+      "collectionDetails": "Détails de la Collecte",
+      "pickupDate": "Date de Collecte",
+      "timeSlot": "Créneau Horaire",
+      "companyLocation": "Localisation de l'Entreprise",
+      "assignedCompany": "Entreprise Assignée",
+      "customer": "Client",
+      "customerLocation": "Localisation du Client",
+      "adminNotes": "Notes d'Administration",
+      "collectionId": "ID de Collecte",
       "statuses": {
         "approved": "Approuvé",
         "pending": "En attente",

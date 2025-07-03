@@ -14,7 +14,8 @@
     "appName": "Eco Tunga",
     "dashboard": "Ikibaho",
     "loading": "Ari gukuramo...",
-    "saving": "Ari kubika..."
+    "saving": "Ari kubika...",
+    "close": "Funga"
   },
   "auth": {
     "email": "Imeyili",
@@ -199,6 +200,15 @@
       "adminSubtitle": "Gukurikirana no gukurikirana ibisabwa byose byo gusura imyanda",
       "userSubtitle": "Gukurikirana no gukurikirana ibisabwa byawe byo gusura imyanda",
       "allWasteCollections": "Gusura Imyanda Yose",
+      "collectionDetails": "Amakuru yo Gusura",
+      "pickupDate": "Itariki yo Gusura",
+      "timeSlot": "Isaha yo Gusura",
+      "companyLocation": "Ahantu h'Isosiyete",
+      "assignedCompany": "Isosiyete Yatanzwe",
+      "customer": "Umukiriya",
+      "customerLocation": "Ahantu h'Umukiriya",
+      "adminNotes": "Inyandiko z'Umutekano",
+      "collectionId": "ID yo Gusura",
       "statuses": {
         "approved": "Byemewe",
         "pending": "Bitaratangira",

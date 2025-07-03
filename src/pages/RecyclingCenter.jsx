@@ -10,7 +10,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 const steps = [
   'Find Recycling Center',
-  'Book Drop-off',
+  'Book Service',
   'Confirm',
 ];
 
@@ -129,6 +129,8 @@ const RecyclingCenter = () => {
   const [filteredCellOptions, setFilteredCellOptions] = useState([]);
   
   // Booking state
+  const [bookingType, setBookingType] = useState('dropoff'); // 'pickup' or 'dropoff'
+  const [pickupDate, setPickupDate] = useState(null);
   const [dropoffDate, setDropoffDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -155,24 +157,18 @@ const RecyclingCenter = () => {
     const fetchUserProfile = async () => {
       try {
         if (user) {
-          const profile = await getUserProfile();
+          const response = await getUserProfile();
+          const profile = response.data;
+          console.log('User profile fetched:', profile); // Debug log
+          console.log('Profile location data:', {
+            district: profile?.district,
+            sector: profile?.sector,
+            cell: profile?.cell,
+            street: profile?.street
+          });
           setUserProfile(profile);
           
-          // Pre-fill location with user profile data
-          if (profile) {
-            setLocation({
-              district: profile.district || '',
-              sector: profile.sector || '',
-              cell: profile.cell || '',
-              street: profile.street || ''
-            });
-            setSelectedLocation({
-              district: profile.district || '',
-              sector: profile.sector || '',
-              cell: profile.cell || '',
-              street: profile.street || ''
-            });
-          }
+          // Don't pre-fill location data - only fetch for "Use My Location" button
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -285,8 +281,27 @@ const RecyclingCenter = () => {
   const handleBookDropoffSubmit = async (e) => {
     e.preventDefault();
     
-    if (!dropoffDate || !timeSlot || !selectedCompany) {
-      setSubmitError('Please fill in all required fields');
+    const selectedDate = bookingType === 'pickup' ? pickupDate : dropoffDate;
+    
+    // Debug logging
+    console.log('Form validation:', {
+      bookingType,
+      selectedDate,
+      timeSlot,
+      selectedCompany,
+      pickupDate,
+      dropoffDate
+    });
+    
+    // Check each required field individually
+    if (!selectedCompany) {
+      setSubmitError('Please select a recycling center');
+      return;
+    }
+    
+    // Basic validation for required backend fields
+    if (!selectedLocation.district || !selectedLocation.sector || !selectedLocation.cell) {
+      setSubmitError('Please complete your location information (district, sector, cell)');
       return;
     }
 
@@ -297,13 +312,13 @@ const RecyclingCenter = () => {
       // Prepare booking data for API
       const bookingData = {
         company_id: selectedCompany,
-        dropoff_date: dropoffDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        time_slot: timeSlot,
-        notes: notes,
+        dropoff_date: selectedDate ? selectedDate.toISOString().split('T')[0] : null, // Format as YYYY-MM-DD
+        time_slot: timeSlot || null,
+        notes: notes || null,
         district: selectedLocation.district,
         sector: selectedLocation.sector,
         cell: selectedLocation.cell,
-        street: selectedLocation.street
+        street: selectedLocation.street || null
       };
       
       // Send booking to backend
@@ -314,7 +329,8 @@ const RecyclingCenter = () => {
         id: response.id,
         companyId: selectedCompany,
         companyDetails: selectedCompanyDetails,
-        dropoffDate: dropoffDate,
+        serviceType: bookingType,
+        date: selectedDate,
         timeSlot: timeSlot,
         notes: notes,
         userLocation: selectedLocation,
@@ -325,8 +341,8 @@ const RecyclingCenter = () => {
       setSubmitSuccess(true);
       setStep(2);
     } catch (error) {
-      console.error('Error booking dropoff:', error);
-      setSubmitError(error.response?.data?.error || 'Failed to book dropoff. Please try again.');
+      console.error('Error booking service:', error);
+      setSubmitError(error.response?.data?.error || `Failed to book ${bookingType}. Please try again.`);
     } finally {
       setSubmitLoading(false);
     }
@@ -361,8 +377,37 @@ const RecyclingCenter = () => {
   const FindRecyclingCenter = () => (
     <div className="w-full max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Find Recycling Centers</h2>
-        <p className="text-gray-600 mb-6">Share your location to find recycling centers near you.</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Find Recycling Centers</h2>
+            <p className="text-gray-600">Share your location to find recycling centers near you.</p>
+          </div>
+          {userProfile && (userProfile.district || userProfile.sector || userProfile.cell || userProfile.street) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedLocation({
+                  district: userProfile.district || '',
+                  sector: userProfile.sector || '',
+                  cell: userProfile.cell || '',
+                  street: userProfile.street || '',
+                });
+                setLocation({
+                  district: userProfile.district || '',
+                  sector: userProfile.sector || '',
+                  cell: userProfile.cell || '',
+                  street: userProfile.street || '',
+                });
+                setDistrictSearchTerm(userProfile.district || '');
+                setSectorSearchTerm(userProfile.sector || '');
+                setCellSearchTerm(userProfile.cell || '');
+              }}
+              className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+            >
+              Use My Location
+            </button>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* District */}
@@ -372,10 +417,21 @@ const RecyclingCenter = () => {
               <input
                 type="text"
                 placeholder="Search district..."
-                value={districtSearchTerm}
-                onChange={(e) => setDistrictSearchTerm(e.target.value)}
-                onFocus={() => setIsDistrictDropdownOpen(true)}
+                value={isDistrictDropdownOpen ? districtSearchTerm : selectedLocation.district}
+                onChange={(e) => {
+                  if (isDistrictDropdownOpen) {
+                    setDistrictSearchTerm(e.target.value);
+                  }
+                }}
+                onFocus={() => {
+                  setIsDistrictDropdownOpen(true);
+                  setDistrictSearchTerm('');
+                }}
+                onBlur={() => {
+                  setTimeout(() => setIsDistrictDropdownOpen(false), 200);
+                }}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                readOnly={!isDistrictDropdownOpen}
               />
               {isDistrictDropdownOpen && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -384,6 +440,13 @@ const RecyclingCenter = () => {
                       key={option}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
+                        setSelectedLocation(prev => ({ 
+                          ...prev, 
+                          district: option,
+                          sector: '', // Reset sector when district changes
+                          cell: '',    // Reset cell when district changes
+                          street: ''   // Reset street when district changes
+                        }));
                         setLocation(prev => ({ ...prev, district: option }));
                         setDistrictSearchTerm(option);
                         setIsDistrictDropdownOpen(false);
@@ -404,19 +467,38 @@ const RecyclingCenter = () => {
               <input
                 type="text"
                 placeholder="Search sector..."
-                value={sectorSearchTerm}
-                onChange={(e) => setSectorSearchTerm(e.target.value)}
-                onFocus={() => setIsSectorDropdownOpen(true)}
+                value={isSectorDropdownOpen ? sectorSearchTerm : selectedLocation.sector}
+                onChange={(e) => {
+                  if (isSectorDropdownOpen) {
+                    setSectorSearchTerm(e.target.value);
+                  }
+                }}
+                onFocus={() => {
+                  if (selectedLocation.district) {
+                    setIsSectorDropdownOpen(true);
+                    setSectorSearchTerm('');
+                  }
+                }}
+                onBlur={() => {
+                  setTimeout(() => setIsSectorDropdownOpen(false), 200);
+                }}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                disabled={!location.district}
+                disabled={!selectedLocation.district}
+                readOnly={!isSectorDropdownOpen}
               />
-              {isSectorDropdownOpen && location.district && (
+              {isSectorDropdownOpen && selectedLocation.district && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
                   {filteredSectorOptions.map((option) => (
                     <div
                       key={option}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
+                        setSelectedLocation(prev => ({ 
+                          ...prev, 
+                          sector: option,
+                          cell: '', // Reset cell when sector changes
+                          street: '' // Reset street when sector changes
+                        }));
                         setLocation(prev => ({ ...prev, sector: option }));
                         setSectorSearchTerm(option);
                         setIsSectorDropdownOpen(false);
@@ -437,19 +519,33 @@ const RecyclingCenter = () => {
               <input
                 type="text"
                 placeholder="Search cell..."
-                value={cellSearchTerm}
-                onChange={(e) => setCellSearchTerm(e.target.value)}
-                onFocus={() => setIsCellDropdownOpen(true)}
+                value={isCellDropdownOpen ? cellSearchTerm : selectedLocation.cell}
+                onChange={(e) => {
+                  if (isCellDropdownOpen) {
+                    setCellSearchTerm(e.target.value);
+                  }
+                }}
+                onFocus={() => {
+                  if (selectedLocation.sector) {
+                    setIsCellDropdownOpen(true);
+                    setCellSearchTerm('');
+                  }
+                }}
+                onBlur={() => {
+                  setTimeout(() => setIsCellDropdownOpen(false), 200);
+                }}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                disabled={!location.sector}
+                disabled={!selectedLocation.sector}
+                readOnly={!isCellDropdownOpen}
               />
-              {isCellDropdownOpen && location.sector && (
+              {isCellDropdownOpen && selectedLocation.sector && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
                   {filteredCellOptions.map((option) => (
                     <div
                       key={option}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       onClick={() => {
+                        setSelectedLocation(prev => ({ ...prev, cell: option }));
                         setLocation(prev => ({ ...prev, cell: option }));
                         setCellSearchTerm(option);
                         setIsCellDropdownOpen(false);
@@ -469,8 +565,11 @@ const RecyclingCenter = () => {
             <input
               type="text"
               name="street"
-              value={location.street}
-              onChange={handleLocationChange}
+              value={selectedLocation.street}
+              onChange={(e) => {
+                setSelectedLocation(prev => ({ ...prev, street: e.target.value }));
+                setLocation(prev => ({ ...prev, street: e.target.value }));
+              }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Enter street name"
             />
@@ -480,7 +579,7 @@ const RecyclingCenter = () => {
         <div className="mt-6">
           <button
             onClick={handleLocationSubmit}
-            disabled={!location.district || !location.sector || !location.cell}
+            disabled={!selectedLocation.district || !selectedLocation.sector || !selectedLocation.cell}
             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-md transition duration-200"
           >
             Find Recycling Centers
@@ -569,17 +668,70 @@ const RecyclingCenter = () => {
           {/* Booking Form */}
           {selectedCompany && (
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Book Drop-off</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Book Service</h3>
+              
+              {/* Service Type Selection */}
+              <div className="mb-6">
+                <label className="block text-gray-700 font-medium mb-3">Service Type</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="bookingType"
+                      value="dropoff"
+                      checked={bookingType === 'dropoff'}
+                      onChange={(e) => {
+                        setBookingType(e.target.value);
+                        // Reset dates when switching service type
+                        setPickupDate(null);
+                        setDropoffDate(null);
+                        setTimeSlot('');
+                        setSubmitError('');
+                      }}
+                      className="mr-2 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-gray-700">Drop-off (Bring items to center)</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      name="bookingType"
+                      value="pickup"
+                      checked={bookingType === 'pickup'}
+                      onChange={(e) => {
+                        setBookingType(e.target.value);
+                        // Reset dates when switching service type
+                        setPickupDate(null);
+                        setDropoffDate(null);
+                        setTimeSlot('');
+                        setSubmitError('');
+                      }}
+                      className="mr-2 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-gray-700">Pickup (We collect from you)</span>
+                  </label>
+                </div>
+              </div>
+
               <form onSubmit={handleBookDropoffSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Drop-off Date</label>
+                    <label className="block text-gray-700 font-medium mb-2">
+                      {bookingType === 'pickup' ? 'Pickup Date' : 'Drop-off Date'}
+                    </label>
                     <DatePicker
-                      selected={dropoffDate}
-                      onChange={(date) => setDropoffDate(date)}
+                      selected={bookingType === 'pickup' ? pickupDate : dropoffDate}
+                      onChange={(date) => {
+                        if (bookingType === 'pickup') {
+                          setPickupDate(date);
+                        } else {
+                          setDropoffDate(date);
+                        }
+                        setSubmitError(''); // Clear error when user makes a selection
+                      }}
                       minDate={new Date()}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholderText="Select date"
+                      placeholderText={`Select ${bookingType === 'pickup' ? 'pickup' : 'drop-off'} date`}
                     />
                   </div>
                   
@@ -587,7 +739,10 @@ const RecyclingCenter = () => {
                     <label className="block text-gray-700 font-medium mb-2">Time Slot</label>
                     <select
                       value={timeSlot}
-                      onChange={(e) => setTimeSlot(e.target.value)}
+                      onChange={(e) => {
+                        setTimeSlot(e.target.value);
+                        setSubmitError(''); // Clear error when user makes a selection
+                      }}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                       <option value="">Select time slot</option>
@@ -620,7 +775,7 @@ const RecyclingCenter = () => {
                   disabled={submitLoading}
                   className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-md transition duration-200"
                 >
-                  {submitLoading ? 'Booking...' : 'Book Drop-off'}
+                  {submitLoading ? 'Booking...' : `Book ${bookingType === 'pickup' ? 'Pickup' : 'Drop-off'}`}
                 </button>
               </form>
             </div>
@@ -639,8 +794,12 @@ const RecyclingCenter = () => {
           </svg>
         </div>
         
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Drop-off Booked Successfully!</h2>
-        <p className="text-gray-600 mb-6">Your recycling drop-off has been scheduled.</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          {bookingDetails?.serviceType === 'pickup' ? 'Pickup' : 'Drop-off'} Booked Successfully!
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Your recycling {bookingDetails?.serviceType === 'pickup' ? 'pickup' : 'drop-off'} has been scheduled.
+        </p>
 
         {bookingDetails && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
@@ -651,8 +810,12 @@ const RecyclingCenter = () => {
                 <span className="font-medium">{bookingDetails.companyDetails?.name}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-600">Service Type:</span>
+                <span className="font-medium capitalize">{bookingDetails.serviceType}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-600">Date:</span>
-                <span className="font-medium">{bookingDetails.dropoffDate?.toLocaleDateString()}</span>
+                <span className="font-medium">{bookingDetails.date?.toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Time:</span>
@@ -681,7 +844,7 @@ const RecyclingCenter = () => {
             }}
             className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md transition duration-200"
           >
-            Book Another Drop-off
+            Book Another Service
           </button>
           
           <button

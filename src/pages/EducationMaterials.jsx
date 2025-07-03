@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Search, Filter, Play, FileText, Download, Eye, Clock, Star, Bookmark, Users, Calendar, RefreshCcw, Leaf, Monitor, Package, Droplets, Box, Plus, Edit, Trash2, X, Save, User } from 'lucide-react';
+import { BookOpen, Search, Filter, Play, FileText, Download, Eye, Clock, Star, Bookmark, Users, Calendar, RefreshCcw, Leaf, Monitor, Package, Droplets, Box, Plus, Edit, Trash2, X, Save, User, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { educationMaterialApi } from '../services/educationMaterialApi';
@@ -22,7 +22,9 @@ export default function EducationMaterials() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [videoLoading, setVideoLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -33,6 +35,7 @@ export default function EducationMaterials() {
     author: '',
     image_url: '',
     content_url: '',
+    youtube_url: '',
     featured: false,
     tags: []
   });
@@ -192,6 +195,21 @@ export default function EducationMaterials() {
     setShowDeleteModal(true);
   };
 
+  const openDetailsModal = (material) => {
+    setSelectedMaterial(material);
+    setShowDetailsModal(true);
+    setVideoLoading(true);
+    
+    // Increment view count
+    if (material.views !== undefined) {
+      setMaterials(prev => prev.map(m => 
+        m.id === material.id 
+          ? { ...m, views: (m.views || 0) + 1 }
+          : m
+      ));
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -203,6 +221,7 @@ export default function EducationMaterials() {
       author: '',
       image_url: '',
       content_url: '',
+      youtube_url: '',
       featured: false,
       tags: []
     });
@@ -238,6 +257,25 @@ export default function EducationMaterials() {
       case 'guide': return BookOpen;
       default: return FileText;
     }
+  };
+
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) return null;
+    
+    // Handle different YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return `https://www.youtube.com/embed/${match[1]}`;
+      }
+    }
+    
+    return url; // Return original URL if no pattern matches
   };
 
   // Check if user is admin
@@ -360,6 +398,13 @@ export default function EducationMaterials() {
                         alt={material.title}
                         className="w-full h-48 object-cover"
                       />
+                      {material.youtube_url && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-black/50 rounded-full p-3">
+                            <Play size={24} className="text-white fill-current" />
+                          </div>
+                        </div>
+                      )}
                       {material.featured && (
                         <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                           Featured
@@ -434,9 +479,25 @@ export default function EducationMaterials() {
                           <Eye size={16} />
                           <span>{material.views || 0} views</span>
                         </div>
-                        <button className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors">
-                          {t('educationMaterials.readMore')}
-                        </button>
+                        <div className="flex gap-2">
+                          {material.content_url && (
+                            <a 
+                              href={material.content_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            >
+                              <ExternalLink size={16} />
+                              Read More
+                            </a>
+                          )}
+                          <button 
+                            onClick={() => openDetailsModal(material)}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
+                          >
+                            Watch A video
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -462,6 +523,13 @@ export default function EducationMaterials() {
                       alt={material.title}
                       className="w-full h-40 object-cover"
                     />
+                    {material.youtube_url && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-black/50 rounded-full p-2">
+                          <Play size={20} className="text-white fill-current" />
+                        </div>
+                      </div>
+                    )}
                     <div className="absolute top-3 right-3 flex gap-2">
                       {isAdmin && (
                         <>
@@ -521,13 +589,29 @@ export default function EducationMaterials() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Eye size={14} />
-                        <span>{material.views || 0}</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Eye size={16} />
+                        <span>{material.views || 0} views</span>
                       </div>
-                      <button className="bg-teal-600 text-white px-3 py-1.5 rounded text-sm hover:bg-teal-700 transition-colors">
-                        {t('educationMaterials.readMore')}
-                      </button>
+                      <div className="flex gap-2">
+                        {material.content_url && (
+                          <a 
+                            href={material.content_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                          >
+                            <ExternalLink size={16} />
+                            Read More
+                          </a>
+                        )}
+                        <button 
+                          onClick={() => openDetailsModal(material)}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
+                        >
+                          Watch A video
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -562,6 +646,70 @@ export default function EducationMaterials() {
         message="Are you sure you want to delete this material? This action cannot be undone."
         itemName={selectedMaterial?.title}
       />
+
+      {/* Material Details Modal */}
+      {showDetailsModal && selectedMaterial && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-2xl font-semibold text-gray-900">{selectedMaterial.title}</h2>
+              <button 
+                onClick={() => setShowDetailsModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* Video Section */}
+              {selectedMaterial.youtube_url && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Play className="text-red-500" size={20} />
+                    Video Content
+                  </h3>
+                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                    {videoLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+                      </div>
+                    )}
+                    <iframe
+                      src={getYouTubeEmbedUrl(selectedMaterial.youtube_url)}
+                      title={selectedMaterial.title}
+                      className="absolute top-0 left-0 w-full h-full rounded-lg"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      onLoad={() => setVideoLoading(false)}
+                      onError={() => setVideoLoading(false)}
+                    ></iframe>
+                  </div>
+                </div>
+              )}
+
+              {/* Image Section (if no video but has image) */}
+              {!selectedMaterial.youtube_url && selectedMaterial.image_url && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <FileText className="text-teal-500" size={20} />
+                    Material Preview
+                  </h3>
+                  <img
+                    src={selectedMaterial.image_url}
+                    alt={selectedMaterial.title}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {/* Material Details */}
+              
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
