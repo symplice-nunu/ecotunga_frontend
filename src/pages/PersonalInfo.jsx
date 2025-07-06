@@ -703,6 +703,25 @@ const rwandaCells = [
   'Nyarugunga'
 ];
 
+// Waste types that recycling centers can accept
+const wasteTypes = [
+  { id: 'plastic_bottles', label: 'Plastic Bottles', icon: '🥤' },
+  { id: 'plastic_bags', label: 'Plastic Bags', icon: '🛍️' },
+  { id: 'paper', label: 'Paper & Cardboard', icon: '📄' },
+  { id: 'glass', label: 'Glass', icon: '🍾' },
+  { id: 'aluminum', label: 'Aluminum Cans', icon: '🥫' },
+  { id: 'steel', label: 'Steel/Metal', icon: '🔧' },
+  { id: 'electronics', label: 'Electronics (E-waste)', icon: '💻' },
+  { id: 'batteries', label: 'Batteries', icon: '🔋' },
+  { id: 'textiles', label: 'Textiles & Clothing', icon: '👕' },
+  { id: 'organic', label: 'Organic Waste', icon: '🍃' },
+  { id: 'construction', label: 'Construction Materials', icon: '🧱' },
+  { id: 'automotive', label: 'Automotive Parts', icon: '🚗' },
+  { id: 'medical', label: 'Medical Waste', icon: '🏥' },
+  { id: 'hazardous', label: 'Hazardous Materials', icon: '⚠️' },
+  { id: 'other', label: 'Other Materials', icon: '📦' }
+];
+
 export default function PersonalInfo() {
   const { t } = useTranslation();
   const [form, setForm] = useState({
@@ -712,11 +731,13 @@ export default function PersonalInfo() {
     phone_number: '',
     ubudehe_category: '',
     company_name: '',
+    company_website: '',
     house_number: '',
     district: '',
     sector: '',
     cell: '',
-    street: ''
+    street: '',
+    waste_types: []
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -768,6 +789,11 @@ export default function PersonalInfo() {
       // For business entities, validate company name instead of personal fields
       if (!form.company_name?.trim()) {
         newErrors.company_name = t('errors.required');
+      }
+      
+      // For recycling centers, validate waste types
+      if (userCredentials?.role === 'recycling_center' && (!form.waste_types || form.waste_types.length === 0)) {
+        newErrors.waste_types = 'Please select at least one type of waste you accept';
       }
     } else {
       // For regular users, validate personal fields
@@ -840,6 +866,22 @@ export default function PersonalInfo() {
     if (serverError) setServerError('');
   };
 
+  const handleWasteTypeToggle = (wasteTypeId) => {
+    setForm(prev => {
+      const currentTypes = prev.waste_types || [];
+      const newTypes = currentTypes.includes(wasteTypeId)
+        ? currentTypes.filter(id => id !== wasteTypeId)
+        : [...currentTypes, wasteTypeId];
+      
+      return { ...prev, waste_types: newTypes };
+    });
+    
+    if (errors.waste_types) {
+      setErrors(prev => ({ ...prev, waste_types: '' }));
+    }
+    if (serverError) setServerError('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -883,7 +925,8 @@ export default function PersonalInfo() {
         district: form.district,
         sector: form.sector,
         cell: form.cell,
-        street: form.street
+        street: form.street,
+        company_website: form.company_website
       } : {
         name: form.name,
         last_name: form.last_name,
@@ -902,7 +945,14 @@ export default function PersonalInfo() {
       console.log('Is business entity:', isBusinessEntity);
 
       // Update user profile with personal information
-      const profileResponse = await API.put('/users/profile/me', profileData, {
+      const profileDataToSend = { ...profileData };
+      
+      // Add waste types for recycling centers to user profile
+      if (userCredentials?.role === 'recycling_center' && form.waste_types && form.waste_types.length > 0) {
+        profileDataToSend.waste_types = form.waste_types;
+      }
+      
+      const profileResponse = await API.put('/users/profile/me', profileDataToSend, {
         headers: {
           Authorization: `Bearer ${loginResponse.data.token}`
         }
@@ -913,7 +963,7 @@ export default function PersonalInfo() {
       // If user is a waste collector or recycling center, update the company record with additional info
       if (isBusinessEntity) {
         try {
-          await API.put('/companies/update-by-email', {
+          const companyUpdateData = {
             email: userCredentials.email,
             phone: form.phone_number,
             district: form.district,
@@ -921,8 +971,16 @@ export default function PersonalInfo() {
             cell: form.cell,
             village: form.street, // Using street as village
             street: form.street,
-            amount_per_month: 0 // Default amount, can be updated later
-          }, {
+            amount_per_month: 0, // Default amount, can be updated later
+            website: form.company_website
+          };
+
+          // Add waste types for recycling centers
+          if (userCredentials?.role === 'recycling_center' && form.waste_types && form.waste_types.length > 0) {
+            companyUpdateData.waste_types = form.waste_types;
+          }
+
+          await API.put('/companies/update-by-email', companyUpdateData, {
             headers: {
               Authorization: `Bearer ${loginResponse.data.token}`
             }
@@ -1003,23 +1061,84 @@ export default function PersonalInfo() {
                 <div className="space-y-4">
                   {isBusinessEntity ? (
                     // Business entity fields
-                    <div>
-                      <label htmlFor="company_name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                        <Building className="w-4 h-4" />
-                        Company Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="company_name"
-                        name="company_name"
-                        value={form.company_name}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter your company name"
-                        className={`w-full px-4 py-3 border ${errors.company_name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
-                      />
-                      {errors.company_name && <p className="mt-1 text-xs text-red-600">{errors.company_name}</p>}
-                    </div>
+                    <>
+                      <div>
+                        <label htmlFor="company_name" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                          <Building className="w-4 h-4" />
+                          Company Name *
+                        </label>
+                        <input
+                          type="text"
+                          id="company_name"
+                          name="company_name"
+                          value={form.company_name}
+                          onChange={handleChange}
+                          required
+                          placeholder="Enter your company name"
+                          className={`w-full px-4 py-3 border ${errors.company_name ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                        />
+                        {errors.company_name && <p className="mt-1 text-xs text-red-600">{errors.company_name}</p>}
+                      </div>
+                      
+                      {/* Company Website Field - Only for recycling centers */}
+                      {userCredentials?.role === 'recycling_center' && (
+                        <div>
+                          <label htmlFor="company_website" className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9c-5 0-9-4-9-9s4-9 9-9" />
+                            </svg>
+                            Company Website
+                          </label>
+                          <input
+                            type="url"
+                            id="company_website"
+                            name="company_website"
+                            value={form.company_website}
+                            onChange={handleChange}
+                            placeholder="https://www.yourcompany.com"
+                            className={`w-full px-4 py-3 border ${errors.company_website ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
+                          />
+                          {errors.company_website && <p className="mt-1 text-xs text-red-600">{errors.company_website}</p>}
+                          <p className="mt-1 text-xs text-gray-500">
+                            Optional: Add your company website URL
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Waste Types Selection - Only for recycling centers */}
+                      {userCredentials?.role === 'recycling_center' && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            Types of Waste You Accept *
+                          </label>
+                          <div className=" max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            {wasteTypes.map((wasteType) => (
+                              <label
+                                key={wasteType.id}
+                                className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-all duration-200 ${
+                                  form.waste_types?.includes(wasteType.id)
+                                    ? 'bg-green-100 border-green-300 border'
+                                    : 'bg-white border border-gray-200 hover:bg-gray-50'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={form.waste_types?.includes(wasteType.id) || false}
+                                  onChange={() => handleWasteTypeToggle(wasteType.id)}
+                                  className="w-4 h-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                />
+                                <span className="text-lg">{wasteType.icon}</span>
+                                <span className="text-sm font-medium text-gray-700">{wasteType.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {errors.waste_types && <p className="mt-1 text-xs text-red-600">{errors.waste_types}</p>}
+                          <p className="mt-2 text-xs text-gray-500">
+                            Select all the types of waste materials your recycling center accepts
+                          </p>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     // Regular user fields
                     <>

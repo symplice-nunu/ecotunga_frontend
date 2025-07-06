@@ -181,6 +181,7 @@
     },
     "wasteCollections": {
       "title": "Ibisabwa Byose",
+      "tabTitle": "Gusura Imyanda",
       "date": "Itariki",
       "time": "Isaha",
       "location": "Ahantu",
@@ -215,6 +216,32 @@
         "rejected": "Byanze",
         "denied": "Byanze",
         "completed": "Byarangiye",
+        "unknown": "Nta kintu"
+      }
+    },
+    "recyclingCenter": {
+      "tabTitle": "Ikigo cyo Gukoresha",
+      "date": "Itariki",
+      "time": "Isaha",
+      "location": "Ahantu",
+      "status": "Imiterere",
+      "center": "Ikigo cyo Gukoresha",
+      "wasteType": "Ubwoko bw'Imyanda",
+      "bookings": "ibisabwa",
+      "locationNotSpecified": "Ahantu nta kintu",
+      "notAssigned": "Nta kintu",
+      "wasteTypeNotSpecified": "Nta kintu",
+      "noBookingsFound": "Nta bisabwa by'ikigo cyo gukoresha bivumbuwe",
+      "noBookingsWithStatus": "Nta bisabwa bivumbuwe n'imiterere: {{status}}",
+      "tryDifferentStatus": "Gerageza guhitamo imiterere itandukanye cyangwa reba ibisabwa byose",
+      "noBookingsMessage": "Nta bisabwa ryo gukoresha byakozwe. Tangira gushyira gahunda yo gukoresha kwawe!",
+      "statuses": {
+        "approved": "Byemewe",
+        "pending": "Bitaratangira",
+        "rejected": "Byanze",
+        "denied": "Byanze",
+        "completed": "Byarangiye",
+        "cancelled": "Byahagaritswe",
         "unknown": "Nta kintu"
       }
     }
@@ -350,5 +377,50 @@
       "video": "Video",
       "article": "Inyandiko"
     }
+  },
+  "recyclingCenter": {
+    "dashboard": "Ikibaho cy'Ikigo cyo Gukoresha",
+    "totalBookings": "Ibisabwa Byose",
+    "todaysBookings": "Ibisabwa byo Uyu Munsi",
+    "thisWeek": "Iyi Cyumweru",
+    "recentBookings": "Ibisabwa Bya Vuba",
+    "viewAll": "Reba Byose",
+    "todaysSchedule": "Gahunda yo Uyu Munsi",
+    "quickActions": "Ibikorwa Byihuse",
+    "manageBookings": "Gukurikirana Ibisabwa",
+    "updateProfile": "Vuguruza Ikibaho",
+    "noBookingsFound": "Nta bisabwa bivumbuwe",
+    "noBookingsMessage": "Ibisabwa bishya by'ikigo cyo gukoresha bizagaragara hano",
+    "noBookingsToday": "Nta bisabwa byagenwe ku uyu munsi",
+    "loadingBookings": "Ibisabwa biramo gukururwa...",
+    "errorLoadingBookings": "Kurura ibisabwa by'ikigo cyo gukoresha byanze"
+  },
+  "recyclingRequest": {
+    "title": "Ibisabwa byo Gukoresha",
+    "subtitle": "Gukurikirana kandi urebe ibisabwa byose byo gukoresha",
+    "totalRequests": "Ibisabwa Byose",
+    "today": "Uyu Munsi",
+    "upcoming": "Biza",
+    "past": "Byashize",
+    "allRequests": "Ibisabwa Byose",
+    "refresh": "Vuguruza",
+    "loadingRequests": "Ibisabwa biramo gukururwa...",
+    "errorLoadingRequests": "Ikosa Kurura Ibisabwa",
+    "tryAgain": "Ongera Ugerageze",
+    "noRequestsFound": "Nta Bisabwa Bivumbuwe",
+    "noRequestsMessage": "Nta bisabwa ryo gukoresha byakozwe.",
+    "noRequestsFiltered": "Nta bisabwa ryo gukoresha {{filter}} rivumbuwe.",
+    "accessDenied": "Kwinjira Byanze",
+    "accessDeniedMessage": "Nta uburenganzira ufite bwo kureba iyi paji.",
+    "date": "Itariki",
+    "time": "Isaha",
+    "location": "Ahantu",
+    "contactInformation": "Amakuru yo Kwandikira",
+    "addressDetails": "Amakuru y'Aderesi",
+    "district": "Akarere",
+    "sector": "Umurenge",
+    "cell": "Akagari",
+    "street": "Umuhanda",
+    "notes": "Inyandiko"
   }
 } 

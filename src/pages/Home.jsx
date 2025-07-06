@@ -719,6 +719,7 @@ export default function Home() {
                   </p>
                   <Link
                     to="/collection"
+                    onClick={() => localStorage.setItem('bookCollectionClicked', '0')}
                     className="inline-flex items-center gap-2 bg-white text-teal-600 px-6 py-3 rounded-lg font-semibold hover:bg-teal-50 transition-colors duration-200 shadow-sm"
                   >
                     <Plus className="w-5 h-5" />

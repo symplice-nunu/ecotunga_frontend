@@ -154,6 +154,7 @@
     },
     "wasteCollections": {
       "title": "All Requests",
+      "tabTitle": "Waste Collections",
       "date": "Date",
       "time": "Time",
       "location": "Location",
@@ -202,6 +203,32 @@
           "refunded": "Refunded",
           "cancelled": "Cancelled"
         }
+    },
+    "recyclingCenter": {
+      "tabTitle": "Recycling Center",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "status": "Status",
+      "center": "Recycling Center",
+      "wasteType": "Waste Type",
+      "bookings": "bookings",
+      "locationNotSpecified": "Location not specified",
+      "notAssigned": "Not assigned",
+      "wasteTypeNotSpecified": "Not specified",
+      "noBookingsFound": "No recycling center bookings found",
+      "noBookingsWithStatus": "No bookings found with status: {{status}}",
+      "tryDifferentStatus": "Try selecting a different status or view all bookings",
+      "noBookingsMessage": "You haven't booked any recycling center visits yet. Start by scheduling your first visit!",
+      "statuses": {
+        "approved": "Approved",
+        "pending": "Pending",
+        "rejected": "Rejected",
+        "denied": "Rejected",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "unknown": "Unknown"
+      }
     }
   },
   "header": {
@@ -394,5 +421,33 @@
     "noBookingsToday": "No bookings scheduled for today",
     "loadingBookings": "Loading bookings...",
     "errorLoadingBookings": "Failed to load recycling center bookings"
+  },
+  "recyclingRequest": {
+    "title": "Recycling Requests",
+    "subtitle": "Manage and view all recycling center booking requests",
+    "totalRequests": "Total Requests",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "allRequests": "All Requests",
+    "refresh": "Refresh",
+    "loadingRequests": "Loading requests...",
+    "errorLoadingRequests": "Error Loading Requests",
+    "tryAgain": "Try Again",
+    "noRequestsFound": "No Requests Found",
+    "noRequestsMessage": "No recycling requests have been made yet.",
+    "noRequestsFiltered": "No {{filter}} recycling requests found.",
+    "accessDenied": "Access Denied",
+    "accessDeniedMessage": "You don't have permission to view this page.",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+    "contactInformation": "Contact Information",
+    "addressDetails": "Address Details",
+    "district": "District",
+    "sector": "Sector",
+    "cell": "Cell",
+    "street": "Street",
+    "notes": "Notes"
   }
 } 

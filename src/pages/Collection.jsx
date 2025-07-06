@@ -3,6 +3,7 @@ import { getUserProfile } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
 import { getCompanies, getCompanyById } from '../services/companyApi';
 import { initiateMobileMoneyPayment } from '../services/paymentService';
+import { createReceipt } from '../services/receiptApi';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
@@ -197,6 +198,9 @@ export default function Collection() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   
+  // Back button state
+  const [showBackButton, setShowBackButton] = useState(false);
+  
   // Pay on Pickup Modal state
   const [showPayOnPickupModal, setShowPayOnPickupModal] = useState(false);
   
@@ -232,6 +236,12 @@ export default function Collection() {
   }, [user, navigate]);
 
   // Fetch user profile on component mount
+  // Check localStorage for bookCollectionClicked value
+  useEffect(() => {
+    const bookCollectionClicked = localStorage.getItem('bookCollectionClicked');
+    setShowBackButton(bookCollectionClicked === '1');
+  }, []);
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -437,21 +447,38 @@ export default function Collection() {
   // ];
 
   // Stepper UI
+  const handleBackButtonClick = () => {
+    localStorage.setItem('bookCollectionClicked', '0');
+    navigate('/waste-collections?status=all');
+  };
+
   const Stepper = () => {
     // Calculate the percent width for the green line
     const percent = steps.length === 1 ? 0 : (step) / (steps.length - 1) * 100;
     return (
-      <div className="flex flex-col items-center w-full mb-8">
-        <h2 className="text-2xl font-bold text-green-600 mb-2 text-center">
-          <div className='flex items-center gap-2'>
-          <span role="img" aria-label="waste">
-            <img src={collection} alt="waste" className="w-[48px] h-[36px]" />
-          </span> 
-          <div>Book your waste collection in minutes</div>
+      <div className='flex'>
+        {showBackButton && (
+          <div>
+            <button 
+              onClick={handleBackButtonClick}
+              className='bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors'
+            >
+              Back
+            </button>
           </div>
-        </h2>
-        
-        <hr className='w-full max-w-4xl mt-7 border-2 border-[#0C9488]' />
+        )}
+        <div className="flex flex-col items-center w-full mb-8">
+          <h2 className="text-2xl font-bold text-green-600 mb-2 text-center">
+            <div className='flex items-center gap-2'>
+            <span role="img" aria-label="waste">
+              <img src={collection} alt="waste" className="w-[48px] h-[36px]" />
+            </span> 
+            <div>Book your waste collection in minutes</div>
+            </div>
+          </h2>
+          
+          <hr className='w-full max-w-4xl mt-7 border-2 border-[#0C9488]' />
+        </div>
       </div>
     );
   };
@@ -615,6 +642,33 @@ export default function Collection() {
         transactionDate: new Date().toLocaleString(),
         company: selectedCompanyDetails?.name || 'Selected Company'
       };
+      
+      // Store receipt in database
+      try {
+        const receiptDataForDB = {
+          waste_collection_id: response.id,
+          booking_id: response.id.toString(),
+          customer_name: receipt.customerName,
+          email: receipt.email,
+          phone: receipt.phone,
+          company: receipt.company,
+          pickup_date: receipt.pickupDate,
+          time_slot: receipt.timeSlot,
+          location: receipt.location,
+          amount: receipt.amount,
+          payment_method: receipt.paymentMethod,
+          payment_status: receipt.paymentStatus,
+          transaction_date: receipt.transactionDate,
+          receipt_data: receipt // Store complete receipt data as JSON
+        };
+        
+        console.log('Storing receipt in database:', receiptDataForDB);
+        const receiptResponse = await createReceipt(receiptDataForDB);
+        console.log('Receipt stored successfully:', receiptResponse);
+      } catch (receiptError) {
+        console.error('Error storing receipt in database:', receiptError);
+        // Don't fail the booking if receipt storage fails
+      }
       
       setReceiptData(receipt);
       setShowReceipt(true);
@@ -1280,7 +1334,7 @@ export default function Collection() {
           {/* Receipt Header */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900">Payment Receipt</h3>
+              {/* <h3 className="text-xl font-bold text-gray-900">Payment Receipt</h3> */}
               <button
                 onClick={handleCloseReceipt}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -1290,7 +1344,7 @@ export default function Collection() {
                 </svg>
               </button>
             </div>
-            <p className="text-gray-600 mt-2">Your booking has been confirmed successfully!</p>
+            {/* <p className="text-gray-600 mt-2">Your booking has been confirmed successfully!</p> */}
           </div>
 
           {/* Receipt Content */}
@@ -1306,7 +1360,7 @@ export default function Collection() {
             </div>
 
             {/* Receipt Details */}
-            <div className="space-y-3 text-sm">
+            {/* <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Customer:</span>
                 <span className="font-medium">{receiptData.customerName}</span>
@@ -1343,43 +1397,25 @@ export default function Collection() {
                 <span className="text-gray-600">Transaction Date:</span>
                 <span className="font-medium">{receiptData.transactionDate}</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Total Amount */}
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            {/* <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold text-green-800">Total Amount:</span>
                 <span className="text-2xl font-bold text-green-600">RWF {receiptData.amount?.toLocaleString()}</span>
               </div>
-            </div>
-
-            {/* Pay on Pickup Notice */}
-            {/* {receiptData.paymentMethod === 'Pay on Pickup' && (
-              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <span className="text-orange-600 text-lg">💰</span>
-                  <div className="text-sm text-orange-700">
-                    <strong>Payment Instructions:</strong>
-                    <ul className="mt-2 space-y-1 list-disc list-inside">
-                      <li>No payment required now</li>
-                      <li>Pay RWF {receiptData.amount?.toLocaleString()} when collector arrives</li>
-                      <li>Cash or mobile money accepted</li>
-                      <li>Keep this receipt for reference</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            )} */}
+            </div> */}
 
             {/* Action Buttons */}
-            <div className="flex gap-3 mt-6">
+            {/* <div className="flex gap-3 mt-6">
               <button
                 onClick={handlePrintReceipt}
                 className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition"
               >
                 📄 Print Receipt
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -1835,6 +1871,33 @@ export default function Collection() {
           company: selectedCompanyDetails?.name || 'Selected Company'
         };
         
+        // Store receipt in database
+        try {
+          const receiptDataForDB = {
+            waste_collection_id: response.id,
+            booking_id: response.id.toString(),
+            customer_name: receipt.customerName,
+            email: receipt.email,
+            phone: receipt.phone,
+            company: receipt.company,
+            pickup_date: receipt.pickupDate,
+            time_slot: receipt.timeSlot,
+            location: receipt.location,
+            amount: receipt.amount,
+            payment_method: receipt.paymentMethod,
+            payment_status: receipt.paymentStatus,
+            transaction_date: receipt.transactionDate,
+            receipt_data: receipt // Store complete receipt data as JSON
+          };
+          
+          console.log('Storing Pay on Pickup receipt in database:', receiptDataForDB);
+          const receiptResponse = await createReceipt(receiptDataForDB);
+          console.log('Pay on Pickup receipt stored successfully:', receiptResponse);
+        } catch (receiptError) {
+          console.error('Error storing Pay on Pickup receipt in database:', receiptError);
+          // Don't fail the booking if receipt storage fails
+        }
+        
         setReceiptData(receipt);
         setShowReceipt(true);
         setShowPayOnPickupModal(false);
@@ -1892,10 +1955,10 @@ export default function Collection() {
             {/* Receipt Details */}
             <div className="space-y-4 mb-6">
               {/* Customer Information */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              {/* <div className="bg-gray-50 rounded-lg p-4">
                 <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <span className="text-blue-500">👤</span>
-                  Customer Information
+                  Customer Informationghfh
                 </h5>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -1915,7 +1978,7 @@ export default function Collection() {
                     <span className="font-medium">{tempBookingData.house_number || 'Not specified'}</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Pickup Details */}
               <div className="bg-gray-50 rounded-lg p-4">
@@ -1943,7 +2006,7 @@ export default function Collection() {
               </div>
 
               {/* Location Details */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              {/* <div className="bg-gray-50 rounded-lg p-4">
                 <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <span className="text-purple-500">📍</span>
                   Location Details
@@ -1966,7 +2029,7 @@ export default function Collection() {
                     <span className="font-medium">{tempBookingData.street || 'Not specified'}</span>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Company Details */}
               <div className="bg-gray-50 rounded-lg p-4">

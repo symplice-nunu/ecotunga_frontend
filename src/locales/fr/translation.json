@@ -158,6 +158,7 @@
     },
     "wasteCollections": {
       "title": "Toutes les Demandes",
+      "tabTitle": "Collectes de Déchets",
       "date": "Date",
       "time": "Heure",
       "location": "Lieu",
@@ -192,6 +193,32 @@
         "rejected": "Rejeté",
         "denied": "Rejeté",
         "completed": "Terminé",
+        "unknown": "Inconnu"
+      }
+    },
+    "recyclingCenter": {
+      "tabTitle": "Centre de Recyclage",
+      "date": "Date",
+      "time": "Heure",
+      "location": "Lieu",
+      "status": "Statut",
+      "center": "Centre de Recyclage",
+      "wasteType": "Type de Déchet",
+      "bookings": "réservations",
+      "locationNotSpecified": "Lieu non spécifié",
+      "notAssigned": "Non assigné",
+      "wasteTypeNotSpecified": "Non spécifié",
+      "noBookingsFound": "Aucune réservation de centre de recyclage trouvée",
+      "noBookingsWithStatus": "Aucune réservation trouvée avec le statut : {{status}}",
+      "tryDifferentStatus": "Essayez de sélectionner un statut différent ou voir toutes les réservations",
+      "noBookingsMessage": "Vous n'avez pas encore réservé de visite au centre de recyclage. Commencez par planifier votre première visite !",
+      "statuses": {
+        "approved": "Approuvé",
+        "pending": "En attente",
+        "rejected": "Rejeté",
+        "denied": "Rejeté",
+        "completed": "Terminé",
+        "cancelled": "Annulé",
         "unknown": "Inconnu"
       }
     }
@@ -351,5 +378,50 @@
       "video": "Vidéo",
       "article": "Article"
     }
+  },
+  "recyclingCenter": {
+    "dashboard": "Tableau de Bord du Centre de Recyclage",
+    "totalBookings": "Total des Réservations",
+    "todaysBookings": "Réservations d'Aujourd'hui",
+    "thisWeek": "Cette Semaine",
+    "recentBookings": "Réservations Récentes",
+    "viewAll": "Voir Tout",
+    "todaysSchedule": "Programme d'Aujourd'hui",
+    "quickActions": "Actions Rapides",
+    "manageBookings": "Gérer les Réservations",
+    "updateProfile": "Mettre à Jour le Profil",
+    "noBookingsFound": "Aucune réservation trouvée",
+    "noBookingsMessage": "Les nouvelles réservations du centre de recyclage apparaîtront ici",
+    "noBookingsToday": "Aucune réservation programmée pour aujourd'hui",
+    "loadingBookings": "Chargement des réservations...",
+    "errorLoadingBookings": "Échec du chargement des réservations du centre de recyclage"
+  },
+  "recyclingRequest": {
+    "title": "Demandes de Recyclage",
+    "subtitle": "Gérer et voir toutes les demandes de réservation du centre de recyclage",
+    "totalRequests": "Total des Demandes",
+    "today": "Aujourd'hui",
+    "upcoming": "À Venir",
+    "past": "Passé",
+    "allRequests": "Toutes les Demandes",
+    "refresh": "Actualiser",
+    "loadingRequests": "Chargement des demandes...",
+    "errorLoadingRequests": "Erreur de Chargement des Demandes",
+    "tryAgain": "Réessayer",
+    "noRequestsFound": "Aucune Demande Trouvée",
+    "noRequestsMessage": "Aucune demande de recyclage n'a encore été faite.",
+    "noRequestsFiltered": "Aucune demande de recyclage {{filter}} trouvée.",
+    "accessDenied": "Accès Refusé",
+    "accessDeniedMessage": "Vous n'avez pas la permission de voir cette page.",
+    "date": "Date",
+    "time": "Heure",
+    "location": "Lieu",
+    "contactInformation": "Informations de Contact",
+    "addressDetails": "Détails de l'Adresse",
+    "district": "District",
+    "sector": "Secteur",
+    "cell": "Cellule",
+    "street": "Rue",
+    "notes": "Notes"
   }
 } 

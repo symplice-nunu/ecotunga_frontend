@@ -89,6 +89,25 @@ const fallbackCellOptions = [
   'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
 ];
 
+// Waste types mapping for display
+const wasteTypesMapping = {
+  'plastic_bottles': { label: 'Plastic Bottles', icon: '🥤' },
+  'plastic_bags': { label: 'Plastic Bags', icon: '🛍️' },
+  'paper': { label: 'Paper & Cardboard', icon: '📄' },
+  'glass': { label: 'Glass', icon: '🍾' },
+  'aluminum': { label: 'Aluminum Cans', icon: '🥫' },
+  'steel': { label: 'Steel/Metal', icon: '🔧' },
+  'electronics': { label: 'Electronics (E-waste)', icon: '💻' },
+  'batteries': { label: 'Batteries', icon: '🔋' },
+  'textiles': { label: 'Textiles & Clothing', icon: '👕' },
+  'organic': { label: 'Organic Waste', icon: '🍃' },
+  'construction': { label: 'Construction Materials', icon: '🧱' },
+  'automotive': { label: 'Automotive Parts', icon: '🚗' },
+  'medical': { label: 'Medical Waste', icon: '🏥' },
+  'hazardous': { label: 'Hazardous Materials', icon: '⚠️' },
+  'other': { label: 'Other Materials', icon: '📦' }
+};
+
 const RecyclingCenter = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -100,6 +119,17 @@ const RecyclingCenter = () => {
   const [companiesLoading, setCompaniesLoading] = useState(false);
   const companiesFetchedRef = useRef(false);
   const [cellOptions, setCellOptions] = useState([]);
+  
+  // Helper function to parse waste types from JSON string
+  const parseWasteTypes = (wasteTypesString) => {
+    if (!wasteTypesString) return [];
+    try {
+      return typeof wasteTypesString === 'string' ? JSON.parse(wasteTypesString) : wasteTypesString;
+    } catch (error) {
+      console.error('Error parsing waste types:', error);
+      return [];
+    }
+  };
   
   // Location state
   const [location, setLocation] = useState({
@@ -224,8 +254,17 @@ const RecyclingCenter = () => {
   const fetchRecyclingCenters = async () => {
     try {
       setCompaniesLoading(true);
-      const response = await getCompanies();
-      const allCompanies = response.data;
+      const [companiesResponse, usersResponse] = await Promise.all([
+        getCompanies(),
+        fetch('http://localhost:5001/api/users', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }).then(res => res.json())
+      ]);
+      
+      const allCompanies = companiesResponse.data;
+      const allUsers = usersResponse;
       
       // Filter for recycling centers only
       const recyclingCenters = allCompanies.filter(company => 
@@ -235,8 +274,26 @@ const RecyclingCenter = () => {
         company.cell === selectedLocation.cell
       );
       
-      setCompanies(recyclingCenters);
-      setFilteredCompanies(recyclingCenters);
+      // Merge waste types from both companies and users tables
+      const enrichedRecyclingCenters = recyclingCenters.map(company => {
+        // Find corresponding user by email
+        const correspondingUser = allUsers.find(user => user.email === company.email);
+        
+        // Parse waste types from both sources
+        const companyWasteTypes = parseWasteTypes(company.waste_types);
+        const userWasteTypes = correspondingUser ? parseWasteTypes(correspondingUser.waste_types) : [];
+        
+        // Merge waste types, removing duplicates
+        const mergedWasteTypes = [...new Set([...companyWasteTypes, ...userWasteTypes])];
+        
+        return {
+          ...company,
+          waste_types: mergedWasteTypes.length > 0 ? JSON.stringify(mergedWasteTypes) : company.waste_types
+        };
+      });
+      
+      setCompanies(enrichedRecyclingCenters);
+      setFilteredCompanies(enrichedRecyclingCenters);
       companiesFetchedRef.current = true;
     } catch (error) {
       console.error('Error fetching recycling centers:', error);
@@ -270,8 +327,34 @@ const RecyclingCenter = () => {
 
   const handleCompanySelection = async (companyId) => {
     try {
-      const response = await getCompanyById(companyId);
-      setSelectedCompanyDetails(response.data);
+      const [companyResponse, usersResponse] = await Promise.all([
+        getCompanyById(companyId),
+        fetch('http://localhost:5001/api/users', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }).then(res => res.json())
+      ]);
+      
+      const companyData = companyResponse.data;
+      const allUsers = usersResponse;
+      
+      // Find corresponding user by email
+      const correspondingUser = allUsers.find(user => user.email === companyData.email);
+      
+      // Parse waste types from both sources
+      const companyWasteTypes = parseWasteTypes(companyData.waste_types);
+      const userWasteTypes = correspondingUser ? parseWasteTypes(correspondingUser.waste_types) : [];
+      
+      // Merge waste types, removing duplicates
+      const mergedWasteTypes = [...new Set([...companyWasteTypes, ...userWasteTypes])];
+      
+      const enrichedCompanyData = {
+        ...companyData,
+        waste_types: mergedWasteTypes.length > 0 ? JSON.stringify(mergedWasteTypes) : companyData.waste_types
+      };
+      
+      setSelectedCompanyDetails(enrichedCompanyData);
       setSelectedCompany(companyId);
     } catch (error) {
       console.error('Error fetching company details:', error);
@@ -637,31 +720,81 @@ const RecyclingCenter = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Available Recycling Centers</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredCompanies.map((company) => (
-                <div
-                  key={company.id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedCompany === company.id
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-green-300'
-                  }`}
-                  onClick={() => handleCompanySelection(company.id)}
-                >
-                  <h4 className="font-semibold text-green-700 mb-2">{company.name}</h4>
-                  <div className="flex items-center mb-2">
-                    <MapPinIcon className="h-4 w-4 text-green-600 mr-2" />
-                    <p className="text-sm text-gray-700">{company.street}, {company.cell}</p>
+              {filteredCompanies.map((company) => {
+                const wasteTypes = parseWasteTypes(company.waste_types);
+                return (
+                  <div
+                    key={company.id}
+                    className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                      selectedCompany === company.id
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 hover:border-green-300'
+                    }`}
+                    onClick={() => handleCompanySelection(company.id)}
+                  >
+                    <h4 className="font-semibold text-green-700 mb-2">{company.name}</h4>
+                    {company.website && (
+                      <div className="flex items-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 0c2.21 0 4 4.03 4 9s-1.79 9-4 9-4-4.03-4-9 1.79-9 4-9zm0 0v18" />
+                        </svg>
+                        <a
+                          href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-700 underline hover:text-blue-900 truncate max-w-xs"
+                          title={company.website}
+                        >
+                          {company.website.replace(/^https?:\/\//, '')}
+                        </a>
+                      </div>
+                    )}
+                    <div className="flex items-center mb-2">
+                      <MapPinIcon className="h-4 w-4 text-green-600 mr-2" />
+                      <p className="text-sm text-gray-700">{company.street}, {company.cell}</p>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <PhoneIcon className="h-4 w-4 text-green-600 mr-2" />
+                      <p className="text-sm text-gray-700">{company.phone}</p>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <ClockIcon className="h-4 w-4 text-green-600 mr-2" />
+                      <p className="text-sm text-gray-700">Mon-Sat: 8AM-6PM</p>
+                    </div>
+                    
+                    {/* Waste Types Display */}
+                    {(() => {
+                      const wasteTypes = parseWasteTypes(company.waste_types);
+                      return wasteTypes.length > 0 ? (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <p className="text-xs font-medium text-gray-600 mb-2">Accepts:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {wasteTypes.slice(0, 4).map((wasteType) => {
+                              const typeInfo = wasteTypesMapping[wasteType];
+                              return typeInfo ? (
+                                <span
+                                  key={wasteType}
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                                  title={typeInfo.label}
+                                >
+                                  <span>{typeInfo.icon}</span>
+                                  <span className="hidden sm:inline">{typeInfo.label}</span>
+                                </span>
+                              ) : null;
+                            })}
+                            {wasteTypes.length > 4 && (
+                              <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                +{wasteTypes.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+                    
                   </div>
-                  <div className="flex items-center mb-2">
-                    <PhoneIcon className="h-4 w-4 text-green-600 mr-2" />
-                    <p className="text-sm text-gray-700">{company.phone}</p>
-                  </div>
-                  <div className="flex items-center">
-                    <ClockIcon className="h-4 w-4 text-green-600 mr-2" />
-                    <p className="text-sm text-gray-700">Mon-Sat: 8AM-6PM</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -669,6 +802,45 @@ const RecyclingCenter = () => {
           {selectedCompany && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Book Service</h3>
+              
+              {/* Selected Company Info */}
+              {selectedCompanyDetails && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2">{selectedCompanyDetails.name}</h4>
+                  <div className="flex items-center mb-2">
+                    <MapPinIcon className="h-4 w-4 text-green-600 mr-2" />
+                    <p className="text-sm text-gray-700">{selectedCompanyDetails.street}, {selectedCompanyDetails.cell}</p>
+                  </div>
+                  <div className="flex items-center mb-2">
+                    <PhoneIcon className="h-4 w-4 text-green-600 mr-2" />
+                    <p className="text-sm text-gray-700">{selectedCompanyDetails.phone}</p>
+                  </div>
+                  
+                  {/* Waste Types for Selected Company */}
+                  {(() => {
+                    const wasteTypes = parseWasteTypes(selectedCompanyDetails.waste_types);
+                    return wasteTypes.length > 0 ? (
+                      <div className="mt-3">
+                        <p className="text-sm font-medium text-gray-700 mb-2">This center accepts:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {wasteTypes.map((wasteType) => {
+                            const typeInfo = wasteTypesMapping[wasteType];
+                            return typeInfo ? (
+                              <span
+                                key={wasteType}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+                              >
+                                <span>{typeInfo.icon}</span>
+                                <span>{typeInfo.label}</span>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              )}
               
               {/* Service Type Selection */}
               <div className="mb-6">

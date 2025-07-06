@@ -18,6 +18,7 @@ import WasteCollections from './pages/WasteCollections';
 import AdminWasteCollections from './pages/AdminWasteCollections';
 import CommunityEvents from './pages/CommunityEvents';
 import EducationMaterials from './pages/EducationMaterials';
+import RecyclingRequest from './pages/RecyclingRequest';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
               <Route path="companies" element={<CompanyList />} />
               <Route path="community" element={<CommunityEvents />} />
               <Route path="education" element={<EducationMaterials />} />
+              <Route path="recycling-request" element={<RecyclingRequest />} />
             </Route>
             
             {/* Catch all route */}

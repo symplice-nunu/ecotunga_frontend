@@ -1,21 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
+import { getReceiptsByWasteCollectionId } from '../services/receiptApi';
+import { getUserRecyclingCenterBookings, getRecyclingCenterBookingsByCompany, getAllRecyclingCenterBookings } from '../services/recyclingCenterApi';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, Link } from 'react-router-dom';
-import { AlertCircle, FileText, Calendar, Clock, MapPin, Building2, Filter, RefreshCw, TrendingUp, Plus, Truck, X, Users } from 'lucide-react';
+import { AlertCircle, FileText, Calendar, Clock, MapPin, Building2, Filter, RefreshCw, TrendingUp, Plus, Truck, X, Users, Receipt, Recycle } from 'lucide-react';
 
 export default function WasteCollections() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [collections, setCollections] = useState([]);
+  const [recyclingBookings, setRecyclingBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recyclingLoading, setRecyclingLoading] = useState(false);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
+  const [recyclingError, setRecyclingError] = useState('');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'pending');
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [receiptLoading, setReceiptLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('waste'); // 'waste' or 'recycling'
 
+  // Fetch waste collections
   useEffect(() => {
     const fetchCollections = async () => {
       try {
@@ -41,7 +51,9 @@ export default function WasteCollections() {
         }
         
         console.log('✅ API response received:', response);
-        setCollections(response || []);
+        // Ensure we always set an array, even if the response is not an array
+        const collectionsArray = Array.isArray(response) ? response : (response?.collections || response?.data || []);
+        setCollections(collectionsArray);
       } catch (err) {
         console.error('❌ Error fetching collections:', err);
         console.error('❌ Error details:', {
@@ -80,6 +92,73 @@ export default function WasteCollections() {
     }
   }, [user]);
 
+  // Fetch recycling center bookings
+  useEffect(() => {
+    const fetchRecyclingBookings = async () => {
+      try {
+        setRecyclingLoading(true);
+        setRecyclingError('');
+        
+        console.log('🔍 Fetching recycling center bookings for user:', user);
+        console.log('👤 User role:', user?.role);
+        
+        let response;
+        if (user?.role === 'admin') {
+          // For admin users, get all recycling center bookings
+          console.log('🔍 Admin user - fetching all recycling center bookings');
+          response = await getAllRecyclingCenterBookings();
+        } else if (user?.role === 'recycling_center_owner') {
+          // For recycling center owners, get bookings for their center
+          console.log('🔍 Recycling center owner - fetching bookings by company');
+          response = await getRecyclingCenterBookingsByCompany();
+        } else {
+          // For regular users, get their own bookings
+          console.log('🔍 Regular user - fetching user recycling center bookings');
+          response = await getUserRecyclingCenterBookings();
+        }
+        
+        console.log('✅ Recycling API response received:', response);
+        // Ensure we always set an array, even if the response is not an array
+        const bookingsArray = Array.isArray(response) ? response : (response?.bookings || response?.data || []);
+        setRecyclingBookings(bookingsArray);
+      } catch (err) {
+        console.error('❌ Error fetching recycling bookings:', err);
+        console.error('❌ Error details:', {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          config: err.config
+        });
+        
+        let errorMessage = 'Failed to load recycling center bookings';
+        
+        if (err.response?.status === 401) {
+          errorMessage = 'Authentication failed. Please log in again.';
+        } else if (err.response?.status === 403) {
+          errorMessage = 'Access denied. You do not have permission to view these bookings.';
+        } else if (err.response?.status === 404) {
+          errorMessage = 'No recycling center bookings found for your account.';
+        } else if (err.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        setRecyclingError(errorMessage);
+      } finally {
+        setRecyclingLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchRecyclingBookings();
+    } else {
+      console.log('⚠️ No user found, skipping recycling fetch');
+      setRecyclingLoading(false);
+    }
+  }, [user]);
+
   // Update status filter when URL parameters change
   useEffect(() => {
     const statusFromUrl = searchParams.get('status');
@@ -97,8 +176,21 @@ export default function WasteCollections() {
     return collection.status === statusFilter;
   });
 
-  // Get unique statuses for filter options
-  const availableStatuses = [...new Set(collections.map(collection => collection.status))].filter(Boolean);
+  // Filter recycling bookings based on status
+  const filteredRecyclingBookings = (Array.isArray(recyclingBookings) ? recyclingBookings : []).filter(booking => {
+    if (statusFilter === 'all') return true;
+    if (statusFilter === 'denied') {
+      return booking.status === 'denied' || booking.status === 'rejected';
+    }
+    return booking.status === statusFilter;
+  });
+
+  // Get unique statuses for filter options (combine both collections and recycling bookings)
+  const allStatuses = [
+    ...(Array.isArray(collections) ? collections : []).map(collection => collection.status),
+    ...(Array.isArray(recyclingBookings) ? recyclingBookings : []).map(booking => booking.status)
+  ].filter(Boolean);
+  const availableStatuses = [...new Set(allStatuses)];
 
   // Calculate statistics
   // const totalCollections = collections.length;
@@ -220,6 +312,38 @@ export default function WasteCollections() {
     setSelectedCollection(null);
   };
 
+  const handleViewReceipt = async (collection, event) => {
+    event.stopPropagation(); // Prevent row click
+    
+    // Only show receipt for paid collections
+    const effectivePaymentStatus = getEffectivePaymentStatus(collection.payment_status, collection.status);
+    if (effectivePaymentStatus !== 'paid') {
+      return;
+    }
+
+    try {
+      setReceiptLoading(true);
+      const response = await getReceiptsByWasteCollectionId(collection.id);
+      
+      if (response.receipts && response.receipts.length > 0) {
+        setSelectedReceipt(response.receipts[0]); // Get the first receipt
+        setShowReceiptModal(true);
+      } else {
+        alert('No receipt found for this collection.');
+      }
+    } catch (error) {
+      console.error('Error fetching receipt:', error);
+      alert('Failed to load receipt. Please try again.');
+    } finally {
+      setReceiptLoading(false);
+    }
+  };
+
+  const closeReceiptModal = () => {
+    setShowReceiptModal(false);
+    setSelectedReceipt(null);
+  };
+
   // Helper function to check if location data is valid (not placeholder)
   const isValidLocationData = (value) => {
     if (!value) return false;
@@ -227,6 +351,46 @@ export default function WasteCollections() {
     const isValid = !placeholderValues.includes(value.trim());
     console.log(`🔍 Location validation: "${value}" -> ${isValid}`);
     return isValid;
+  };
+
+  // Helper functions for recycling center bookings
+  const getRecyclingStatusColor = (status) => {
+    switch (status) {
+      case 'approved': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'denied':
+      case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
+      case 'completed': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'cancelled': return 'bg-gray-50 text-gray-700 border-gray-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getRecyclingStatusIcon = (status) => {
+    switch (status) {
+      case 'approved': return '✓';
+      case 'pending': return '⏳';
+      case 'denied':
+      case 'rejected': return '✗';
+      case 'completed': return '✓';
+      case 'cancelled': return '🚫';
+      default: return '?';
+    }
+  };
+
+  const formatRecyclingDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatRecyclingTime = (timeString) => {
+    if (!timeString) return 'TBD';
+    return timeString;
   };
 
   return (
@@ -252,6 +416,7 @@ export default function WasteCollections() {
           <div className="mb-6">
             <Link
               to="/collection"
+              onClick={() => localStorage.setItem('bookCollectionClicked', '1')}
               className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-teal-600 hover:to-teal-700 transition-all duration-200 shadow-sm"
             >
               <Plus className="w-5 h-5" />
@@ -265,7 +430,7 @@ export default function WasteCollections() {
 
         {/* Main Content Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* Header with Filter */}
+          {/* Tabs */}
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -300,32 +465,73 @@ export default function WasteCollections() {
                 </div>
                 
                 <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                  {loading ? t('common.loading') || 'Loading...' : `${filteredCollections.length} ${t('home.wasteCollections.collections') || 'collections'}`}
+                  <RefreshCw className={`w-4 h-4 ${(loading || recyclingLoading) ? 'animate-spin' : ''}`} />
+                  {loading || recyclingLoading ? t('common.loading') || 'Loading...' : 
+                    activeTab === 'waste' ? 
+                      `${Array.isArray(filteredCollections) ? filteredCollections.length : 0} ${t('home.wasteCollections.collections') || 'collections'}` :
+                      `${Array.isArray(filteredRecyclingBookings) ? filteredRecyclingBookings.length : 0} ${t('home.recyclingCenter.bookings') || 'bookings'}`
+                  }
                 </div>
               </div>
+            </div>
+            
+            {/* Tab Navigation */}
+            <div className="mt-4 border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => {
+                    setActiveTab('waste');
+                    setStatusFilter('all');
+                  }}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200 ${
+                    activeTab === 'waste'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Truck className="w-4 h-4" />
+                  {t('home.wasteCollections.tabTitle') || 'Waste Collections'}
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('recycling');
+                    setStatusFilter('pending');
+                  }}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200 ${
+                    activeTab === 'recycling'
+                      ? 'border-emerald-500 text-emerald-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Recycle className="w-4 h-4" />
+                  {t('home.recyclingCenter.tabTitle') || 'Recycling Center'}
+                </button>
+              </nav>
             </div>
           </div>
           
           {/* Table Content */}
           <div className="p-6">
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-16 bg-gray-200 rounded-xl"></div>
+            {activeTab === 'waste' ? (
+              // Waste Collections Tab
+              <>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-16 bg-gray-200 rounded-xl"></div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                  <AlertCircle className="w-8 h-8 text-red-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Collections</h3>
-                <p className="text-gray-600">{error}</p>
-              </div>
-            ) : filteredCollections.length > 0 ? (
+                ) : error ? (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                      <AlertCircle className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Collections</h3>
+                    <p className="text-gray-600">{error}</p>
+                  </div>
+                ) : (Array.isArray(filteredCollections) && filteredCollections.length > 0) ? (
               <div className="overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
@@ -364,10 +570,16 @@ export default function WasteCollections() {
                             Payment
                           </div>
                         </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <Receipt className="w-4 h-4" />
+                            Receipt
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {filteredCollections.slice(0, 10).map((collection, index) => (
+                      {(Array.isArray(filteredCollections) ? filteredCollections : []).slice(0, 10).map((collection, index) => (
                         <tr 
                           key={collection.id || index} 
                           className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
@@ -428,6 +640,34 @@ export default function WasteCollections() {
                               </span>
                             </div>
                           </td>
+                          <td className="px-6 py-4">
+                            {(() => {
+                              const effectivePaymentStatus = getEffectivePaymentStatus(collection.payment_status, collection.status);
+                              if (effectivePaymentStatus === 'paid') {
+                                return (
+                                  <button
+                                    onClick={(e) => handleViewReceipt(collection, e)}
+                                    disabled={receiptLoading}
+                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {receiptLoading ? (
+                                      <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                      <Receipt className="w-4 h-4" />
+                                    )}
+                                    View Receipt
+                                  </button>
+                                );
+                              } else {
+                                return (
+                                  <span className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-500 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <Receipt className="w-4 h-4" />
+                                    Not Available
+                                  </span>
+                                );
+                              }
+                            })()}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -463,6 +703,150 @@ export default function WasteCollections() {
                   }
                 </p>
               </div>
+            )}
+              </>
+            ) : (
+              // Recycling Center Tab
+              <>
+                {recyclingLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="h-16 bg-gray-200 rounded-xl"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : recyclingError ? (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                      <AlertCircle className="w-8 h-8 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Recycling Bookings</h3>
+                    <p className="text-gray-600">{recyclingError}</p>
+                  </div>
+                ) : (Array.isArray(filteredRecyclingBookings) && filteredRecyclingBookings.length > 0) ? (
+                  <div className="overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full">
+                        <thead>
+                          <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                {t('home.recyclingCenter.date') || 'Date'}
+                              </div>
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                {t('home.recyclingCenter.time') || 'Time'}
+                              </div>
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4" />
+                                {t('home.recyclingCenter.location') || 'Location'}
+                              </div>
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              {t('home.recyclingCenter.status') || 'Status'}
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4" />
+                                {t('home.recyclingCenter.center') || 'Recycling Center'}
+                              </div>
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">♻️</span>
+                                {t('home.recyclingCenter.wasteType') || 'Waste Type'}
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {(Array.isArray(filteredRecyclingBookings) ? filteredRecyclingBookings : []).slice(0, 10).map((booking, index) => (
+                            <tr 
+                              key={booking.id || index} 
+                              className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                            >
+                              <td className="px-6 py-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {formatRecyclingDate(booking.booking_date)}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="text-sm text-gray-900 font-medium">
+                                  {formatRecyclingTime(booking.time_slot)}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="p-2 bg-blue-50 rounded-lg">
+                                    <MapPin className="w-4 h-4 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900">{booking.street || 'N/A'}</div>
+                                    <div className="text-sm text-gray-500">
+                                      {booking.sector && booking.district 
+                                        ? `${booking.sector}, ${booking.district}`
+                                        : t('home.recyclingCenter.locationNotSpecified') || 'Location not specified'
+                                      }
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-full border ${getRecyclingStatusColor(booking.status)}`}>
+                                  {/* <span className="text-lg">{getRecyclingStatusIcon(booking.status)}</span> */}
+                                  Pending
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-purple-50 rounded-lg">
+                                    <Building2 className="w-4 h-4 text-purple-600" />
+                                  </div>
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {booking.recycling_center_name || t('home.recyclingCenter.notAssigned') || 'Not Assigned'}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">♻️</span>
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full border bg-green-50 text-green-700 border-green-200">
+                                    {booking.waste_type || t('home.recyclingCenter.wasteTypeNotSpecified') || 'Not specified'}
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+                      <Recycle className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {statusFilter === 'all' 
+                        ? t('home.recyclingCenter.noBookingsFound') || 'No recycling center bookings found'
+                        : t('home.recyclingCenter.noBookingsWithStatus', { status: t(`home.recyclingCenter.statuses.${statusFilter}`) || statusFilter }) || `No bookings with status: ${statusFilter}`
+                      }
+                    </h3>
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      {statusFilter === 'all' 
+                        ? t('home.recyclingCenter.noBookingsMessage') || 'You haven\'t booked any recycling center visits yet. Start by scheduling your first visit!'
+                        : t('home.recyclingCenter.tryDifferentStatus') || 'Try selecting a different status filter to see more bookings.'
+                      }
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -787,6 +1171,118 @@ export default function WasteCollections() {
               <div className="flex items-center justify-end gap-4">
                 <button
                   onClick={closeModal}
+                  className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  {t('common.close') || 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Modal */}
+      {showReceiptModal && selectedReceipt && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-100">
+            {/* Modal Header */}
+            <div className="relative bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6 rounded-t-3xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <Receipt className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      Payment Receipt
+                    </h2>
+                    <p className="text-emerald-100 text-sm mt-1">
+                      Receipt #{selectedReceipt.id || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeReceiptModal}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 group"
+                >
+                  <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+              {/* Receipt Header */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <span className="text-green-600 text-xl">✅</span>
+                  </div>
+                  <h4 className="text-lg font-semibold text-green-800">Booking Confirmed</h4>
+                  <p className="text-sm text-gray-600">Receipt #{selectedReceipt.booking_id}</p>
+                </div>
+              </div>
+
+              {/* Receipt Details */}
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Customer:</span>
+                  <span className="font-medium">{selectedReceipt.customer_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Email:</span>
+                  <span className="font-medium">{selectedReceipt.email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Phone:</span>
+                  <span className="font-medium">{selectedReceipt.phone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Company:</span>
+                  <span className="font-medium">{selectedReceipt.company}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Pickup Date:</span>
+                  <span className="font-medium">{selectedReceipt.pickup_date}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Time Slot:</span>
+                  <span className="font-medium">{selectedReceipt.time_slot}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Location:</span>
+                  <span className="font-medium">{selectedReceipt.location}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Method:</span>
+                  <span className="font-medium">{selectedReceipt.payment_method}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Transaction Date:</span>
+                  <span className="font-medium">{selectedReceipt.transaction_date}</span>
+                </div>
+              </div>
+
+              {/* Total Amount */}
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold text-green-800">Total Amount:</span>
+                  <span className="text-2xl font-bold text-green-600">RWF {parseFloat(selectedReceipt.amount).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 rounded-b-3xl">
+              <div className="flex items-center justify-end gap-4">
+                <button
+                  onClick={() => window.print()}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  📄 Print Receipt
+                </button>
+                <button
+                  onClick={closeReceiptModal}
                   className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   {t('common.close') || 'Close'}
