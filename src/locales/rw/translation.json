@@ -218,32 +218,32 @@
         "completed": "Byarangiye",
         "unknown": "Nta kintu"
       }
-    },
-    "recyclingCenter": {
-      "tabTitle": "Ikigo cyo Gukoresha",
-      "date": "Itariki",
-      "time": "Isaha",
-      "location": "Ahantu",
-      "status": "Imiterere",
-      "center": "Ikigo cyo Gukoresha",
-      "wasteType": "Ubwoko bw'Imyanda",
-      "bookings": "ibisabwa",
-      "locationNotSpecified": "Ahantu nta kintu",
-      "notAssigned": "Nta kintu",
-      "wasteTypeNotSpecified": "Nta kintu",
-      "noBookingsFound": "Nta bisabwa by'ikigo cyo gukoresha bivumbuwe",
-      "noBookingsWithStatus": "Nta bisabwa bivumbuwe n'imiterere: {{status}}",
-      "tryDifferentStatus": "Gerageza guhitamo imiterere itandukanye cyangwa reba ibisabwa byose",
-      "noBookingsMessage": "Nta bisabwa ryo gukoresha byakozwe. Tangira gushyira gahunda yo gukoresha kwawe!",
-      "statuses": {
-        "approved": "Byemewe",
-        "pending": "Bitaratangira",
-        "rejected": "Byanze",
-        "denied": "Byanze",
-        "completed": "Byarangiye",
-        "cancelled": "Byahagaritswe",
-        "unknown": "Nta kintu"
-      }
+    }
+  },
+  "recyclingCenter": {
+    "tabTitle": "Ikigo cyo Gukoresha",
+    "date": "Itariki",
+    "time": "Isaha",
+    "location": "Ahantu",
+    "status": "Imiterere",
+    "center": "Ikigo cyo Gukoresha",
+    "wasteType": "Ubwoko bw'Imyanda",
+    "bookings": "ibisabwa",
+    "locationNotSpecified": "Ahantu nta kintu",
+    "notAssigned": "Nta kintu",
+    "wasteTypeNotSpecified": "Nta kintu",
+    "noBookingsFound": "Nta bisabwa by'ikigo cyo gukoresha bivumbuwe",
+    "noBookingsWithStatus": "Nta bisabwa bivumbuwe n'imiterere: {{status}}",
+    "tryDifferentStatus": "Gerageza guhitamo imiterere itandukanye cyangwa reba ibisabwa byose",
+    "noBookingsMessage": "Nta bisabwa ryo gukoresha byakozwe. Tangira gushyira gahunda yo gukoresha kwawe!",
+    "statuses": {
+      "approved": "Byemewe",
+      "pending": "Bitaratangira",
+      "rejected": "Byanze",
+      "denied": "Byanze",
+      "completed": "Byarangiye",
+      "cancelled": "Byahagaritswe",
+      "unknown": "Nta kintu"
     }
   },
   "users": {

@@ -195,32 +195,32 @@
         "completed": "Terminé",
         "unknown": "Inconnu"
       }
-    },
-    "recyclingCenter": {
-      "tabTitle": "Centre de Recyclage",
-      "date": "Date",
-      "time": "Heure",
-      "location": "Lieu",
-      "status": "Statut",
-      "center": "Centre de Recyclage",
-      "wasteType": "Type de Déchet",
-      "bookings": "réservations",
-      "locationNotSpecified": "Lieu non spécifié",
-      "notAssigned": "Non assigné",
-      "wasteTypeNotSpecified": "Non spécifié",
-      "noBookingsFound": "Aucune réservation de centre de recyclage trouvée",
-      "noBookingsWithStatus": "Aucune réservation trouvée avec le statut : {{status}}",
-      "tryDifferentStatus": "Essayez de sélectionner un statut différent ou voir toutes les réservations",
-      "noBookingsMessage": "Vous n'avez pas encore réservé de visite au centre de recyclage. Commencez par planifier votre première visite !",
-      "statuses": {
-        "approved": "Approuvé",
-        "pending": "En attente",
-        "rejected": "Rejeté",
-        "denied": "Rejeté",
-        "completed": "Terminé",
-        "cancelled": "Annulé",
-        "unknown": "Inconnu"
-      }
+    }
+  },
+  "recyclingCenter": {
+    "tabTitle": "Centre de Recyclage",
+    "date": "Date",
+    "time": "Heure",
+    "location": "Lieu",
+    "status": "Statut",
+    "center": "Centre de Recyclage",
+    "wasteType": "Type de Déchet",
+    "bookings": "réservations",
+    "locationNotSpecified": "Lieu non spécifié",
+    "notAssigned": "Non assigné",
+    "wasteTypeNotSpecified": "Non spécifié",
+    "noBookingsFound": "Aucune réservation de centre de recyclage trouvée",
+    "noBookingsWithStatus": "Aucune réservation trouvée avec le statut : {{status}}",
+    "tryDifferentStatus": "Essayez de sélectionner un statut différent ou voir toutes les réservations",
+    "noBookingsMessage": "Vous n'avez pas encore réservé de visite au centre de recyclage. Commencez par planifier votre première visite !",
+    "statuses": {
+      "approved": "Approuvé",
+      "pending": "En attente",
+      "rejected": "Rejeté",
+      "denied": "Rejeté",
+      "completed": "Terminé",
+      "cancelled": "Annulé",
+      "unknown": "Inconnu"
     }
   },
   "header": {

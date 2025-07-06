@@ -203,32 +203,32 @@
           "refunded": "Refunded",
           "cancelled": "Cancelled"
         }
-    },
-    "recyclingCenter": {
-      "tabTitle": "Recycling Center",
-      "date": "Date",
-      "time": "Time",
-      "location": "Location",
-      "status": "Status",
-      "center": "Recycling Center",
-      "wasteType": "Waste Type",
-      "bookings": "bookings",
-      "locationNotSpecified": "Location not specified",
-      "notAssigned": "Not assigned",
-      "wasteTypeNotSpecified": "Not specified",
-      "noBookingsFound": "No recycling center bookings found",
-      "noBookingsWithStatus": "No bookings found with status: {{status}}",
-      "tryDifferentStatus": "Try selecting a different status or view all bookings",
-      "noBookingsMessage": "You haven't booked any recycling center visits yet. Start by scheduling your first visit!",
-      "statuses": {
-        "approved": "Approved",
-        "pending": "Pending",
-        "rejected": "Rejected",
-        "denied": "Rejected",
-        "completed": "Completed",
-        "cancelled": "Cancelled",
-        "unknown": "Unknown"
-      }
+    }
+  },
+  "recyclingCenter": {
+    "tabTitle": "Recycling Center",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+    "status": "Status",
+    "center": "Recycling Center",
+    "wasteType": "Waste Type",
+    "bookings": "bookings",
+    "locationNotSpecified": "Location not specified",
+    "notAssigned": "Not assigned",
+    "wasteTypeNotSpecified": "Not specified",
+    "noBookingsFound": "No recycling center bookings found",
+    "noBookingsWithStatus": "No bookings found with status: {{status}}",
+    "tryDifferentStatus": "Try selecting a different status or view all bookings",
+    "noBookingsMessage": "You haven't booked any recycling center visits yet. Start by scheduling your first visit!",
+    "statuses": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "denied": "Rejected",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
     }
   },
   "header": {
@@ -405,23 +405,7 @@
       "article": "Article"
     }
   },
-  "recyclingCenter": {
-    "dashboard": "Recycling Center Dashboard",
-    "totalBookings": "Total Bookings",
-    "todaysBookings": "Today's Bookings",
-    "thisWeek": "This Week",
-    "recentBookings": "Recent Bookings",
-    "viewAll": "View All",
-    "todaysSchedule": "Today's Schedule",
-    "quickActions": "Quick Actions",
-    "manageBookings": "Manage Bookings",
-    "updateProfile": "Update Profile",
-    "noBookingsFound": "No bookings found",
-    "noBookingsMessage": "New recycling center bookings will appear here",
-    "noBookingsToday": "No bookings scheduled for today",
-    "loadingBookings": "Loading bookings...",
-    "errorLoadingBookings": "Failed to load recycling center bookings"
-  },
+
   "recyclingRequest": {
     "title": "Recycling Requests",
     "subtitle": "Manage and view all recycling center booking requests",

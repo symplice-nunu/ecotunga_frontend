@@ -469,7 +469,7 @@ export default function WasteCollections() {
                   {loading || recyclingLoading ? t('common.loading') || 'Loading...' : 
                     activeTab === 'waste' ? 
                       `${Array.isArray(filteredCollections) ? filteredCollections.length : 0} ${t('home.wasteCollections.collections') || 'collections'}` :
-                      `${Array.isArray(filteredRecyclingBookings) ? filteredRecyclingBookings.length : 0} ${t('home.recyclingCenter.bookings') || 'bookings'}`
+                      `${Array.isArray(filteredRecyclingBookings) ? filteredRecyclingBookings.length : 0} ${t('recyclingCenter.bookings') || 'bookings'}`
                   }
                 </div>
               </div>
@@ -504,7 +504,7 @@ export default function WasteCollections() {
                   }`}
                 >
                   <Recycle className="w-4 h-4" />
-                  {t('home.recyclingCenter.tabTitle') || 'Recycling Center'}
+                  {t('recyclingCenter.tabTitle') || 'Recycling Center'}
                 </button>
               </nav>
             </div>
@@ -733,34 +733,34 @@ export default function WasteCollections() {
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                               <div className="flex items-center gap-2">
                                 <Calendar className="w-4 h-4" />
-                                {t('home.recyclingCenter.date') || 'Date'}
+                                {t('recyclingCenter.date') || 'Date'}
                               </div>
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                               <div className="flex items-center gap-2">
                                 <Clock className="w-4 h-4" />
-                                {t('home.recyclingCenter.time') || 'Time'}
+                                {t('recyclingCenter.time') || 'Time'}
                               </div>
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                               <div className="flex items-center gap-2">
                                 <MapPin className="w-4 h-4" />
-                                {t('home.recyclingCenter.location') || 'Location'}
+                                {t('recyclingCenter.location') || 'Location'}
                               </div>
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                              {t('home.recyclingCenter.status') || 'Status'}
+                              {t('recyclingCenter.status') || 'Status'}
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                               <div className="flex items-center gap-2">
                                 <Building2 className="w-4 h-4" />
-                                {t('home.recyclingCenter.center') || 'Recycling Center'}
+                                {t('recyclingCenter.center') || 'Recycling Center'}
                               </div>
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                               <div className="flex items-center gap-2">
                                 <span className="text-lg">♻️</span>
-                                {t('home.recyclingCenter.wasteType') || 'Waste Type'}
+                                {t('recyclingCenter.wasteType') || 'Waste Type'}
                               </div>
                             </th>
                           </tr>
@@ -791,7 +791,7 @@ export default function WasteCollections() {
                                     <div className="text-sm text-gray-500">
                                       {booking.sector && booking.district 
                                         ? `${booking.sector}, ${booking.district}`
-                                        : t('home.recyclingCenter.locationNotSpecified') || 'Location not specified'
+                                        : t('recyclingCenter.locationNotSpecified') || 'Location not specified'
                                       }
                                     </div>
                                   </div>
@@ -809,7 +809,7 @@ export default function WasteCollections() {
                                     <Building2 className="w-4 h-4 text-purple-600" />
                                   </div>
                                   <div className="text-sm font-medium text-gray-900">
-                                    {booking.recycling_center_name || t('home.recyclingCenter.notAssigned') || 'Not Assigned'}
+                                    {booking.recycling_center_name || t('recyclingCenter.notAssigned') || 'Not Assigned'}
                                   </div>
                                 </div>
                               </td>
@@ -817,7 +817,7 @@ export default function WasteCollections() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-lg">♻️</span>
                                   <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full border bg-green-50 text-green-700 border-green-200">
-                                    {booking.waste_type || t('home.recyclingCenter.wasteTypeNotSpecified') || 'Not specified'}
+                                    {booking.waste_type || t('recyclingCenter.wasteTypeNotSpecified') || 'Not specified'}
                                   </span>
                                 </div>
                               </td>
@@ -834,14 +834,14 @@ export default function WasteCollections() {
                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       {statusFilter === 'all' 
-                        ? t('home.recyclingCenter.noBookingsFound') || 'No recycling center bookings found'
-                        : t('home.recyclingCenter.noBookingsWithStatus', { status: t(`home.recyclingCenter.statuses.${statusFilter}`) || statusFilter }) || `No bookings with status: ${statusFilter}`
+                                            ? t('recyclingCenter.noBookingsFound') || 'No recycling center bookings found'
+                    : t('recyclingCenter.noBookingsWithStatus', { status: t(`recyclingCenter.statuses.${statusFilter}`) || statusFilter }) || `No bookings with status: ${statusFilter}`
                       }
                     </h3>
                     <p className="text-gray-600 max-w-md mx-auto">
                       {statusFilter === 'all' 
-                        ? t('home.recyclingCenter.noBookingsMessage') || 'You haven\'t booked any recycling center visits yet. Start by scheduling your first visit!'
-                        : t('home.recyclingCenter.tryDifferentStatus') || 'Try selecting a different status filter to see more bookings.'
+                                            ? t('recyclingCenter.noBookingsMessage') || 'You haven\'t booked any recycling center visits yet. Start by scheduling your first visit!'
+                    : t('recyclingCenter.tryDifferentStatus') || 'Try selecting a different status filter to see more bookings.'
                       }
                     </p>
                   </div>
