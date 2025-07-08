@@ -15,7 +15,12 @@
     "dashboard": "Ikibaho",
     "loading": "Ari gukuramo...",
     "saving": "Ari kubika...",
-    "close": "Funga"
+    "close": "Funga",
+    "cancellationSuccessful": "Guhagarika Byagenze Neza",
+    "cancellationFailed": "Guhagarika Byanze",
+    "ok": "Sawa",
+    "cancel": "Reka",
+    "tryAgain": "Ongera ugerageze"
   },
   "auth": {
     "email": "Imeyili",
@@ -216,12 +221,21 @@
         "rejected": "Byanze",
         "denied": "Byanze",
         "completed": "Byarangiye",
+        "cancelled": "Byahagaritswe",
         "unknown": "Nta kintu"
-      }
+      },
+      "actions": "Ibikorwa",
+      "cancelConfirmation": "Uzi neza ko ushaka guhagarika iki gusura? Iki gikorwa ntibishobora guhindurwa.",
+      "cancelWarningMessage": "Gusura kuzahagaritswe kandi kuzasibwa ku rutonde rwawe.",
+      "collectionCancelled": "Gusura Byahagaritswe",
+      "collectionCancelledMessage": "Gusura kwawe kwahagaritswe neza.",
+      "cancellationSuccessfulMessage": "Gusura byasibwe ku rutonde rwawe kandi isosiyete yo gusura imyanda yamenyeshejwe.",
+      "cancellationFailedMessage": "Habaye ikibazo mu guhagarika gusura kwawe."
     }
   },
   "recyclingCenter": {
     "tabTitle": "Ikigo cyo Gukoresha",
+    "bookRecycling": "Andika Gukoresha",
     "date": "Itariki",
     "time": "Isaha",
     "location": "Ahantu",
@@ -236,6 +250,10 @@
     "noBookingsWithStatus": "Nta bisabwa bivumbuwe n'imiterere: {{status}}",
     "tryDifferentStatus": "Gerageza guhitamo imiterere itandukanye cyangwa reba ibisabwa byose",
     "noBookingsMessage": "Nta bisabwa ryo gukoresha byakozwe. Tangira gushyira gahunda yo gukoresha kwawe!",
+    "cancelConfirmation": "Uzi neza ko ushaka guhagarika iki gisabwa? Iki gikorwa ntibishobora guhindurwa.",
+    "bookingCancelled": "Igisabwa cyahagaritswe neza!",
+    "bookingCancellationFailed": "Guhagarika igisabwa byanze. Ongera ugerageze.",
+    "actions": "Ibikorwa",
     "statuses": {
       "approved": "Byemewe",
       "pending": "Bitaratangira",

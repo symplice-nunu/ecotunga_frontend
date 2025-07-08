@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
 import { getReceiptsByWasteCollectionId } from '../services/receiptApi';
-import { getUserRecyclingCenterBookings, getRecyclingCenterBookingsByCompany, getAllRecyclingCenterBookings } from '../services/recyclingCenterApi';
+import { getUserRecyclingCenterBookings, getRecyclingCenterBookingsByCompany, getAllRecyclingCenterBookings, cancelRecyclingCenterBooking } from '../services/recyclingCenterApi';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, Link } from 'react-router-dom';
-import { AlertCircle, FileText, Calendar, Clock, MapPin, Building2, Filter, RefreshCw, TrendingUp, Plus, Truck, X, Users, Receipt, Recycle } from 'lucide-react';
+import { AlertCircle, FileText, Calendar, Clock, MapPin, Building2, Filter, RefreshCw, TrendingUp, Plus, Truck, X, Users, Receipt, Recycle, Trash2, CheckCircle } from 'lucide-react';
 
 export default function WasteCollections() {
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export default function WasteCollections() {
   const [recyclingLoading, setRecyclingLoading] = useState(false);
   const [error, setError] = useState('');
   const [recyclingError, setRecyclingError] = useState('');
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'pending');
+      const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
@@ -28,6 +28,13 @@ export default function WasteCollections() {
   // Recycling center modal state
   const [selectedRecyclingBooking, setSelectedRecyclingBooking] = useState(null);
   const [showRecyclingModal, setShowRecyclingModal] = useState(false);
+  
+  // Cancel booking modal states
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelBookingId, setCancelBookingId] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Fetch waste collections
   useEffect(() => {
@@ -171,8 +178,18 @@ export default function WasteCollections() {
     }
   }, [searchParams, user]);
 
+  // Ensure only users with role 'user' can access recycling tab
+  useEffect(() => {
+    if (user && user.role !== 'user' && activeTab === 'recycling') {
+      setActiveTab('waste');
+    }
+  }, [user, activeTab]);
+
   // Filter collections based on status
   const filteredCollections = collections.filter(collection => {
+    // Don't show cancelled collections in the list
+    if (collection.status === 'cancelled') return false;
+    
     if (statusFilter === 'all') return true;
     if (statusFilter === 'denied') {
       return collection.status === 'denied' || collection.status === 'rejected';
@@ -209,6 +226,7 @@ export default function WasteCollections() {
       case 'denied':
       case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
       case 'completed': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'cancelled': return 'bg-gray-50 text-gray-700 border-gray-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
@@ -220,6 +238,7 @@ export default function WasteCollections() {
       case 'denied':
       case 'rejected': return '✗';
       case 'completed': return '✓';
+      case 'cancelled': return '🚫';
       default: return '?';
     }
   };
@@ -360,6 +379,78 @@ export default function WasteCollections() {
     setSelectedRecyclingBooking(null);
   };
 
+  const handleCancelRecyclingBooking = async (bookingId, event) => {
+    event.stopPropagation(); // Prevent row click
+    setCancelBookingId(bookingId);
+    setShowCancelModal(true);
+  };
+
+  const handleCancelWasteCollection = async (collectionId, event) => {
+    event.stopPropagation(); // Prevent row click
+    setCancelBookingId(collectionId);
+    setShowCancelModal(true);
+  };
+
+  const confirmCancelBooking = async () => {
+    if (!cancelBookingId) return;
+    
+    try {
+      if (activeTab === 'recycling') {
+        setRecyclingLoading(true);
+        await cancelRecyclingCenterBooking(cancelBookingId);
+        
+        // Refresh the recycling bookings list after cancellation
+        let response;
+        if (user?.role === 'admin') {
+          response = await getAllRecyclingCenterBookings();
+        } else if (user?.role === 'recycling_center_owner') {
+          response = await getRecyclingCenterBookingsByCompany();
+        } else {
+          response = await getUserRecyclingCenterBookings();
+        }
+        
+        const bookingsArray = Array.isArray(response) ? response : (response?.bookings || response?.data || []);
+        setRecyclingBookings(bookingsArray);
+      } else {
+        setLoading(true);
+        console.log('🔍 Attempting to cancel waste collection with ID:', cancelBookingId);
+        try {
+          const result = await wasteCollectionApi.cancelWasteCollection(cancelBookingId);
+          console.log('✅ Cancel waste collection result:', result);
+        } catch (error) {
+          console.error('❌ Error in cancelWasteCollection:', error);
+          console.error('❌ Error response:', error.response);
+          throw error;
+        }
+        
+        // Refresh the waste collections list after cancellation
+        let response;
+        if (user?.role === 'admin') {
+          response = await wasteCollectionApi.getAllWasteCollections();
+        } else if (user?.role === 'waste_collector') {
+          response = await wasteCollectionApi.getWasteCollectionsByCompany();
+        } else {
+          response = await wasteCollectionApi.getUserWasteCollections();
+        }
+        
+        const collectionsArray = Array.isArray(response) ? response : (response?.collections || response?.data || []);
+        setCollections(collectionsArray);
+      }
+      
+      setShowCancelModal(false);
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+      const errorMsg = err.response?.data?.error || 'Failed to cancel booking. Please try again.';
+      setErrorMessage(errorMsg);
+      setShowCancelModal(false);
+      setShowErrorModal(true);
+    } finally {
+      setRecyclingLoading(false);
+      setLoading(false);
+    }
+  };
+
   // Helper function to check if location data is valid (not placeholder)
   const isValidLocationData = (value) => {
     if (!value) return false;
@@ -430,6 +521,21 @@ export default function WasteCollections() {
 
   const formatWasteType = (wasteType) => {
     if (!wasteType) return 'Not specified';
+    
+    // Try to parse as JSON array first (for multiple waste types)
+    try {
+      const wasteTypesArray = JSON.parse(wasteType);
+      if (Array.isArray(wasteTypesArray)) {
+        return wasteTypesArray.map(type => {
+          const typeInfo = wasteTypesMapping[type];
+          return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : type;
+        }).join(', ');
+      }
+    } catch (e) {
+      // If parsing fails, treat as single waste type
+    }
+    
+    // Fallback to single waste type
     const typeInfo = wasteTypesMapping[wasteType];
     return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : wasteType;
   };
@@ -456,12 +562,21 @@ export default function WasteCollections() {
         {user?.role === 'user' && (
           <div className="mb-6">
             <Link
-              to="/collection"
-              onClick={() => localStorage.setItem('bookCollectionClicked', '1')}
+              to={activeTab === 'recycling' ? '/recycling-center' : '/collection'}
+              onClick={() => {
+                if (activeTab === 'recycling') {
+                  localStorage.setItem('bookRecyclingClicked', '1');
+                } else {
+                  localStorage.setItem('bookCollectionClicked', '1');
+                }
+              }}
               className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-teal-600 hover:to-teal-700 transition-all duration-200 shadow-sm"
             >
               <Plus className="w-5 h-5" />
-              {t('home.bookCollection.button')}
+              {activeTab === 'recycling' 
+                ? (t('recyclingCenter.bookRecycling') || 'Book Recycling')
+                : (t('home.bookCollection.button') || 'Book Collection')
+              }
             </Link>
           </div>
         )}
@@ -533,20 +648,23 @@ export default function WasteCollections() {
                   <Truck className="w-4 h-4" />
                   {t('home.wasteCollections.tabTitle') || 'Waste Collections'}
                 </button>
-                <button
-                  onClick={() => {
-                    setActiveTab('recycling');
-                    setStatusFilter('pending');
-                  }}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200 ${
-                    activeTab === 'recycling'
-                      ? 'border-emerald-500 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Recycle className="w-4 h-4" />
-                  {t('recyclingCenter.tabTitle') || 'Recycling Center'}
-                </button>
+                {/* Only show Recycling Center tab for users with role 'user' */}
+                {user?.role === 'user' && (
+                  <button
+                    onClick={() => {
+                      setActiveTab('recycling');
+                      setStatusFilter('all');
+                    }}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200 ${
+                      activeTab === 'recycling'
+                        ? 'border-emerald-500 text-emerald-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <Recycle className="w-4 h-4" />
+                    {t('recyclingCenter.tabTitle') || 'Recycling Center'}
+                  </button>
+                )}
               </nav>
             </div>
           </div>
@@ -615,6 +733,12 @@ export default function WasteCollections() {
                           <div className="flex items-center gap-2">
                             <Receipt className="w-4 h-4" />
                             Receipt
+                          </div>
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          <div className="flex items-center gap-2">
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                            {t('home.wasteCollections.actions') || 'Actions'}
                           </div>
                         </th>
                       </tr>
@@ -703,6 +827,29 @@ export default function WasteCollections() {
                                 return (
                                   <span className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-500 bg-gray-50 border border-gray-200 rounded-lg">
                                     <Receipt className="w-4 h-4" />
+                                    Not Available
+                                  </span>
+                                );
+                              }
+                            })()}
+                          </td>
+                          <td className="px-6 py-4">
+                            {(() => {
+                              // Only show cancel button for pending or approved collections that haven't been completed
+                              if (collection.status === 'pending' || collection.status === 'approved') {
+                                return (
+                                  <button
+                                    onClick={(e) => handleCancelWasteCollection(collection.id, e)}
+                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors duration-200"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Cancel
+                                  </button>
+                                );
+                              } else {
+                                return (
+                                  <span className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-500 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <Trash2 className="w-4 h-4" />
                                     Not Available
                                   </span>
                                 );
@@ -804,6 +951,12 @@ export default function WasteCollections() {
                                 {t('recyclingCenter.wasteType') || 'Waste Type'}
                               </div>
                             </th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              <div className="flex items-center gap-2">
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                                {t('recyclingCenter.actions') || 'Actions'}
+                              </div>
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -863,6 +1016,15 @@ export default function WasteCollections() {
                                   </span>
                                 </div>
                               </td>
+                                                             <td className="px-6 py-4">
+                                 <button
+                                   onClick={(e) => handleCancelRecyclingBooking(booking.id, e)}
+                                   className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors duration-200"
+                                 >
+                                   <Trash2 className="w-4 h-4" />
+                                   Cancel
+                                 </button>
+                               </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1426,7 +1588,15 @@ export default function WasteCollections() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <span className="text-lg">♻️</span>
-                    Waste Type
+                    Waste Type{(() => {
+                      try {
+                        const wasteTypesArray = JSON.parse(selectedRecyclingBooking.waste_type);
+                        if (Array.isArray(wasteTypesArray) && wasteTypesArray.length > 1) {
+                          return 's';
+                        }
+                      } catch (e) {}
+                      return '';
+                    })()}
                   </div>
                   <div className="bg-white rounded-xl p-4 border border-purple-200">
                     <div className="text-lg font-semibold text-gray-900">
@@ -1530,6 +1700,211 @@ export default function WasteCollections() {
           </div>
         </div>
       )}
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-100">
+            <div className="relative bg-gradient-to-r from-red-500 to-rose-600 text-white p-6 rounded-t-3xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <Trash2 className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {t('recyclingCenter.confirmCancellation') || 'Confirm Cancellation'}
+                    </h2>
+                    <p className="text-red-100 text-sm mt-1">
+                      {activeTab === 'recycling' 
+                        ? (t('recyclingCenter.cancelConfirmation') || 'Are you sure you want to cancel this booking? This action cannot be undone.')
+                        : (t('home.wasteCollections.cancelConfirmation') || 'Are you sure you want to cancel this collection? This action cannot be undone.')
+                      }
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 group"
+                >
+                  <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </div>
+            </div>
+            <div className="p-8 space-y-6 max-h-[40vh] overflow-y-auto">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 text-4xl">
+                  ⚠️
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('recyclingCenter.cancelWarning') || 'This action cannot be undone'}
+                </h3>
+                <p className="text-gray-600">
+                  {activeTab === 'recycling'
+                    ? (t('recyclingCenter.cancelWarningMessage') || 'The booking will be permanently cancelled and removed from your list.')
+                    : (t('home.wasteCollections.cancelWarningMessage') || 'The collection will be permanently cancelled and removed from your list.')
+                  }
+                </p>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 rounded-b-3xl">
+              <div className="flex items-center justify-end gap-4">
+                <button
+                  onClick={confirmCancelBooking}
+                  disabled={recyclingLoading}
+                  className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 disabled:bg-gray-400 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+                >
+                  {recyclingLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {t('recyclingCenter.cancelling') || 'Cancelling...'}
+                    </div>
+                  ) : (
+                    t('recyclingCenter.confirmCancel') || 'Confirm Cancel'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  disabled={recyclingLoading}
+                  className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-xl hover:bg-gray-400 disabled:bg-gray-200 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+                >
+                  {t('common.cancel') || 'Cancel'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-100">
+            <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-t-3xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <CheckCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {activeTab === 'recycling'
+                        ? (t('recyclingCenter.bookingCancelled') || 'Booking Cancelled')
+                        : (t('home.wasteCollections.collectionCancelled') || 'Collection Cancelled')
+                      }
+                    </h2>
+                    <p className="text-green-100 text-sm mt-1">
+                      {activeTab === 'recycling'
+                        ? (t('recyclingCenter.bookingCancelledMessage') || 'Your booking has been successfully cancelled.')
+                        : (t('home.wasteCollections.collectionCancelledMessage') || 'Your collection has been successfully cancelled.')
+                      }
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 group"
+                >
+                  <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </div>
+            </div>
+            <div className="p-8 space-y-6 max-h-[40vh] overflow-y-auto">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 text-4xl">
+                  ✓
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('common.cancellationSuccessful') || 'Cancellation Successful'}
+                </h3>
+                <p className="text-gray-600">
+                  {activeTab === 'recycling'
+                    ? (t('recyclingCenter.cancellationSuccessfulMessage') || 'The booking has been removed from your list and the recycling center has been notified.')
+                    : (t('home.wasteCollections.cancellationSuccessfulMessage') || 'The collection has been removed from your list and the waste collection company has been notified.')
+                  }
+                </p>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 rounded-b-3xl">
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  {t('common.ok') || 'OK'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-100">
+            <div className="relative bg-gradient-to-r from-red-500 to-rose-600 text-white p-6 rounded-t-3xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <AlertCircle className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {t('common.cancellationFailed') || 'Cancellation Failed'}
+                    </h2>
+                    <p className="text-red-100 text-sm mt-1">
+                      {activeTab === 'recycling'
+                        ? (t('recyclingCenter.cancellationFailedMessage') || 'There was an error cancelling your booking.')
+                        : (t('home.wasteCollections.cancellationFailedMessage') || 'There was an error cancelling your collection.')
+                      }
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowErrorModal(false)}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 group"
+                >
+                  <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </div>
+            </div>
+            <div className="p-8 space-y-6 max-h-[40vh] overflow-y-auto">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 text-4xl">
+                  ✗
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {t('recyclingCenter.errorOccurred') || 'An Error Occurred'}
+                </h3>
+                <p className="text-gray-600">
+                  {errorMessage}
+                </p>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 rounded-b-3xl">
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setShowErrorModal(false)}
+                  className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  {t('common.ok') || 'OK'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowErrorModal(false);
+                    setShowCancelModal(true);
+                  }}
+                  className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  {t('common.tryAgain') || 'Try Again'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 } 

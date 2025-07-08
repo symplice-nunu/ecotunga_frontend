@@ -15,7 +15,12 @@
     "dashboard": "Tableau de bord",
     "loading": "Chargement...",
     "saving": "Enregistrement...",
-    "close": "Fermer"
+    "close": "Fermer",
+    "cancellationSuccessful": "Annulation Réussie",
+    "cancellationFailed": "Échec de l'Annulation",
+    "ok": "OK",
+    "cancel": "Annuler",
+    "tryAgain": "Réessayer"
   },
   "auth": {
     "email": "E-mail",
@@ -193,12 +198,21 @@
         "rejected": "Rejeté",
         "denied": "Rejeté",
         "completed": "Terminé",
+        "cancelled": "Annulé",
         "unknown": "Inconnu"
-      }
+      },
+      "actions": "Actions",
+      "cancelConfirmation": "Êtes-vous sûr de vouloir annuler cette collecte ? Cette action ne peut pas être annulée.",
+      "cancelWarningMessage": "La collecte sera définitivement annulée et supprimée de votre liste.",
+      "collectionCancelled": "Collecte Annulée",
+      "collectionCancelledMessage": "Votre collecte a été annulée avec succès.",
+      "cancellationSuccessfulMessage": "La collecte a été supprimée de votre liste et l'entreprise de collecte de déchets a été notifiée.",
+      "cancellationFailedMessage": "Une erreur s'est produite lors de l'annulation de votre collecte."
     }
   },
   "recyclingCenter": {
     "tabTitle": "Centre de Recyclage",
+    "bookRecycling": "Réserver le Recyclage",
     "date": "Date",
     "time": "Heure",
     "location": "Lieu",
@@ -213,6 +227,10 @@
     "noBookingsWithStatus": "Aucune réservation trouvée avec le statut : {{status}}",
     "tryDifferentStatus": "Essayez de sélectionner un statut différent ou voir toutes les réservations",
     "noBookingsMessage": "Vous n'avez pas encore réservé de visite au centre de recyclage. Commencez par planifier votre première visite !",
+    "cancelConfirmation": "Êtes-vous sûr de vouloir annuler cette réservation? Cette action ne peut pas être annulée.",
+    "bookingCancelled": "Réservation annulée avec succès!",
+    "bookingCancellationFailed": "Échec de l'annulation de la réservation. Veuillez réessayer.",
+    "actions": "Actions",
     "statuses": {
       "approved": "Approuvé",
       "pending": "En attente",

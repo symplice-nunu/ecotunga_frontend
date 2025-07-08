@@ -53,4 +53,15 @@ export const getRecyclingCenterBookingById = async (id) => {
     console.error('Error fetching recycling center booking:', error);
     throw error;
   }
+};
+
+// Cancel recycling center booking
+export const cancelRecyclingCenterBooking = async (id) => {
+  try {
+    const response = await api.delete(`/recycling-center/bookings/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling recycling center booking:', error);
+    throw error;
+  }
 }; 

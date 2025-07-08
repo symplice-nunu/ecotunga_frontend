@@ -45,5 +45,11 @@ export const wasteCollectionApi = {
       admin_notes: adminNotes
     });
     return response.data;
+  },
+
+  // Cancel waste collection
+  cancelWasteCollection: async (id) => {
+    const response = await api.put(`/waste-collections/${id}/cancel`);
+    return response.data;
   }
 }; 

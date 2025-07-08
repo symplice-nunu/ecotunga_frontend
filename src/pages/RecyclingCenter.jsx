@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPinIcon, PhoneIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
+import { MapPinIcon, PhoneIcon, ClockIcon, ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { getUserProfile } from '../services/userApi';
 import { getCompanies, getCompanyById } from '../services/companyApi';
 import { createRecyclingCenterBooking } from '../services/recyclingCenterApi';
@@ -111,6 +112,7 @@ const wasteTypesMapping = {
 const RecyclingCenter = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -165,11 +167,19 @@ const RecyclingCenter = () => {
   const [timeSlot, setTimeSlot] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [selectedCompanyDetails, setSelectedCompanyDetails] = useState(null);
+  const [selectedWasteTypes, setSelectedWasteTypes] = useState([]);
   const [notes, setNotes] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [bookingDetails, setBookingDetails] = useState(null);
+  
+
+  
+
+  
+  // Back button state
+  const [showBackButton, setShowBackButton] = useState(false);
   
   const timeSlots = [
     '06:00 - 08:00',
@@ -181,6 +191,12 @@ const RecyclingCenter = () => {
     '18:00 - 20:00',
     '20:00 - 22:00'
   ];
+
+  // Check localStorage for bookRecyclingClicked value
+  useEffect(() => {
+    const bookRecyclingClicked = localStorage.getItem('bookRecyclingClicked');
+    setShowBackButton(bookRecyclingClicked === '1');
+  }, []);
 
   // Fetch user profile on component mount
   useEffect(() => {
@@ -198,7 +214,21 @@ const RecyclingCenter = () => {
           });
           setUserProfile(profile);
           
-          // Don't pre-fill location data - only fetch for "Use My Location" button
+          // Set initial location from user profile
+          if (profile?.district && profile?.sector) {
+            setLocation({
+              district: profile.district,
+              sector: profile.sector,
+              cell: profile.cell || '',
+              street: profile.street || ''
+            });
+            setSelectedLocation({
+              district: profile.district,
+              sector: profile.sector,
+              cell: profile.cell || '',
+              street: profile.street || ''
+            });
+          }
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -209,6 +239,19 @@ const RecyclingCenter = () => {
 
     fetchUserProfile();
   }, [user]);
+
+  // Fetch existing bookings
+  // Back button handler
+  const handleBackButtonClick = () => {
+    localStorage.setItem('bookRecyclingClicked', '0');
+    navigate('/waste-collections?status=all');
+  };
+
+
+
+
+
+
 
   // Filter district options
   useEffect(() => {
@@ -325,7 +368,10 @@ const RecyclingCenter = () => {
     setStep(1);
   };
 
+
+
   const handleCompanySelection = async (companyId) => {
+    setSelectedWasteTypes([]); // Reset selected waste types when company changes
     try {
       const [companyResponse, usersResponse] = await Promise.all([
         getCompanyById(companyId),
@@ -382,6 +428,11 @@ const RecyclingCenter = () => {
       return;
     }
     
+    if (selectedWasteTypes.length === 0) {
+      setSubmitError('Please select at least one waste type');
+      return;
+    }
+    
 
     
     // Basic validation for required backend fields
@@ -403,11 +454,16 @@ const RecyclingCenter = () => {
         district: selectedLocation.district,
         sector: selectedLocation.sector,
         cell: selectedLocation.cell,
-        street: selectedLocation.street || null
+        street: selectedLocation.street || null,
+        waste_types: selectedWasteTypes.length > 0 ? JSON.stringify(selectedWasteTypes) : null
       };
+      
+
       
       // Send booking to backend
       const response = await createRecyclingCenterBooking(bookingData);
+      
+
       
       // Create booking details for UI display
       const booking = {
@@ -420,6 +476,7 @@ const RecyclingCenter = () => {
         notes: notes,
         userLocation: selectedLocation,
         userProfile: userProfile,
+        waste_types: response.booking?.waste_types || selectedWasteTypes,
         waste_type: response.booking?.waste_type || 'other'
       };
       
@@ -435,15 +492,51 @@ const RecyclingCenter = () => {
   };
 
   const Stepper = () => (
-    <div className="flex justify-center mb-8">
+    <div className='flex flex-col items-center mb-8'>
+      {/* Main Back Button */}
+      {step > 0 && (
+        <div className="w-full max-w-4xl mb-4">
+          <button
+            onClick={() => setStep(step - 1)}
+            className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 px-4 py-2 rounded-md transition-colors border border-green-200"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to {step === 1 ? 'Location' : 'Previous Step'}
+          </button>
+        </div>
+      )}
+      
+      {/* External Back Button */}
+      {showBackButton && (
+        <div className="w-full max-w-4xl mb-4">
+          <button 
+            onClick={handleBackButtonClick}
+            className='bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors'
+          >
+            Back
+          </button>
+        </div>
+      )}
+      
+      {/* Step Indicators */}
       <div className="flex items-center space-x-4">
         {steps.map((stepName, index) => (
           <div key={index} className="flex items-center">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-              index <= step ? 'bg-green-600 border-green-600 text-white' : 'border-gray-300 text-gray-500'
-            }`}>
+            <button
+              onClick={() => {
+                // Only allow navigation if we're at a later step
+                if (index <= step) {
+                  setStep(index);
+                }
+              }}
+              className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${
+                index <= step ? 'bg-green-600 border-green-600 text-white hover:bg-green-700' : 'border-gray-300 text-gray-500'
+              }`}
+            >
               {index + 1}
-            </div>
+            </button>
             <span className={`ml-2 text-sm font-medium ${
               index <= step ? 'text-green-600' : 'text-gray-500'
             }`}>
@@ -674,7 +767,7 @@ const RecyclingCenter = () => {
       </div>
 
       {/* Show selected location */}
-      {selectedLocation.district && (
+      {/* {selectedLocation.district && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Selected Location</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -696,7 +789,7 @@ const RecyclingCenter = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 
@@ -804,7 +897,18 @@ const RecyclingCenter = () => {
           {/* Booking Form */}
           {selectedCompany && (
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Book Service</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Book Service</h3>
+                <button
+                  onClick={() => setStep(0)}
+                  className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 px-3 py-2 rounded-md transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back to Location
+                </button>
+              </div>
               
               {/* Selected Company Info */}
               {selectedCompanyDetails && (
@@ -824,8 +928,8 @@ const RecyclingCenter = () => {
                     const wasteTypes = parseWasteTypes(selectedCompanyDetails.waste_types);
                     return wasteTypes.length > 0 ? (
                       <div className="mt-3">
-                        <p className="text-sm font-medium text-gray-700 mb-2">This center accepts:</p>
-                        <div className="flex flex-wrap gap-2">
+                        {/* <p className="text-sm font-medium text-gray-700 mb-2">This center acceptssasa:</p> */}
+                        {/* <div className="flex flex-wrap gap-2">
                           {wasteTypes.map((wasteType) => {
                             const typeInfo = wasteTypesMapping[wasteType];
                             return typeInfo ? (
@@ -841,7 +945,7 @@ const RecyclingCenter = () => {
                         </div>
                         <p className="text-xs text-gray-600 mt-2">
                           💡 Your waste type will be automatically assigned based on what this center accepts.
-                        </p>
+                        </p> */}
                       </div>
                     ) : null;
                   })()}
@@ -930,6 +1034,105 @@ const RecyclingCenter = () => {
                     </select>
                   </div>
                 </div>
+
+                {/* Waste Type Selection */}
+                {selectedCompanyDetails && (() => {
+                  const availableWasteTypes = parseWasteTypes(selectedCompanyDetails.waste_types);
+                  return availableWasteTypes.length > 0 ? (
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Select Waste Types <span className="text-gray-500 font-normal">(Click to select multiple)</span>
+                      </label>
+                      <div className="relative">
+                        <div className="border border-gray-300 rounded-md p-3 min-h-[120px] bg-white">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {availableWasteTypes.map((wasteType) => {
+                              const typeInfo = wasteTypesMapping[wasteType];
+                              const isSelected = selectedWasteTypes.includes(wasteType);
+                              return typeInfo ? (
+                                <div
+                                  key={wasteType}
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedWasteTypes(prev => prev.filter(type => type !== wasteType));
+                                    } else {
+                                      setSelectedWasteTypes(prev => [...prev, wasteType]);
+                                    }
+                                    setSubmitError(''); // Clear error when user makes a selection
+                                  }}
+                                  className={`flex items-center p-2 rounded-md cursor-pointer transition-all border ${
+                                    isSelected
+                                      ? 'bg-green-100 border-green-500 text-green-800'
+                                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                                  }`}
+                                >
+                                  <div className={`w-4 h-4 rounded border-2 mr-2 flex items-center justify-center ${
+                                    isSelected 
+                                      ? 'bg-green-500 border-green-500' 
+                                      : 'border-gray-300'
+                                  }`}>
+                                    {isSelected && (
+                                      <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="text-lg mr-1">{typeInfo.icon}</span>
+                                    <span className="text-sm font-medium truncate">{typeInfo.label}</span>
+                                  </div>
+                                </div>
+                              ) : null;
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      {selectedWasteTypes.length === 0 && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          💡 Click on waste types to select them. You can choose multiple types.
+                        </p>
+                      )}
+                      {selectedWasteTypes.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-medium text-gray-700">Selected waste types ({selectedWasteTypes.length}):</p>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedWasteTypes([])}
+                              className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded"
+                            >
+                              Clear all
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedWasteTypes.map((wasteType) => {
+                              const typeInfo = wasteTypesMapping[wasteType];
+                              return typeInfo ? (
+                                <span
+                                  key={wasteType}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+                                >
+                                  <span>{typeInfo.icon}</span>
+                                  <span>{typeInfo.label}</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedWasteTypes(prev => prev.filter(type => type !== wasteType));
+                                    }}
+                                    className="ml-1 text-green-600 hover:text-green-800"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
                 
 
 
@@ -968,6 +1171,17 @@ const RecyclingCenter = () => {
   const Confirmation = () => (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-6 text-center">
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setStep(1)}
+            className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 px-3 py-2 rounded-md transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Booking
+          </button>
+        </div>
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -1002,13 +1216,32 @@ const RecyclingCenter = () => {
                 <span className="font-medium">{bookingDetails.timeSlot}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Waste Type:</span>
+                <span className="text-gray-600">Waste Types:</span>
                 <span className="font-medium">
                   {(() => {
-                    // Get waste type from the booking response
-                    const wasteType = bookingDetails.waste_type || 'other';
-                    const typeInfo = wasteTypesMapping[wasteType];
-                    return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : wasteType;
+                    if (bookingDetails.waste_types && bookingDetails.waste_types.length > 0) {
+                      return (
+                        <div className="flex flex-wrap gap-1">
+                          {bookingDetails.waste_types.map((wasteType) => {
+                            const typeInfo = wasteTypesMapping[wasteType];
+                            return typeInfo ? (
+                              <span
+                                key={wasteType}
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                              >
+                                <span>{typeInfo.icon}</span>
+                                <span>{typeInfo.label}</span>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      );
+                    } else {
+                      // Fallback to single waste type from response
+                      const wasteType = bookingDetails.waste_type || 'other';
+                      const typeInfo = wasteTypesMapping[wasteType];
+                      return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : wasteType;
+                    }
                   })()}
                 </span>
               </div>
@@ -1048,6 +1281,8 @@ const RecyclingCenter = () => {
       </div>
     </div>
   );
+
+
 
   if (loading) {
     return (
