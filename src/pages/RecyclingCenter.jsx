@@ -382,6 +382,8 @@ const RecyclingCenter = () => {
       return;
     }
     
+
+    
     // Basic validation for required backend fields
     if (!selectedLocation.district || !selectedLocation.sector || !selectedLocation.cell) {
       setSubmitError('Please complete your location information (district, sector, cell)');
@@ -417,7 +419,8 @@ const RecyclingCenter = () => {
         timeSlot: timeSlot,
         notes: notes,
         userLocation: selectedLocation,
-        userProfile: userProfile
+        userProfile: userProfile,
+        waste_type: response.booking?.waste_type || 'other'
       };
       
       setBookingDetails(booking);
@@ -836,6 +839,9 @@ const RecyclingCenter = () => {
                             ) : null;
                           })}
                         </div>
+                        <p className="text-xs text-gray-600 mt-2">
+                          💡 Your waste type will be automatically assigned based on what this center accepts.
+                        </p>
                       </div>
                     ) : null;
                   })()}
@@ -925,6 +931,8 @@ const RecyclingCenter = () => {
                   </div>
                 </div>
                 
+
+
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Notes <span className="text-gray-500 font-normal">(Optional)</span></label>
                   <textarea
@@ -992,6 +1000,17 @@ const RecyclingCenter = () => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Time:</span>
                 <span className="font-medium">{bookingDetails.timeSlot}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Waste Type:</span>
+                <span className="font-medium">
+                  {(() => {
+                    // Get waste type from the booking response
+                    const wasteType = bookingDetails.waste_type || 'other';
+                    const typeInfo = wasteTypesMapping[wasteType];
+                    return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : wasteType;
+                  })()}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Location:</span>

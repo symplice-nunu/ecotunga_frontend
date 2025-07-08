@@ -24,6 +24,10 @@ export default function WasteCollections() {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [receiptLoading, setReceiptLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('waste'); // 'waste' or 'recycling'
+  
+  // Recycling center modal state
+  const [selectedRecyclingBooking, setSelectedRecyclingBooking] = useState(null);
+  const [showRecyclingModal, setShowRecyclingModal] = useState(false);
 
   // Fetch waste collections
   useEffect(() => {
@@ -344,6 +348,18 @@ export default function WasteCollections() {
     setSelectedReceipt(null);
   };
 
+  // Recycling center modal handlers
+  const handleRecyclingRowClick = (booking) => {
+    console.log('🔍 Recycling booking data for modal:', booking);
+    setSelectedRecyclingBooking(booking);
+    setShowRecyclingModal(true);
+  };
+
+  const closeRecyclingModal = () => {
+    setShowRecyclingModal(false);
+    setSelectedRecyclingBooking(null);
+  };
+
   // Helper function to check if location data is valid (not placeholder)
   const isValidLocationData = (value) => {
     if (!value) return false;
@@ -391,6 +407,31 @@ export default function WasteCollections() {
   const formatRecyclingTime = (timeString) => {
     if (!timeString) return 'TBD';
     return timeString;
+  };
+
+  // Waste types mapping for display
+  const wasteTypesMapping = {
+    'plastic_bottles': { label: 'Plastic Bottles', icon: '🥤' },
+    'plastic_bags': { label: 'Plastic Bags', icon: '🛍️' },
+    'paper': { label: 'Paper & Cardboard', icon: '📄' },
+    'glass': { label: 'Glass', icon: '🍾' },
+    'aluminum': { label: 'Aluminum Cans', icon: '🥫' },
+    'steel': { label: 'Steel/Metal', icon: '🔧' },
+    'electronics': { label: 'Electronics (E-waste)', icon: '💻' },
+    'batteries': { label: 'Batteries', icon: '🔋' },
+    'textiles': { label: 'Textiles & Clothing', icon: '👕' },
+    'organic': { label: 'Organic Waste', icon: '🍃' },
+    'construction': { label: 'Construction Materials', icon: '🧱' },
+    'automotive': { label: 'Automotive Parts', icon: '🚗' },
+    'medical': { label: 'Medical Waste', icon: '🏥' },
+    'hazardous': { label: 'Hazardous Materials', icon: '⚠️' },
+    'other': { label: 'Other Materials', icon: '📦' }
+  };
+
+  const formatWasteType = (wasteType) => {
+    if (!wasteType) return 'Not specified';
+    const typeInfo = wasteTypesMapping[wasteType];
+    return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : wasteType;
   };
 
   return (
@@ -770,10 +811,11 @@ export default function WasteCollections() {
                             <tr 
                               key={booking.id || index} 
                               className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                              onClick={() => handleRecyclingRowClick(booking)}
                             >
                               <td className="px-6 py-4">
                                 <div className="text-sm font-medium text-gray-900">
-                                  {formatRecyclingDate(booking.booking_date)}
+                                  {formatRecyclingDate(booking.dropoff_date)}
                                 </div>
                               </td>
                               <td className="px-6 py-4">
@@ -809,7 +851,7 @@ export default function WasteCollections() {
                                     <Building2 className="w-4 h-4 text-purple-600" />
                                   </div>
                                   <div className="text-sm font-medium text-gray-900">
-                                    {booking.recycling_center_name || t('recyclingCenter.notAssigned') || 'Not Assigned'}
+                                    {booking.company_name || t('recyclingCenter.notAssigned') || 'Not Assigned'}
                                   </div>
                                 </div>
                               </td>
@@ -817,7 +859,7 @@ export default function WasteCollections() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-lg">♻️</span>
                                   <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full border bg-green-50 text-green-700 border-green-200">
-                                    {booking.waste_type || t('recyclingCenter.wasteTypeNotSpecified') || 'Not specified'}
+                                    {formatWasteType(booking.waste_type)}
                                   </span>
                                 </div>
                               </td>
@@ -1283,6 +1325,202 @@ export default function WasteCollections() {
                 </button>
                 <button
                   onClick={closeReceiptModal}
+                  className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  {t('common.close') || 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recycling Center Booking Details Modal */}
+      {showRecyclingModal && selectedRecyclingBooking && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-100">
+            {/* Modal Header */}
+            <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-t-3xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <Recycle className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      Recycling Center Booking Details
+                    </h2>
+                    <p className="text-emerald-100 text-sm mt-1">
+                      Booking #{selectedRecyclingBooking.id || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeRecyclingModal}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all duration-200 group"
+                >
+                  <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              </div>
+              
+              {/* Status Badge */}
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-emerald-100 font-medium">
+                  Status
+                </span>
+                <span className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full border-2 border-white/30 backdrop-blur-sm ${getRecyclingStatusColor(selectedRecyclingBooking.status)}`}>
+                  <span className="text-lg">{getRecyclingStatusIcon(selectedRecyclingBooking.status)}</span>
+                  {selectedRecyclingBooking.status ? selectedRecyclingBooking.status : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto">
+              {/* Date and Time Section */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  Schedule Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Calendar className="w-4 h-4 text-blue-500" />
+                      Drop-off Date
+                    </div>
+                    <div className="text-lg font-semibold text-gray-900 bg-white rounded-lg p-3 border border-blue-200">
+                      {selectedRecyclingBooking.dropoff_date ? new Date(selectedRecyclingBooking.dropoff_date).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }) : 'Not scheduled'}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4 text-blue-500" />
+                      Time Slot
+                    </div>
+                    <div className="text-lg font-semibold text-gray-900 bg-white rounded-lg p-3 border border-blue-200">
+                      {selectedRecyclingBooking.time_slot || 'To be determined'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recycling Center Information Section */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-purple-600" />
+                  Recycling Center
+                </h3>
+                <div className="mb-4">
+                  <div className="text-xl font-bold text-gray-900 bg-white rounded-lg p-4 border border-purple-200">
+                    {selectedRecyclingBooking.company_name || 'Not Assigned'}
+                  </div>
+                </div>
+                
+                {/* Waste Type */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span className="text-lg">♻️</span>
+                    Waste Type
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border border-purple-200">
+                    <div className="text-lg font-semibold text-gray-900">
+                      {formatWasteType(selectedRecyclingBooking.waste_type)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer Information (for admin and recycling center users) */}
+              {(user?.role === 'admin' || user?.role === 'recycling_center_owner') && (
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-emerald-600" />
+                    Customer
+                  </h3>
+                  <div className="mb-4">
+                    <div className="text-xl font-bold text-gray-900 bg-white rounded-lg p-4 border border-emerald-200">
+                      {selectedRecyclingBooking.user_name && selectedRecyclingBooking.user_last_name 
+                        ? `${selectedRecyclingBooking.user_name} ${selectedRecyclingBooking.user_last_name}`
+                        : 'Customer name not available'
+                      }
+                    </div>
+                    {selectedRecyclingBooking.user_email && (
+                      <div className="mt-2 text-sm text-gray-600 bg-white rounded-lg p-3 border border-emerald-200">
+                        <span className="font-medium">Email:</span> {selectedRecyclingBooking.user_email}
+                      </div>
+                    )}
+                    {selectedRecyclingBooking.user_phone && (
+                      <div className="mt-2 text-sm text-gray-600 bg-white rounded-lg p-3 border border-emerald-200">
+                        <span className="font-medium">Phone:</span> {selectedRecyclingBooking.user_phone}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Customer Location */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4 text-emerald-500" />
+                      Customer Location
+                    </div>
+                    <div className="bg-white rounded-xl p-4 border border-emerald-200 space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Street</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {selectedRecyclingBooking.street || 'Street address not provided'}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Cell</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {selectedRecyclingBooking.cell || 'Not available'}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Sector</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {selectedRecyclingBooking.sector || 'Not available'}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">District</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {selectedRecyclingBooking.district || 'Not available'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Notes Section */}
+              {selectedRecyclingBooking.notes && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-amber-600" />
+                    Additional Notes
+                  </h3>
+                  <div className="bg-white rounded-xl p-4 border border-amber-200">
+                    <div className="text-sm text-gray-900 leading-relaxed">
+                      {selectedRecyclingBooking.notes}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-8 py-6 border-t border-gray-200 rounded-b-3xl">
+              <div className="flex items-center justify-end gap-4">
+                <button
+                  onClick={closeRecyclingModal}
                   className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   {t('common.close') || 'Close'}
