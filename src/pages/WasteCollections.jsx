@@ -995,7 +995,7 @@ export default function WasteCollections() {
                               <td className="px-6 py-4">
                                 <span className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-full border ${getRecyclingStatusColor(booking.status)}`}>
                                   {/* <span className="text-lg">{getRecyclingStatusIcon(booking.status)}</span> */}
-                                  Pending
+                                  {t(`recyclingCenter.statuses.${booking.status}`) || booking.status}
                                 </span>
                               </td>
                               <td className="px-6 py-4">
