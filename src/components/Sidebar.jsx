@@ -20,10 +20,10 @@ export default function Sidebar({ onClose }) {
   const location = useLocation();
   const [search, setSearch] = useState('');
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -134,7 +134,7 @@ export default function Sidebar({ onClose }) {
           <span>{t('sidebar.settings')}</span>
         </button>
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-600 group"
         >
           <LogOut size={18} className="text-red-400 group-hover:text-red-600" />

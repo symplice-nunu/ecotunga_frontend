@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
-import { getRecyclingCenterBookingsByCompany } from '../services/recyclingCenterApi';
+import { getRecyclingCenterBookingsByCompany, getUserRecyclingCenterBookings, getAllRecyclingCenterBookings } from '../services/recyclingCenterApi';
+import { communityEventApi } from '../services/communityEventApi';
 import { Link, useNavigate } from 'react-router-dom';
 
 // Function to transform waste collection data into activities (moved outside component)
@@ -82,16 +83,12 @@ export default function Home() {
   const [recyclingBookings, setRecyclingBookings] = useState([]);
   const [recyclingLoading, setRecyclingLoading] = useState(true);
   const [recyclingError, setRecyclingError] = useState('');
-  // const [statusFilter] = useState('all');
-
-  // Filter collections based on status
-  // const filteredCollections = collections.filter(collection => {
-  //   if (statusFilter === 'all') return true;
-  //   return collection.status === statusFilter;
-  // });
-
-  // Get unique statuses for filter options
-  // const availableStatuses = [...new Set(collections.map(collection => collection.status))].filter(Boolean);
+  const [nextDropoff, setNextDropoff] = useState(null);
+  const [dropoffLoading, setDropoffLoading] = useState(true);
+  const [dropoffError, setDropoffError] = useState('');
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsError, setEventsError] = useState('');
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -136,75 +133,131 @@ export default function Home() {
       try {
         setPickupLoading(true);
         setPickupError('');
-        console.log('Fetching next pickup...');
         
-        let response;
-        if (user?.role === 'admin') {
-          // For admin users, get all waste collections
-          response = await wasteCollectionApi.getAllWasteCollections();
-        } else if (user?.role === 'waste_collector') {
-          // For waste collectors, get collections assigned to their company
-          response = await wasteCollectionApi.getWasteCollectionsByCompany();
-        } else {
-          // For regular users, get their own collections
-          response = await wasteCollectionApi.getUserWasteCollections();
-        }
+        // Use the dedicated API endpoint that gets data from waste_collection table
+        const response = await wasteCollectionApi.getNextWastePickup();
         
-        console.log('Collections response for next pickup:', response);
-        
-        if (response && Array.isArray(response) && response.length > 0) {
-          // Filter for approved collections and find the next upcoming pickup
-          const now = new Date();
-          const upcomingPickups = response
-            .filter(collection => 
-              collection.status === 'approved' && 
-              new Date(collection.pickup_date) > now
-            )
-            .sort((a, b) => new Date(a.pickup_date) - new Date(b.pickup_date));
-          
-          if (upcomingPickups.length > 0) {
-            const nextPickup = upcomingPickups[0];
-            const pickupDate = new Date(nextPickup.pickup_date);
-            
-            // Format the date and time
-            const formattedDate = pickupDate.toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            });
-            
-            const formattedTime = nextPickup.time_slot || 'TBD';
-            
-            setNextPickup({
-              hasUpcoming: true,
-              pickup: {
-                date: formattedDate,
-                time: formattedTime,
-                location: nextPickup.street || `${nextPickup.sector}, ${nextPickup.district}`,
-                sector: nextPickup.sector,
-                district: nextPickup.district,
-                company: nextPickup.company_name
-              }
-            });
-          } else {
-            setNextPickup({
-              hasUpcoming: false,
-              message: 'No upcoming waste pickups scheduled'
-            });
-          }
+        if (response && response.hasUpcoming) {
+          setNextPickup(response);
         } else {
           setNextPickup({
             hasUpcoming: false,
-            message: 'No waste collections found'
+            message: response?.message || 'No upcoming waste pickup scheduled'
           });
         }
       } catch (err) {
         console.error('Error fetching next pickup:', err);
-        console.error('Error details:', err.response?.data);
         setPickupError(`Failed to load next pickup information: ${err.response?.data?.error || err.message}`);
       } finally {
         setPickupLoading(false);
+      }
+    };
+
+    const fetchNextDropoff = async () => {
+      try {
+        setDropoffLoading(true);
+        setDropoffError('');
+        console.log('Fetching next dropoff for user...');
+
+        if (user?.role === 'user') {
+          // For regular users, get their own recycling center bookings
+          const response = await getUserRecyclingCenterBookings();
+          const bookings = response?.bookings || response || [];
+          const now = new Date();
+          // Debug logging
+          console.log('Raw bookings:', bookings);
+          console.log('Now:', now);
+          bookings.forEach(b => console.log('Booking date:', b.dropoff_date, 'Parsed:', new Date(b.dropoff_date)));
+          
+          // Find the next upcoming booking - use date-only comparison to avoid timezone issues
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Start of today
+          
+          const upcoming = bookings
+            .filter(b => {
+              const bookingDate = new Date(b.dropoff_date);
+              const bookingDateOnly = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+              console.log('Booking date only:', bookingDateOnly, 'Today:', today, 'Is upcoming:', bookingDateOnly >= today);
+              return bookingDateOnly >= today;
+            })
+            .sort((a, b) => new Date(a.dropoff_date) - new Date(b.dropoff_date));
+          
+          console.log('Upcoming bookings after filter:', upcoming);
+          
+          if (upcoming.length > 0) {
+            const next = upcoming[0];
+            const bookingDate = new Date(next.dropoff_date);
+            const formattedDate = bookingDate.toLocaleDateString('en-US', {
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            setNextDropoff({
+              hasUpcoming: true,
+              dropoff: {
+                location: `${next.sector}, ${next.district}`,
+                date: formattedDate,
+                time: next.time_slot || 'TBD',
+                title: next.notes || 'Recycling Dropoff',
+                organizer: next.company_name || '',
+                waste_types: next.waste_types || next.waste_type || ''
+              }
+            });
+          } else {
+            setNextDropoff({ hasUpcoming: false, message: 'No upcoming dropoff bookings scheduled' });
+          }
+        } else if (user?.role === 'recycling_center') {
+          // For recycling center owners, show bookings for their center
+          const response = await getRecyclingCenterBookingsByCompany();
+          const bookings = response?.bookings || [];
+          const now = new Date();
+          // Debug logging
+          console.log('Raw bookings:', bookings);
+          console.log('Now:', now);
+          bookings.forEach(b => console.log('Booking date:', b.dropoff_date, 'Parsed:', new Date(b.dropoff_date)));
+          
+          // Find the next upcoming booking - use date-only comparison to avoid timezone issues
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Start of today
+          
+          const upcoming = bookings
+            .filter(b => {
+              const bookingDate = new Date(b.dropoff_date);
+              const bookingDateOnly = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
+              console.log('Booking date only:', bookingDateOnly, 'Today:', today, 'Is upcoming:', bookingDateOnly >= today);
+              return bookingDateOnly >= today;
+            })
+            .sort((a, b) => new Date(a.dropoff_date) - new Date(b.dropoff_date));
+          
+          console.log('Upcoming bookings after filter:', upcoming);
+          
+          if (upcoming.length > 0) {
+            const next = upcoming[0];
+            const bookingDate = new Date(next.dropoff_date);
+            const formattedDate = bookingDate.toLocaleDateString('en-US', {
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            setNextDropoff({
+              hasUpcoming: true,
+              dropoff: {
+                location: `${next.sector}, ${next.district}`,
+                date: formattedDate,
+                time: next.time_slot || 'TBD',
+                title: next.notes || 'Recycling Dropoff',
+                organizer: next.user_name ? `${next.user_name} ${next.user_last_name}` : '',
+                waste_types: next.waste_types || next.waste_type || ''
+              }
+            });
+          } else {
+            setNextDropoff({ hasUpcoming: false, message: 'No upcoming dropoff bookings scheduled' });
+          }
+        } else {
+          setNextDropoff({ hasUpcoming: false, message: 'No upcoming dropoff bookings scheduled' });
+        }
+      } catch (err) {
+        console.error('Error fetching next dropoff:', err);
+        setDropoffError(`Failed to load next dropoff information: ${err.response?.data?.error || err.message}`);
+        setNextDropoff({ hasUpcoming: false, message: 'Unable to load dropoff information' });
+      } finally {
+        setDropoffLoading(false);
       }
     };
 
@@ -230,8 +283,20 @@ export default function Home() {
       try {
         setRecyclingLoading(true);
         setRecyclingError('');
-        const response = await getRecyclingCenterBookingsByCompany();
-        setRecyclingBookings(response.bookings || []);
+        
+        let response;
+        if (user?.role === 'admin') {
+          // For admin users, get all recycling center bookings
+          response = await getAllRecyclingCenterBookings();
+        } else if (user?.role === 'recycling_center') {
+          // For recycling center owners, get bookings for their company
+          response = await getRecyclingCenterBookingsByCompany();
+        } else {
+          // For regular users, get their own recycling center bookings
+          response = await getUserRecyclingCenterBookings();
+        }
+        
+        setRecyclingBookings(response.bookings || response || []);
       } catch (err) {
         const errorMessage = err.response?.data?.error || err.message || t('recyclingCenter.errorLoadingBookings');
         setRecyclingError(errorMessage);
@@ -243,17 +308,76 @@ export default function Home() {
       }
     };
 
+    const fetchEvents = async () => {
+      try {
+        setEventsLoading(true);
+        setEventsError('');
+        console.log('Fetching community events...');
+
+        const response = await communityEventApi.getAllEvents({ featured: 'true' });
+        const eventsData = response || [];
+        
+        // Transform events data to match the expected format
+        const transformedEvents = eventsData.slice(0, 3).map((event) => {
+          const eventDate = new Date(event.event_date);
+          const formattedDate = eventDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          });
+
+          // Determine color and icon based on category
+          let color = 'green';
+          let icon = <CheckCircle className="w-4 h-4" />;
+          
+          switch (event.category) {
+            case 'cleanup':
+              color = 'green';
+              icon = <CheckCircle className="w-4 h-4" />;
+              break;
+            case 'education':
+              color = 'orange';
+              icon = <Info className="w-4 h-4" />;
+              break;
+            case 'planting':
+              color = 'blue';
+              icon = <Calendar className="w-4 h-4" />;
+              break;
+            default:
+              color = 'purple';
+              icon = <Calendar className="w-4 h-4" />;
+          }
+
+          return {
+            title: event.title,
+            date: formattedDate,
+            location: event.location,
+            color: color,
+            icon: icon,
+            id: event.id
+          };
+        });
+
+        setEvents(transformedEvents);
+        console.log('Community events data:', transformedEvents);
+      } catch (err) {
+        setEventsError('Failed to load community events');
+        console.error('Error fetching community events:', err);
+        setEvents([]);
+      } finally {
+        setEventsLoading(false);
+      }
+    };
+
     if (user) {
       fetchCollections();
       fetchNextPickup();
+      fetchNextDropoff();
       fetchDashboardStats();
-      
-      // Fetch recycling center bookings for recycling center users
-      if (user.role === 'recycling_center') {
-        fetchRecyclingBookings();
-      }
+      fetchEvents();
+      fetchRecyclingBookings(); // Fetch recycling bookings for all users
     }
-  }, [user]);
+  }, [user, t]);
 
   // Helper function to safely get collections count
   const getCollectionsCount = () => {
@@ -379,35 +503,8 @@ export default function Home() {
   // Recent activity - now managed by state from API data
   // Activities are transformed from waste collection data in useEffect
 
-  // Next pickups and events
-  const nextDropoff = {
-    location: 'Cyivugiza Center (KG 50 St)',
-    date: 'Saturday, June 15, 2025',
-    time: '9:00 AM – 4:00 PM',
-  };
-  const events = [
-    {
-      title: t('home.events.umuganda'),
-      date: 'July 5, 2025',
-      location: 'Nyamirambo Rwanda, Kigali',
-      color: 'green',
-      icon: <CheckCircle className="w-4 h-4" />,
-    },
-    {
-      title: t('home.events.youthLedCleanups'),
-      date: 'July 5, 2025',
-      location: 'Rafiki Rwanda, Kigali',
-      color: 'orange',
-      icon: <Info className="w-4 h-4" />,
-    },
-    {
-      title: t('home.events.carFreeDays'),
-      date: 'July 5, 2025',
-      location: 'Kigali',
-      color: 'red',
-      icon: <Calendar className="w-4 h-4" />,
-    },
-  ];
+  // Next pickups and events - now dynamic from API
+  // nextDropoff is now managed by state from fetchNextDropoff()
 
   // Sorting guidelines
   // const guidelines = [
@@ -1156,41 +1253,71 @@ export default function Home() {
 
         {/* Sidebar: Next Pickup, Drop-off, Events */}
         <div className="flex flex-col gap-4 sm:gap-6">
-          {/* Next Waste Pickup - Only show for users with role 'user' or 'waste_collector' */}
-          {(user?.role === 'user' || user?.role === 'waste_collector') && (
+          {/* Next Waste Pickup - Show for all users except admin and recycling_center */}
+          {user?.role !== 'admin' && user?.role !== 'recycling_center' && (
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.nextPickup.title')}</h3>
               {pickupLoading ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </div>
                   </div>
                   <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="animate-pulse">
+                    <div className="h-10 bg-gray-200 rounded-lg"></div>
                   </div>
                 </div>
               ) : pickupError ? (
-                <div className="text-sm text-red-600">{pickupError}</div>
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <XCircle className="w-8 h-8 text-red-400" />
+                  </div>
+                  <p className="text-sm text-red-600 mb-2">{pickupError}</p>
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Try again →
+                  </button>
+                </div>
               ) : nextPickup && nextPickup.hasUpcoming ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
-                      <Calendar className="w-4 h-4 text-teal-600" />
+                <div className="space-y-4">
+                  {/* Date and Time */}
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-teal-50 to-blue-50 rounded-lg border border-teal-100">
+                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-teal-600" />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.date}</p>
-                      <p className="text-xs text-gray-500">{nextPickup.pickup.time}</p>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">{nextPickup.pickup.date}</p>
+                      <p className="text-xs text-gray-600">{nextPickup.pickup.time}</p>
+                    </div>
+                    <div className="px-2 py-1 bg-teal-100 rounded-full">
+                      <span className="text-xs font-medium text-teal-700">Scheduled</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-4 h-4 text-blue-600" />
+                  
+                  {/* Location */}
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-blue-600" />
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.location}</p>
-                      <p className="text-xs text-gray-500">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">{nextPickup.pickup.location}</p>
+                      <p className="text-xs text-gray-600">
                         {nextPickup.pickup.sector && nextPickup.pickup.district 
                           ? `${nextPickup.pickup.sector}, ${nextPickup.pickup.district}`
                           : t('home.nextPickup.location')
@@ -1198,21 +1325,47 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
+                  
+                  {/* Company */}
                   {nextPickup.pickup.company && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Truck className="w-4 h-4 text-green-600" />
+                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <Truck className="w-5 h-5 text-green-600" />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{nextPickup.pickup.company}</p>
-                        <p className="text-xs text-gray-500">Collection Company</p>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">{nextPickup.pickup.company}</p>
+                        <p className="text-xs text-gray-600">Collection Company</p>
+                      </div>
+                      <div className="px-2 py-1 bg-green-100 rounded-full">
+                        <span className="text-xs font-medium text-green-700">Assigned</span>
                       </div>
                     </div>
                   )}
+                  
+                  {/* Action Button */}
+                  <div className="mt-4">
+                    <button 
+                      onClick={() => navigate('/waste-collections')}
+                      className="w-full bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                      View All Collections
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">
-                  {nextPickup?.message || 'No upcoming waste pickup scheduled'}
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Calendar className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-500 mb-2">
+                    {nextPickup?.message || 'No upcoming waste pickup scheduled'}
+                  </p>
+                  <button 
+                    onClick={() => navigate('/waste-collections')}
+                    className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                  >
+                    Schedule a pickup →
+                  </button>
                 </div>
               )}
             </div>
@@ -1222,26 +1375,42 @@ export default function Home() {
           {user?.role === 'user' && (
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.nextDropoff.title')}</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-4 h-4 text-green-600" />
+              {dropoffLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                  <span className="ml-2 text-sm text-gray-500">Loading dropoff information...</span>
+                </div>
+              ) : dropoffError ? (
+                <div className="text-sm text-red-600">
+                  {dropoffError}
+                </div>
+              ) : nextDropoff?.hasUpcoming ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{nextDropoff.dropoff.location}</p>
+                      <p className="text-xs text-gray-500">{nextDropoff.dropoff.date}</p>
+                      <p className="text-xs text-gray-500">{nextDropoff.dropoff.time}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{nextDropoff.location}</p>
-                    <p className="text-xs text-gray-500">{t('home.nextDropoff.location')}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{nextDropoff.dropoff.title}</p>
+                      <p className="text-xs text-gray-500">{nextDropoff.dropoff.organizer}</p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{nextDropoff.date}</p>
-                    <p className="text-xs text-gray-500">{nextDropoff.time}</p>
-                  </div>
+              ) : (
+                <div className="text-sm text-gray-500">
+                  {nextDropoff?.message || 'No upcoming dropoff events scheduled'}
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -1249,30 +1418,49 @@ export default function Home() {
           {user?.role === 'user' && (
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.events.title')}</h3>
-              <div className="space-y-3">
-                {events.map((event, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      event.color === 'green' ? 'bg-green-100' :
-                      event.color === 'orange' ? 'bg-orange-100' :
-                      'bg-red-100'
-                    }`}>
-                      <div className={`${
-                        event.color === 'green' ? 'text-green-600' :
-                        event.color === 'orange' ? 'text-orange-600' :
-                        'text-red-600'
+              {eventsLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                  <span className="ml-2 text-sm text-gray-500">Loading events...</span>
+                </div>
+              ) : eventsError ? (
+                <div className="text-sm text-red-600">
+                  {eventsError}
+                </div>
+              ) : events.length === 0 ? (
+                <div className="text-sm text-gray-500">
+                  No upcoming events found
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {events.map((event, idx) => (
+                    <div key={event.id || idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        event.color === 'green' ? 'bg-green-100' :
+                        event.color === 'orange' ? 'bg-orange-100' :
+                        event.color === 'blue' ? 'bg-blue-100' :
+                        event.color === 'purple' ? 'bg-purple-100' :
+                        'bg-red-100'
                       }`}>
-                        {event.icon}
+                        <div className={`${
+                          event.color === 'green' ? 'text-green-600' :
+                          event.color === 'orange' ? 'text-orange-600' :
+                          event.color === 'blue' ? 'text-blue-600' :
+                          event.color === 'purple' ? 'text-purple-600' :
+                          'text-red-600'
+                        }`}>
+                          {event.icon}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
+                        <p className="text-xs text-gray-500">{event.date}</p>
+                        <p className="text-xs text-gray-500 truncate">{event.location}</p>
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
-                      <p className="text-xs text-gray-500">{event.date}</p>
-                      <p className="text-xs text-gray-500 truncate">{event.location}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1304,7 +1492,10 @@ export default function Home() {
             <div className="lg:col-span-2 space-y-6">
               {/* Statistics Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div 
+                  className="bg-white rounded-xl shadow-sm p-4 sm:p-6 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate('/recycling-bookings')}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Bookings</p>
@@ -1319,7 +1510,10 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div 
+                  className="bg-white rounded-xl shadow-sm p-4 sm:p-6 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate('/recycling-bookings?filter=today')}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Today's Bookings</p>
@@ -1339,7 +1533,10 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div 
+                  className="bg-white rounded-xl shadow-sm p-4 sm:p-6 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate('/recycling-bookings?filter=week')}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">This Week</p>
@@ -1365,7 +1562,10 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div 
+                  className="bg-white rounded-xl shadow-sm p-4 sm:p-6 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate('/recycling-bookings?filter=today')}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Capacity</p>

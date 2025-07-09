@@ -55,6 +55,46 @@ export const getRecyclingCenterBookingById = async (id) => {
   }
 };
 
+// Approve recycling center booking with pricing
+export const approveRecyclingCenterBooking = async (id, price, notes) => {
+  try {
+    const response = await api.put(`/recycling-center/bookings/${id}/approve`, {
+      price,
+      notes
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error approving recycling center booking:', error);
+    throw error;
+  }
+};
+
+// Confirm price for recycling center booking
+export const confirmRecyclingCenterBookingPrice = async (id, confirmed) => {
+  try {
+    const response = await api.put(`/recycling-center/bookings/${id}/confirm-price`, {
+      confirmed
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error confirming recycling center booking price:', error);
+    throw error;
+  }
+};
+
+// Confirm payment for recycling center booking
+export const confirmRecyclingCenterBookingPayment = async (id, payment_confirmed) => {
+  try {
+    const response = await api.put(`/recycling-center/bookings/${id}/confirm-payment`, {
+      payment_confirmed
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error confirming recycling center booking payment:', error);
+    throw error;
+  }
+};
+
 // Cancel recycling center booking
 export const cancelRecyclingCenterBooking = async (id) => {
   try {

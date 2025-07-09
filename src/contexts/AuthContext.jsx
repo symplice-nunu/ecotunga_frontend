@@ -11,6 +11,28 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Global axios interceptor to handle 401 responses
+  useEffect(() => {
+    const responseInterceptor = API.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          // Token is invalid, logout user
+          localStorage.removeItem('token');
+          setUser(null);
+          // Redirect to login page with current path
+          const currentPath = window.location.pathname;
+          window.location.href = `/login?from=${encodeURIComponent(currentPath)}`;
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      API.interceptors.response.eject(responseInterceptor);
+    };
+  }, []);
+
   useEffect(() => {
     // Check if user is logged in by checking token and fetching profile
     const token = localStorage.getItem('token');

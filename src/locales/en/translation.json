@@ -1,5 +1,7 @@
 {
   "common": {
+    "welcome": "Welcome to Ecotunga",
+    "signup": "Sign Up",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -27,7 +29,8 @@
     "completeProfile": "Complete Your Profile",
     "completeProfileSubtitle": "Tell us more about yourself",
     "completingRegistration": "Completing registration...",
-    "completeRegistration": "Complete Registration"
+    "completeRegistration": "Complete Registration",
+    "loginRequired": "Please log in to access the requested page."
   },
   "errors": {
     "required": "This field is required",

@@ -118,7 +118,7 @@ export default function WasteCollections() {
           // For admin users, get all recycling center bookings
           console.log('🔍 Admin user - fetching all recycling center bookings');
           response = await getAllRecyclingCenterBookings();
-        } else if (user?.role === 'recycling_center_owner') {
+        } else if (user?.role === 'recycling_center') {
           // For recycling center owners, get bookings for their center
           console.log('🔍 Recycling center owner - fetching bookings by company');
           response = await getRecyclingCenterBookingsByCompany();
@@ -403,7 +403,7 @@ export default function WasteCollections() {
         let response;
         if (user?.role === 'admin') {
           response = await getAllRecyclingCenterBookings();
-        } else if (user?.role === 'recycling_center_owner') {
+        } else if (user?.role === 'recycling_center') {
           response = await getRecyclingCenterBookingsByCompany();
         } else {
           response = await getUserRecyclingCenterBookings();
@@ -529,7 +529,7 @@ export default function WasteCollections() {
         return wasteTypesArray.map(type => {
           const typeInfo = wasteTypesMapping[type];
           return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : type;
-        }).join(', ');
+        });
       }
     } catch (e) {
       // If parsing fails, treat as single waste type
@@ -537,7 +537,7 @@ export default function WasteCollections() {
     
     // Fallback to single waste type
     const typeInfo = wasteTypesMapping[wasteType];
-    return typeInfo ? `${typeInfo.icon} ${typeInfo.label}` : wasteType;
+    return typeInfo ? [`${typeInfo.icon} ${typeInfo.label}`] : [wasteType];
   };
 
   return (
@@ -1010,10 +1010,19 @@ export default function WasteCollections() {
                               </td>
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-lg">♻️</span>
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full border bg-green-50 text-green-700 border-green-200">
-                                    {formatWasteType(booking.waste_type)}
-                                  </span>
+                                  <div className="flex flex-col gap-1">
+                                    {Array.isArray(formatWasteType(booking.waste_type)) ? 
+                                      formatWasteType(booking.waste_type).map((type, index) => (
+                                        <span key={index} className="px-2 py-1 text-xs font-medium rounded-full border bg-green-50 text-green-700 border-green-200">
+                                          {type}
+                                        </span>
+                                      ))
+                                    : (
+                                      <span className="px-2 py-1 text-xs font-medium rounded-full border bg-green-50 text-green-700 border-green-200">
+                                        {formatWasteType(booking.waste_type)}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </td>
                                                              <td className="px-6 py-4">
@@ -1607,7 +1616,7 @@ export default function WasteCollections() {
               </div>
 
               {/* Customer Information (for admin and recycling center users) */}
-              {(user?.role === 'admin' || user?.role === 'recycling_center_owner') && (
+              {(user?.role === 'admin' || user?.role === 'recycling_center') && (
                 <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <Users className="w-5 h-5 text-emerald-600" />

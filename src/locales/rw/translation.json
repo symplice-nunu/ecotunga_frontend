@@ -39,7 +39,8 @@
     "completeProfile": "Uzuza umwirondoro wawe",
     "completeProfileSubtitle": "Dutangire ibisobanuro",
     "completingRegistration": "Ari guzuza kwiyandikisha...",
-    "completeRegistration": "Zuzura kwiyandikisha"
+    "completeRegistration": "Zuzura kwiyandikisha",
+    "loginRequired": "Urakoze winjire kugira ngo ubone urupapuro rwasabwe."
   },
   "errors": {
     "required": "Iki gice ngombwa",

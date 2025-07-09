@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import PersonalInfo from './pages/PersonalInfo';
@@ -19,6 +20,9 @@ import AdminWasteCollections from './pages/AdminWasteCollections';
 import CommunityEvents from './pages/CommunityEvents';
 import EducationMaterials from './pages/EducationMaterials';
 import RecyclingRequest from './pages/RecyclingRequest';
+import RecyclingCenterBookings from './pages/RecyclingCenterBookings';
+import BookingConfirmation from './pages/BookingConfirmation';
+import PaymentConfirmation from './pages/PaymentConfirmation';
 
 function App() {
   return (
@@ -32,7 +36,11 @@ function App() {
             <Route path="/personal-info" element={<PersonalInfo />} />
             
             {/* Protected routes with layout */}
-            <Route path="/" element={<Layout />}>
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
               <Route index element={<Navigate to="/home" replace />} />
               <Route path="home" element={<Home />} />
               <Route path="profile" element={<Profile />} />
@@ -46,6 +54,9 @@ function App() {
               <Route path="community" element={<CommunityEvents />} />
               <Route path="education" element={<EducationMaterials />} />
               <Route path="recycling-request" element={<RecyclingRequest />} />
+              <Route path="recycling-bookings" element={<RecyclingCenterBookings />} />
+              <Route path="recycling-center/bookings/:id/confirm" element={<BookingConfirmation />} />
+              <Route path="recycling-center/bookings/:id/confirm-payment" element={<PaymentConfirmation />} />
             </Route>
             
             {/* Catch all route */}

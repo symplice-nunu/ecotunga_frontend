@@ -39,7 +39,8 @@
     "completeProfile": "Complétez votre profil",
     "completeProfileSubtitle": "Parlez-nous de vous",
     "completingRegistration": "Finalisation de l'inscription...",
-    "completeRegistration": "Finaliser l'inscription"
+    "completeRegistration": "Finaliser l'inscription",
+    "loginRequired": "Veuillez vous connecter pour accéder à la page demandée."
   },
   "errors": {
     "required": "Ce champ est obligatoire",
