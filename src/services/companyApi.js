@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const companyAPI = axios.create({
-  baseURL: 'http://localhost:5001/api/companies',
+  baseURL: 'http://62.171.173.62/api/companies',
 });
 
 companyAPI.interceptors.request.use((config) => {

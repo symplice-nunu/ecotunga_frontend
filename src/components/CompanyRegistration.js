@@ -136,7 +136,7 @@ const CompanyRegistration = () => {
     setIsSubmitting(true);
 
     try {
-      await axios.post('http://localhost:5001/api/companies/register', formData);
+      await axios.post('http://62.171.173.62/api/companies/register', formData);
       setSuccess('Company registered successfully!');
       setFormData({
         name: '',

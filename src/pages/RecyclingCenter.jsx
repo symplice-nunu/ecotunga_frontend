@@ -299,7 +299,7 @@ const RecyclingCenter = () => {
       setCompaniesLoading(true);
       const [companiesResponse, usersResponse] = await Promise.all([
         getCompanies(),
-        fetch('http://localhost:5001/api/users', {
+        fetch('http://62.171.173.62/api/users', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -375,7 +375,7 @@ const RecyclingCenter = () => {
     try {
       const [companyResponse, usersResponse] = await Promise.all([
         getCompanyById(companyId),
-        fetch('http://localhost:5001/api/users', {
+        fetch('http://62.171.173.62/api/users', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }

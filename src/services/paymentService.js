@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const paymentAPI = axios.create({
-  baseURL: 'http://localhost:5001/api/payments',
+  baseURL: 'http://62.171.173.62/api/payments',
 });
 
 paymentAPI.interceptors.request.use((config) => {
