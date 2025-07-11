@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
 
 const userAPI = axios.create({
-  baseURL: `${API_BASE_URL}/users`,
+  baseURL: `${API_BASE_URL()}/users`,
 });
 
 userAPI.interceptors.request.use((config) => {

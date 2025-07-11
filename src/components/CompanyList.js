@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Building2, Mail, Phone, MapPin, Plus, Search, X, Edit, Trash, Eye } from 'lucide-react';
 import axios from 'axios';
-import { Plus, X, Building2, Mail, Phone, MapPin, DollarSign, Search } from 'lucide-react';
+import { API_BASE_URL } from '../services/apiConfig';
 
 // Rwanda districts array
 const rwandaDistricts = [
@@ -136,7 +137,7 @@ const CompanyList = () => {
 
   const fetchCompanies = useCallback(async () => {
     try {
-      const response = await axios.get('http://62.171.173.62/api/companies');
+      const response = await axios.get(`${API_BASE_URL()}/companies`);
       setCompanies(response.data);
       setFilteredCompanies(response.data);
       setTotalPages(Math.ceil((response.data?.length || 0) / itemsPerPage));
@@ -182,7 +183,7 @@ const CompanyList = () => {
     setFormSuccess('');
 
     try {
-      await axios.post('http://62.171.173.62/api/companies/register', formData);
+      await axios.post(`${API_BASE_URL()}/companies/register`, formData);
       setFormSuccess('Company registered successfully!');
       setShowSuccessModal(true);
       // Reset form

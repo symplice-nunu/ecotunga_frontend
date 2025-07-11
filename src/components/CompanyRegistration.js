@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { Building2, Mail, Phone, MapPin, DollarSign } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../services/apiConfig';
 
 // Rwanda districts array
 const rwandaDistricts = [
@@ -136,7 +138,7 @@ const CompanyRegistration = () => {
     setIsSubmitting(true);
 
     try {
-      await axios.post('http://62.171.173.62/api/companies/register', formData);
+      await axios.post(`${API_BASE_URL()}/companies/register`, formData);
       setSuccess('Company registered successfully!');
       setFormData({
         name: '',
