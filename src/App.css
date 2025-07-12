@@ -37,6 +37,25 @@
   }
 }
 
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+  display: inline-block;
+  min-width: 100%;
+  animation: marquee 12s linear infinite;
+  will-change: transform;
+}
+.marquee-container {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
 /* Custom DatePicker Styles */
 .react-datepicker-wrapper {
   width: 100%;
@@ -111,4 +130,19 @@
 .react-datepicker__day--keyboard-selected {
   background-color: #10b981;
   color: white;
+}
+
+@keyframes marquee-abs {
+  0% { left: 100%; }
+  100% { left: -100%; }
+}
+.animate-marquee-abs {
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: marquee-abs 6s linear infinite;
+  will-change: left;
+}
+.marquee-outer {
+  border: 2px dashed red;
 }

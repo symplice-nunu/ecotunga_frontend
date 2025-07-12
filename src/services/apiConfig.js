@@ -13,8 +13,14 @@ export const getApiUrl = () => {
     return process.env.REACT_APP_API_URL;
   }
   
-  // For now, use HTTP for all environments since HTTPS is not available
-  console.log('Using HTTP URL (HTTPS not available on backend)');
+  // For production (Vercel), use the Vercel proxy to avoid mixed content issues
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    console.log('Using Vercel proxy for production');
+    return '/api';
+  }
+  
+  // For development, use HTTP directly
+  console.log('Using HTTP URL for development');
   return 'http://62.171.173.62/api';
 };
 

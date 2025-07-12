@@ -83,6 +83,7 @@
   },
   "home": {
     "dashboard": "Dashboard",
+    "bannerMessage": "Learn how to sort your waste and earn rewards!",
     "bookCollection": {
       "title": "Book Waste Collection",
       "description": "Schedule a pickup for your waste and contribute to a cleaner environment.",
@@ -452,5 +453,91 @@
     "cell": "Cell",
     "street": "Street",
     "notes": "Notes"
+  },
+  "bookingDetails": {
+    "title": "Booking Details",
+    "bookingId": "ID: #{{id}}",
+    "customerInformation": "Customer Information",
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "bookingDetails": "Booking Details",
+    "dropoffDate": "Drop-off Date",
+    "timeSlot": "Time Slot",
+    "status": "Status",
+    "created": "Created",
+    "location": "Location",
+    "district": "District",
+    "sector": "Sector",
+    "cell": "Cell",
+    "street": "Street",
+    "wasteTypes": "Waste Types",
+    "noWasteTypesSpecified": "No waste types specified",
+    "pricingInformation": "Pricing Information",
+    "price": "Price",
+    "paymentConfirmation": "Payment Confirmation",
+    "paymentConfirmed": "Payment Confirmed",
+    "paymentPending": "Payment Pending",
+    "awaitingPaymentConfirmation": "Awaiting Payment Confirmation",
+    "statuses": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "cancelled": "Cancelled"
+    }
+  },
+  "recyclingCenterBookings": {
+    "title": "Recycling Center Bookings",
+    "accessDenied": "Access Denied",
+    "accessDeniedMessage": "You don't have permission to view this page.",
+    "backToDashboard": "Back to Dashboard",
+    "totalBookings": "Total Bookings",
+    "error": "Error",
+    "searchPlaceholder": "Search bookings...",
+    "filters": {
+      "allStatus": "All Status",
+      "pending": "Pending",
+      "approved": "Approved",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "allDates": "All Dates",
+      "today": "Today",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month"
+    },
+    "resultsCount": "{{filtered}} of {{total}} bookings",
+    "loading": "Loading bookings...",
+    "noBookingsFound": "No bookings found",
+    "noBookingsMessage": "No bookings have been made yet.",
+    "tryAdjustingFilters": "Try adjusting your filters or search terms.",
+    "tableHeaders": {
+      "customer": "Customer",
+      "contact": "Contact",
+      "location": "Location",
+      "dateTime": "Date & Time",
+      "wasteTypes": "Waste Types",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "noWasteTypesSpecified": "No waste types specified",
+    "statuses": {
+      "approved": "Approved",
+      "completed": "Completed",
+      "pending": "Pending",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
+    },
+    "paymentStatuses": {
+      "confirmed": "Confirmed",
+      "declined": "Declined",
+      "awaitingConfirmation": "Awaiting Confirmation",
+      "paymentConfirmed": "Payment Confirmed",
+      "paymentPending": "Payment Pending",
+      "awaitingPaymentConfirmation": "Awaiting Payment Confirmation"
+    },
+    "actions": {
+      "details": "Details",
+      "approve": "Approve"
+    },
+    "approvalSuccess": "Booking approved successfully! Email sent to customer."
   }
 } 

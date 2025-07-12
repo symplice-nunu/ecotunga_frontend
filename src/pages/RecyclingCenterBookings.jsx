@@ -91,15 +91,15 @@ export default function RecyclingCenterBookings() {
     const statusElement = (() => {
       switch (status) {
         case 'approved':
-          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800"><CheckCircle className="w-4 h-4" /> Approved</span>;
+          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800"><CheckCircle className="w-4 h-4" /> {t('recyclingCenterBookings.statuses.approved')}</span>;
         case 'completed':
-          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800"><CheckCircle className="w-4 h-4" /> Completed</span>;
+          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800"><CheckCircle className="w-4 h-4" /> {t('recyclingCenterBookings.statuses.completed')}</span>;
         case 'pending':
-          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800"><Hourglass className="w-4 h-4" /> Pending</span>;
+          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800"><Hourglass className="w-4 h-4" /> {t('recyclingCenterBookings.statuses.pending')}</span>;
         case 'cancelled':
-          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800"><Ban className="w-4 h-4" /> Cancelled</span>;
+          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800"><Ban className="w-4 h-4" /> {t('recyclingCenterBookings.statuses.cancelled')}</span>;
         default:
-          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800"><XCircle className="w-4 h-4" /> Unknown</span>;
+          return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800"><XCircle className="w-4 h-4" /> {t('recyclingCenterBookings.statuses.unknown')}</span>;
       }
     })();
 
@@ -116,31 +116,31 @@ export default function RecyclingCenterBookings() {
             </span>
             {priceConfirmed === true && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                ✅ Confirmed
+                ✅ {t('recyclingCenterBookings.paymentStatuses.confirmed')}
               </span>
             )}
             {priceConfirmed === false && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-                ❌ Declined
+                ❌ {t('recyclingCenterBookings.paymentStatuses.declined')}
               </span>
             )}
             {priceConfirmed === null && (
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                ⏳ Awaiting Confirmation
+                ⏳ {t('recyclingCenterBookings.paymentStatuses.awaitingConfirmation')}
               </span>
             )}
             {priceConfirmed === true && (
               paymentConfirmed === true ? (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                  💳 Payment Confirmed
+                  💳 {t('recyclingCenterBookings.paymentStatuses.paymentConfirmed')}
                 </span>
               ) : paymentConfirmed === false ? (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
-                  💳 Payment Pending
+                  💳 {t('recyclingCenterBookings.paymentStatuses.paymentPending')}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                  💳 Awaiting Payment Confirmation
+                  💳 {t('recyclingCenterBookings.paymentStatuses.awaitingPaymentConfirmation')}
                 </span>
               )
             )}
@@ -165,15 +165,15 @@ export default function RecyclingCenterBookings() {
     return timeString;
   };
 
-  const handleApproveBooking = async (bookingId, price, notes) => {
+  const handleApproveBooking = async (bookingId, price, notes, sorted_properly) => {
     setApprovalLoading(true);
     try {
-      await approveRecyclingCenterBooking(bookingId, price, notes);
+      await approveRecyclingCenterBooking(bookingId, price, notes, sorted_properly);
       // Refresh the bookings list
       const response = await getRecyclingCenterBookingsByCompany();
       setBookings(response.bookings || response || []);
       // Show success message (you can add a toast notification here)
-      alert('Booking approved successfully! Email sent to customer.');
+      alert(t('recyclingCenterBookings.approvalSuccess'));
     } catch (error) {
       console.error('Error approving booking:', error);
       throw error;
@@ -203,8 +203,8 @@ export default function RecyclingCenterBookings() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-            <p className="text-gray-600">You don't have permission to view this page.</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('recyclingCenterBookings.accessDenied')}</h1>
+            <p className="text-gray-600">{t('recyclingCenterBookings.accessDeniedMessage')}</p>
           </div>
         </div>
       </div>
@@ -223,12 +223,12 @@ export default function RecyclingCenterBookings() {
                 className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to Dashboard
+                {t('recyclingCenterBookings.backToDashboard')}
               </Link>
-              <h1 className="text-3xl font-bold text-gray-900">Recycling Center Bookings</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{t('recyclingCenterBookings.title')}</h1>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Total Bookings</p>
+              <p className="text-sm text-gray-600">{t('recyclingCenterBookings.totalBookings')}</p>
               <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function RecyclingCenterBookings() {
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex">
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <h3 className="text-sm font-medium text-red-800">{t('recyclingCenterBookings.error')}</h3>
                 <div className="mt-2 text-sm text-red-700">
                   <p>{error}</p>
                 </div>
@@ -256,7 +256,7 @@ export default function RecyclingCenterBookings() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search bookings..."
+                placeholder={t('recyclingCenterBookings.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -268,11 +268,11 @@ export default function RecyclingCenterBookings() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="all">{t('recyclingCenterBookings.filters.allStatus')}</option>
+              <option value="pending">{t('recyclingCenterBookings.filters.pending')}</option>
+              <option value="approved">{t('recyclingCenterBookings.filters.approved')}</option>
+              <option value="completed">{t('recyclingCenterBookings.filters.completed')}</option>
+              <option value="cancelled">{t('recyclingCenterBookings.filters.cancelled')}</option>
             </select>
             {/* Date Filter */}
             <select
@@ -280,130 +280,184 @@ export default function RecyclingCenterBookings() {
               onChange={(e) => setDateFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
+              <option value="all">{t('recyclingCenterBookings.filters.allDates')}</option>
+              <option value="today">{t('recyclingCenterBookings.filters.today')}</option>
+              <option value="week">{t('recyclingCenterBookings.filters.thisWeek')}</option>
+              <option value="month">{t('recyclingCenterBookings.filters.thisMonth')}</option>
             </select>
             {/* Results Count */}
             <div className="flex items-center justify-end">
               <span className="text-sm text-gray-600">
-                {filteredBookings.length} of {bookings.length} bookings
+                {t('recyclingCenterBookings.resultsCount', { filtered: filteredBookings.length, total: bookings.length })}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Bookings List */}
+        {/* Bookings Table */}
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading bookings...</p>
+            <p className="mt-4 text-gray-600">{t('recyclingCenterBookings.loading')}</p>
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="text-center py-12">
             <img src="https://undraw.co/api/illustrations/undraw_empty_re_opql.svg" alt="No bookings" className="w-32 h-32 mx-auto mb-4 opacity-80" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('recyclingCenterBookings.noBookingsFound')}</h3>
             <p className="text-gray-600">
               {searchTerm || statusFilter !== 'all' || dateFilter !== 'all' 
-                ? 'Try adjusting your filters or search terms.'
-                : 'No bookings have been made yet.'
+                ? t('recyclingCenterBookings.tryAdjustingFilters')
+                : t('recyclingCenterBookings.noBookingsMessage')
               }
             </p>
           </div>
         ) : (
-          <div className="grid gap-6">
-            {filteredBookings.map((booking) => (
-              <div key={booking.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-shadow border border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                {/* User Avatar and Info */}
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="flex-shrink-0">
-                    <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 border-2 border-blue-200">
-                      {getInitials(booking.user_name, booking.user_last_name)}
-                    </div>
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">
-                      {booking.user_name} {booking.user_last_name}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-600 gap-2 truncate">
-                      <Mail className="w-4 h-4" />
-                      <span className="truncate">{booking.user_email}</span>
-                    </div>
-                    {booking.user_phone && (
-                      <div className="flex items-center text-sm text-gray-600 gap-2">
-                        <Phone className="w-4 h-4" />
-                        <span>{booking.user_phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {/* Booking Details */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Location</p>
-                      <p className="text-sm text-gray-600">
-                        {booking.sector}, {booking.district}
-                      </p>
-                      {booking.street && (
-                        <p className="text-sm text-gray-600">{booking.street}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Date & Time</p>
-                      <p className="text-sm text-gray-600">{formatDate(booking.dropoff_date)}</p>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{formatTime(booking.time_slot)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Waste Types & Status */}
-                <div className="flex flex-col gap-2 min-w-[180px]">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {booking.waste_types && booking.waste_types.length > 0 && booking.waste_types.map((type, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium"
-                      >
-                        {type}
-                      </span>
-                    ))}
-                  </div>
-                  <div>{getStatusBadge(booking.status, booking.price, booking.price_confirmed, booking.payment_confirmed)}</div>
-                </div>
-                {/* Notes & Actions */}
-                <div className="flex flex-col gap-2 min-w-[180px]">
-                  {booking.notes && (
-                    <div className="bg-gray-50 rounded-lg p-2 text-xs text-gray-700 mb-2 border border-gray-100">
-                      <span className="font-medium">Notes:</span> {booking.notes}
-                    </div>
-                  )}
-                  <div className="flex gap-2 mt-2">
-                    <button 
-                      onClick={() => openDetailsModal(booking)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow"
-                    >
-                      <User className="w-4 h-4" /> View Details
-                    </button>
-                    {booking.status !== 'approved' && (
-                      <button 
-                        onClick={() => openApprovalModal(booking)}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow"
-                      >
-                        <CheckCircle className="w-4 h-4" /> Approve & Price
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('recyclingCenterBookings.tableHeaders.customer')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('recyclingCenterBookings.tableHeaders.contact')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('recyclingCenterBookings.tableHeaders.location')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('recyclingCenterBookings.tableHeaders.dateTime')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('recyclingCenterBookings.tableHeaders.wasteTypes')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('recyclingCenterBookings.tableHeaders.status')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('recyclingCenterBookings.tableHeaders.actions')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredBookings.map((booking) => (
+                    <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                      {/* Customer */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700 border-2 border-blue-200">
+                              {getInitials(booking.user_name, booking.user_last_name)}
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {booking.user_name} {booking.user_last_name}
+                            </div>
+                            {booking.notes && (
+                              <div className="text-xs text-gray-500 truncate max-w-xs">
+                                {booking.notes}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      
+                      {/* Contact */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          <div className="flex items-center gap-1 mb-1">
+                            <Mail className="w-3 h-3 text-gray-400" />
+                            <span className="truncate max-w-xs">{booking.user_email}</span>
+                          </div>
+                          {booking.user_phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="w-3 h-3 text-gray-400" />
+                              <span>{booking.user_phone}</span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Location */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-gray-400" />
+                            <span>{booking.sector}, {booking.district}</span>
+                          </div>
+                          {booking.street && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {booking.street}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Date & Time */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-gray-400" />
+                            <span>{formatDate(booking.dropoff_date)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Clock className="w-3 h-3 text-gray-400" />
+                            <span className="text-xs text-gray-500">{formatTime(booking.time_slot)}</span>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      {/* Waste Types */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-wrap gap-1">
+                          {booking.waste_types && booking.waste_types.length > 0 ? (
+                            booking.waste_types.map((type, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium"
+                              >
+                                {type}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">{t('recyclingCenterBookings.noWasteTypesSpecified')}</span>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Status */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm">
+                          {getStatusBadge(booking.status, booking.price, booking.price_confirmed, booking.payment_confirmed)}
+                        </div>
+                      </td>
+                      
+                      {/* Actions */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => openDetailsModal(booking)}
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                          >
+                            <User className="w-3 h-3" /> {t('recyclingCenterBookings.actions.details')}
+                          </button>
+                          {booking.status !== 'approved' && (
+                            <button 
+                              onClick={() => openApprovalModal(booking)}
+                              className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"
+                            >
+                              <CheckCircle className="w-3 h-3" /> {t('recyclingCenterBookings.actions.approve')}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

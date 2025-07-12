@@ -1,11 +1,11 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, Phone } from 'lucide-react';
+import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, Phone, Star, TrendingUp, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
-import { getRecyclingCenterBookingsByCompany, getUserRecyclingCenterBookings, getAllRecyclingCenterBookings } from '../services/recyclingCenterApi';
+import { getRecyclingCenterBookingsByCompany, getUserRecyclingCenterBookings, getAllRecyclingCenterBookings, getUserPoints } from '../services/recyclingCenterApi';
 import { communityEventApi } from '../services/communityEventApi';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -89,6 +89,10 @@ export default function Home() {
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState('');
+  const [userPoints, setUserPoints] = useState({
+    total_points: 0
+  });
+  const [pointsLoading, setPointsLoading] = useState(true);
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -311,61 +315,29 @@ export default function Home() {
     const fetchEvents = async () => {
       try {
         setEventsLoading(true);
-        setEventsError('');
-        console.log('Fetching community events...');
-
-        const response = await communityEventApi.getAllEvents({ featured: 'true' });
-        const eventsData = response || [];
-        
-        // Transform events data to match the expected format
-        const transformedEvents = eventsData.slice(0, 3).map((event) => {
-          const eventDate = new Date(event.event_date);
-          const formattedDate = eventDate.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-          });
-
-          // Determine color and icon based on category
-          let color = 'green';
-          let icon = <CheckCircle className="w-4 h-4" />;
-          
-          switch (event.category) {
-            case 'cleanup':
-              color = 'green';
-              icon = <CheckCircle className="w-4 h-4" />;
-              break;
-            case 'education':
-              color = 'orange';
-              icon = <Info className="w-4 h-4" />;
-              break;
-            case 'planting':
-              color = 'blue';
-              icon = <Calendar className="w-4 h-4" />;
-              break;
-            default:
-              color = 'purple';
-              icon = <Calendar className="w-4 h-4" />;
-          }
-
-          return {
-            title: event.title,
-            date: formattedDate,
-            location: event.location,
-            color: color,
-            icon: icon,
-            id: event.id
-          };
-        });
-
-        setEvents(transformedEvents);
-        console.log('Community events data:', transformedEvents);
+        const response = await communityEventApi.getAllEvents({ featured: true });
+        setEvents(response.events || []);
       } catch (err) {
-        setEventsError('Failed to load community events');
-        console.error('Error fetching community events:', err);
+        console.error('Error fetching events:', err);
+        setEventsError(`Failed to load events: ${err.response?.data?.error || err.message}`);
         setEvents([]);
       } finally {
         setEventsLoading(false);
+      }
+    };
+
+    const fetchUserPoints = async () => {
+      try {
+        setPointsLoading(true);
+        const response = await getUserPoints();
+        setUserPoints(response);
+      } catch (err) {
+        console.error('Error fetching user points:', err);
+        setUserPoints({
+          total_points: 0
+        });
+      } finally {
+        setPointsLoading(false);
       }
     };
 
@@ -376,6 +348,7 @@ export default function Home() {
       fetchDashboardStats();
       fetchEvents();
       fetchRecyclingBookings(); // Fetch recycling bookings for all users
+      fetchUserPoints(); // Fetch user points
     }
   }, [user, t]);
 
@@ -529,6 +502,25 @@ export default function Home() {
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       {/* Header */}
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{t('home.dashboard')}</h1>
+      
+      {/* Banner for users to learn about sorting waste and earning rewards */}
+      {user?.role === 'user' && (
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-green-400 to-green-600 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between shadow-md">
+            <div className="flex-1 mr-4">
+              <marquee direction="right" style={{ color: 'white', fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                {t('home.bannerMessage')}
+              </marquee>
+            </div>
+            <a
+              href="/education"
+              className="inline-block bg-white text-green-700 font-bold px-5 py-2 rounded-lg shadow hover:bg-green-50 transition"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </a>
+          </div>
+        </div>
+      )}
       
       {/* Error Display for Collections */}
       {error && (
@@ -820,8 +812,6 @@ export default function Home() {
           ))}
         </div>
       )}
-
-      
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -2060,6 +2050,55 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Points Display Card - Only show for users with role 'user' */}
+      {user?.role === 'user' && !pointsLoading && (
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 shadow-lg border border-purple-100">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <Star className="w-6 h-6 text-yellow-300" />
+                  <h2 className="text-xl font-bold text-white">Recycling Points</h2>
+                </div>
+                <p className="text-purple-100 text-sm mb-4">
+                  Earn points by properly sorting your recyclables
+                </p>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-white">{userPoints.total_points}</div>
+                    <div className="text-xs text-purple-200">Total Points</div>
+                    <div className="text-xs text-yellow-200 mt-2">100 points to unlock a 1,000 RWF bonus!</div>
+                  </div>
+                </div>
+              </div>
+              <div className="hidden sm:block">
+                <TrendingUp className="w-16 h-16 text-purple-200" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading state for points */}
+      {user?.role === 'user' && pointsLoading && (
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 shadow-lg border border-purple-100">
+            <div className="animate-pulse">
+              <div className="h-6 bg-purple-400 rounded w-1/3 mb-2"></div>
+              <div className="h-4 bg-purple-400 rounded w-1/2 mb-4"></div>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="text-center">
+                  <div className="h-8 bg-purple-400 rounded mb-1"></div>
+                  <div className="h-3 bg-purple-400 rounded w-3/4 mx-auto"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading state for stats cards */}
     </div>
   );
 }

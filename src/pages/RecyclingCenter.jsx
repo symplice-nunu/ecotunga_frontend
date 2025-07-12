@@ -214,21 +214,8 @@ const RecyclingCenter = () => {
           });
           setUserProfile(profile);
           
-          // Set initial location from user profile
-          if (profile?.district && profile?.sector) {
-            setLocation({
-              district: profile.district,
-              sector: profile.sector,
-              cell: profile.cell || '',
-              street: profile.street || ''
-            });
-            setSelectedLocation({
-              district: profile.district,
-              sector: profile.sector,
-              cell: profile.cell || '',
-              street: profile.street || ''
-            });
-          }
+          // Don't automatically populate location fields
+          // Location will only be populated when user clicks "Use My Location"
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);

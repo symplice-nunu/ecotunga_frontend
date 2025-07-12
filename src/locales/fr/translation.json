@@ -98,6 +98,7 @@
   },
   "home": {
     "dashboard": "Tableau de bord",
+    "bannerMessage": "Apprenez à trier vos déchets et gagnez des récompenses !",
     "bookCollection": {
       "title": "Réserver une collecte de déchets",
       "description": "Planifiez une collecte pour vos déchets recyclables et contribuez à un environnement plus propre.",
@@ -442,5 +443,91 @@
     "cell": "Cellule",
     "street": "Rue",
     "notes": "Notes"
+  },
+  "bookingDetails": {
+    "title": "Détails de la Réservation",
+    "bookingId": "ID: #{{id}}",
+    "customerInformation": "Informations du Client",
+    "fullName": "Nom Complet",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "bookingDetails": "Détails de la Réservation",
+    "dropoffDate": "Date de Dépôt",
+    "timeSlot": "Créneau Horaire",
+    "status": "Statut",
+    "created": "Créé",
+    "location": "Localisation",
+    "district": "District",
+    "sector": "Secteur",
+    "cell": "Cellule",
+    "street": "Rue",
+    "wasteTypes": "Types de Déchets",
+    "noWasteTypesSpecified": "Aucun type de déchet spécifié",
+    "pricingInformation": "Informations de Prix",
+    "price": "Prix",
+    "paymentConfirmation": "Confirmation de Paiement",
+    "paymentConfirmed": "Paiement Confirmé",
+    "paymentPending": "Paiement en Attente",
+    "awaitingPaymentConfirmation": "En Attente de Confirmation de Paiement",
+    "statuses": {
+      "approved": "Approuvé",
+      "pending": "En Attente",
+      "cancelled": "Annulé"
+    }
+  },
+  "recyclingCenterBookings": {
+    "title": "Réservations du Centre de Recyclage",
+    "accessDenied": "Accès Refusé",
+    "accessDeniedMessage": "Vous n'avez pas la permission de voir cette page.",
+    "backToDashboard": "Retour au Tableau de Bord",
+    "totalBookings": "Total des Réservations",
+    "error": "Erreur",
+    "searchPlaceholder": "Rechercher des réservations...",
+    "filters": {
+      "allStatus": "Tous les Statuts",
+      "pending": "En Attente",
+      "approved": "Approuvé",
+      "completed": "Terminé",
+      "cancelled": "Annulé",
+      "allDates": "Toutes les Dates",
+      "today": "Aujourd'hui",
+      "thisWeek": "Cette Semaine",
+      "thisMonth": "Ce Mois"
+    },
+    "resultsCount": "{{filtered}} sur {{total}} réservations",
+    "loading": "Chargement des réservations...",
+    "noBookingsFound": "Aucune réservation trouvée",
+    "noBookingsMessage": "Aucune réservation n'a encore été faite.",
+    "tryAdjustingFilters": "Essayez d'ajuster vos filtres ou termes de recherche.",
+    "tableHeaders": {
+      "customer": "Client",
+      "contact": "Contact",
+      "location": "Localisation",
+      "dateTime": "Date et Heure",
+      "wasteTypes": "Types de Déchets",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "noWasteTypesSpecified": "Aucun type de déchet spécifié",
+    "statuses": {
+      "approved": "Approuvé",
+      "completed": "Terminé",
+      "pending": "En Attente",
+      "cancelled": "Annulé",
+      "unknown": "Inconnu"
+    },
+    "paymentStatuses": {
+      "confirmed": "Confirmé",
+      "declined": "Refusé",
+      "awaitingConfirmation": "En Attente de Confirmation",
+      "paymentConfirmed": "Paiement Confirmé",
+      "paymentPending": "Paiement en Attente",
+      "awaitingPaymentConfirmation": "En Attente de Confirmation de Paiement"
+    },
+    "actions": {
+      "details": "Détails",
+      "approve": "Approuver"
+    },
+    "approvalSuccess": "Réservation approuvée avec succès ! Email envoyé au client."
   }
 } 

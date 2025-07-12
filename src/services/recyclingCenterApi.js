@@ -56,11 +56,12 @@ export const getRecyclingCenterBookingById = async (id) => {
 };
 
 // Approve recycling center booking with pricing
-export const approveRecyclingCenterBooking = async (id, price, notes) => {
+export const approveRecyclingCenterBooking = async (id, price, notes, sorted_properly) => {
   try {
     const response = await api.put(`/recycling-center/bookings/${id}/approve`, {
       price,
-      notes
+      notes,
+      sorted_properly
     });
     return response.data;
   } catch (error) {
@@ -102,6 +103,17 @@ export const cancelRecyclingCenterBooking = async (id) => {
     return response.data;
   } catch (error) {
     console.error('Error cancelling recycling center booking:', error);
+    throw error;
+  }
+};
+
+// Get user's total points from recycling bookings
+export const getUserPoints = async () => {
+  try {
+    const response = await api.get('/recycling-center/bookings/user/points');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user points:', error);
     throw error;
   }
 }; 

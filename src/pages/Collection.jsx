@@ -576,10 +576,24 @@ export default function Collection() {
       notes: notes
     };
 
-    // Set payment amount based on selected company
-    if (selectedCompanyDetails) {
-      setPaymentAmount(selectedCompanyDetails.amount_per_month);
-    }
+    // Set payment amount based on ubudehe_category
+    const getAmountByUbudeheCategory = (category) => {
+      switch (category) {
+        case 'A':
+          return 1000;
+        case 'B':
+          return 1500;
+        case 'C':
+          return 2000;
+        case 'D':
+          return 4000;
+        default:
+          return 2000; // Default to category C if no category is set
+      }
+    };
+
+    const amount = getAmountByUbudeheCategory(personalInfo.ubudehe_category);
+    setPaymentAmount(amount);
 
     // Store booking data temporarily and show payment modal
     setTempBookingData(bookingData);

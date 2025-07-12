@@ -122,6 +122,7 @@
   },
   "home": {
     "dashboard": "Ikibaho",
+    "bannerMessage": "Menya uko utandukanya imyanda yawe kandi ubone ibihembo!",
     "bookCollection": {
       "title": "Andika gusura imyanda",
       "description": "Shyira gahunda yo gusura imyanda yawe ya gusubiramo gukoreshwa kandi utange igirakamaro ku isi yoroshye.",
@@ -441,5 +442,91 @@
     "cell": "Akagari",
     "street": "Umuhanda",
     "notes": "Inyandiko"
+  },
+  "bookingDetails": {
+    "title": "Ibisobanuro by'Igisabwa",
+    "bookingId": "ID: #{{id}}",
+    "customerInformation": "Amakuru y'Umukiriya",
+    "fullName": "Amazina Yose",
+    "email": "Imyeri",
+    "phone": "Telefoni",
+    "bookingDetails": "Ibisobanuro by'Igisabwa",
+    "dropoffDate": "Itariki yo Gushyira",
+    "timeSlot": "Isaha",
+    "status": "Imiterere",
+    "created": "Byakozwe",
+    "location": "Ahantu",
+    "district": "Akarere",
+    "sector": "Umurenge",
+    "cell": "Akagari",
+    "street": "Umuhanda",
+    "wasteTypes": "Ubwoko bw'Imyanda",
+    "noWasteTypesSpecified": "Nta bwoko bw'imyanda bwatanzwe",
+    "pricingInformation": "Amakuru y'Amafaranga",
+    "price": "Amafaranga",
+    "paymentConfirmation": "Ukwemeza Kwishyura",
+    "paymentConfirmed": "Kwishyura Kwemejwe",
+    "paymentPending": "Kwishyura Kihari",
+    "awaitingPaymentConfirmation": "Gutegereza Ukwemeza Kwishyura",
+    "statuses": {
+      "approved": "Byemejwe",
+      "pending": "Kihari",
+      "cancelled": "Byahagaritswe"
+    }
+  },
+  "recyclingCenterBookings": {
+    "title": "Ibisabwa by'Ikigo cyo Gukoresha",
+    "accessDenied": "Ntibyemewe",
+    "accessDeniedMessage": "Nta uburenganzira ufite bwo kureba urupapuro rw'iki.",
+    "backToDashboard": "Garuka kuri Ikibaho",
+    "totalBookings": "Ibisabwa Byose",
+    "error": "Ikibazo",
+    "searchPlaceholder": "Shakisha ibisabwa...",
+    "filters": {
+      "allStatus": "Imiterere Yose",
+      "pending": "Kihari",
+      "approved": "Byemejwe",
+      "completed": "Byarangiye",
+      "cancelled": "Byahagaritswe",
+      "allDates": "Itariki Zose",
+      "today": "Uyu Munsi",
+      "thisWeek": "Iyi Cyumweru",
+      "thisMonth": "Uku Kwezi"
+    },
+    "resultsCount": "{{filtered}} ku {{total}} ibisabwa",
+    "loading": "Ari gukuramo ibisabwa...",
+    "noBookingsFound": "Nta gisabwa kivumbuwe",
+    "noBookingsMessage": "Nta gisabwa cyakozwe kugeza ubu.",
+    "tryAdjustingFilters": "Gerageza guhindura ibikoresho byawe cyangwa amagambo yo gushakisha.",
+    "tableHeaders": {
+      "customer": "Umukiriya",
+      "contact": "Twandikire",
+      "location": "Ahantu",
+      "dateTime": "Itariki n'Isaha",
+      "wasteTypes": "Ubwoko bw'Imyanda",
+      "status": "Imiterere",
+      "actions": "Ibikorwa"
+    },
+    "noWasteTypesSpecified": "Nta bwoko bw'imyanda bwatanzwe",
+    "statuses": {
+      "approved": "Byemejwe",
+      "completed": "Byarangiye",
+      "pending": "Kihari",
+      "cancelled": "Byahagaritswe",
+      "unknown": "Ntibizwi"
+    },
+    "paymentStatuses": {
+      "confirmed": "Byemejwe",
+      "declined": "Byanze",
+      "awaitingConfirmation": "Gutegereza Ukwemeza",
+      "paymentConfirmed": "Kwishyura Kwemejwe",
+      "paymentPending": "Kwishyura Kihari",
+      "awaitingPaymentConfirmation": "Gutegereza Ukwemeza Kwishyura"
+    },
+    "actions": {
+      "details": "Ibisobanuro",
+      "approve": "Emeza"
+    },
+    "approvalSuccess": "Igisabwa cyemejwe neza! Imeyili yoherejwe kuri umukiriya."
   }
 } 

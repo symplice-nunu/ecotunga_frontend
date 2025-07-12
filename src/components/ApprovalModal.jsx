@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, DollarSign, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, DollarSign, FileText, CheckCircle, AlertCircle, Star } from 'lucide-react';
 
 export default function ApprovalModal({ isOpen, onClose, onApprove, booking, loading }) {
   const [price, setPrice] = useState('');
   const [notes, setNotes] = useState('');
+  const [sortedProperly, setSortedProperly] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
@@ -17,10 +18,11 @@ export default function ApprovalModal({ isOpen, onClose, onApprove, booking, loa
     }
 
     try {
-      await onApprove(booking.id, parseFloat(price), notes);
+      await onApprove(booking.id, parseFloat(price), notes, sortedProperly);
       // Reset form
       setPrice('');
       setNotes('');
+      setSortedProperly(false);
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to approve booking');
@@ -30,6 +32,7 @@ export default function ApprovalModal({ isOpen, onClose, onApprove, booking, loa
   const handleClose = () => {
     setPrice('');
     setNotes('');
+    setSortedProperly(false);
     setError('');
     onClose();
   };
@@ -117,6 +120,24 @@ export default function ApprovalModal({ isOpen, onClose, onApprove, booking, loa
                   RWF
                 </div>
               </div>
+            </div>
+
+            {/* Sorted Properly Checkbox */}
+            <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <input
+                type="checkbox"
+                id="sortedProperly"
+                checked={sortedProperly}
+                onChange={(e) => setSortedProperly(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label htmlFor="sortedProperly" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <Star className="w-4 h-4 text-blue-600" />
+                Sorted properly
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  +5 points
+                </span>
+              </label>
             </div>
 
             {/* Notes Input */}

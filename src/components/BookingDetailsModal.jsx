@@ -1,7 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Calendar, Clock, MapPin, User, Phone, Mail, Package, DollarSign, CheckCircle, XCircle, Hourglass } from 'lucide-react';
 
 export default function BookingDetailsModal({ isOpen, onClose, booking }) {
+  const { t } = useTranslation();
+  
   if (!isOpen || !booking) return null;
 
   const formatDate = (dateString) => {
@@ -45,23 +48,13 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
     }
   };
 
-  const getPriceConfirmationStatus = (priceConfirmed) => {
-    if (priceConfirmed === true) {
-      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">✅ Confirmed</span>;
-    } else if (priceConfirmed === false) {
-      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">❌ Declined</span>;
-    } else {
-      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">⏳ Awaiting Confirmation</span>;
-    }
-  };
-
   const getPaymentConfirmationStatus = (paymentConfirmed) => {
     if (paymentConfirmed === true) {
-      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">💳 Payment Confirmed</span>;
+      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">💳 {t('bookingDetails.paymentConfirmed')}</span>;
     } else if (paymentConfirmed === false) {
-      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">💳 Payment Pending</span>;
+      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">💳 {t('bookingDetails.paymentPending')}</span>;
     } else {
-      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">💳 Awaiting Payment Confirmation</span>;
+      return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">💳 {t('bookingDetails.awaitingPaymentConfirmation')}</span>;
     }
   };
 
@@ -75,8 +68,8 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
               <User className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Booking Details</h2>
-              <p className="text-sm text-gray-600">ID: #{booking.id}</p>
+              <h2 className="text-xl font-bold text-gray-900">{t('bookingDetails.title')}</h2>
+              <p className="text-sm text-gray-600">{t('bookingDetails.bookingId', { id: booking.id })}</p>
             </div>
           </div>
           <button
@@ -93,15 +86,15 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <User className="w-5 h-5" />
-              Customer Information
+              {t('bookingDetails.customerInformation')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Full Name</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.fullName')}</p>
                 <p className="text-gray-900">{booking.user_name} {booking.user_last_name}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Email</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.email')}</p>
                 <p className="text-gray-900 flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   {booking.user_email}
@@ -109,7 +102,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
               </div>
               {booking.user_phone && (
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Phone</p>
+                  <p className="text-sm font-medium text-gray-600">{t('bookingDetails.phone')}</p>
                   <p className="text-gray-900 flex items-center gap-2">
                     <Phone className="w-4 h-4" />
                     {booking.user_phone}
@@ -123,32 +116,32 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Calendar className="w-5 h-5" />
-              Booking Details
+              {t('bookingDetails.bookingDetails')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Drop-off Date</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.dropoffDate')}</p>
                 <p className="text-gray-900">{formatDate(booking.dropoff_date)}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Time Slot</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.timeSlot')}</p>
                 <p className="text-gray-900 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   {formatTime(booking.time_slot)}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Status</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.status')}</p>
                 <div className="flex items-center gap-2">
                   {getStatusIcon(booking.status)}
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
-                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                    {t(`bookingDetails.statuses.${booking.status}`, { defaultValue: booking.status.charAt(0).toUpperCase() + booking.status.slice(1) })}
                   </span>
                 </div>
               </div>
               {booking.created_at && (
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Created</p>
+                  <p className="text-sm font-medium text-gray-600">{t('bookingDetails.created')}</p>
                   <p className="text-gray-900">{formatDate(booking.created_at)}</p>
                 </div>
               )}
@@ -159,24 +152,24 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <MapPin className="w-5 h-5" />
-              Location
+              {t('bookingDetails.location')}
             </h3>
             <div className="space-y-2">
               <div>
-                <p className="text-sm font-medium text-gray-600">District</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.district')}</p>
                 <p className="text-gray-900">{booking.district}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Sector</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.sector')}</p>
                 <p className="text-gray-900">{booking.sector}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Cell</p>
+                <p className="text-sm font-medium text-gray-600">{t('bookingDetails.cell')}</p>
                 <p className="text-gray-900">{booking.cell}</p>
               </div>
               {booking.street && (
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Street</p>
+                  <p className="text-sm font-medium text-gray-600">{t('bookingDetails.street')}</p>
                   <p className="text-gray-900">{booking.street}</p>
                 </div>
               )}
@@ -187,7 +180,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Package className="w-5 h-5" />
-              Waste Types
+              {t('bookingDetails.wasteTypes')}
             </h3>
             <div className="flex flex-wrap gap-2">
               {booking.waste_types && booking.waste_types.length > 0 ? (
@@ -200,7 +193,7 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
                   </span>
                 ))
               ) : (
-                <p className="text-gray-500">No waste types specified</p>
+                <p className="text-gray-500">{t('bookingDetails.noWasteTypesSpecified')}</p>
               )}
             </div>
           </div>
@@ -210,65 +203,22 @@ export default function BookingDetailsModal({ isOpen, onClose, booking }) {
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <DollarSign className="w-5 h-5" />
-                Pricing Information
+                {t('bookingDetails.pricingInformation')}
               </h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Price</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {parseFloat(booking.price).toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: 'RWF'
-                    })}
-                  </p>
+                  <p className="text-sm font-medium text-gray-600">{t('bookingDetails.price')}</p>
+                  <p className="text-2xl font-bold text-gray-900">RWF {booking.price.toLocaleString()}</p>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Price Confirmation</p>
-                  <div className="mt-1">
-                    {getPriceConfirmationStatus(booking.price_confirmed)}
-                  </div>
-                </div>
-                {booking.price_confirmed && (
+                {booking.payment_confirmed !== null && (
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Payment Confirmation</p>
-                    <div className="mt-1">
-                      {getPaymentConfirmationStatus(booking.payment_confirmed)}
-                    </div>
-                  </div>
-                )}
-                {booking.approval_notes && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Approval Notes</p>
-                    <p className="text-gray-900 mt-1">{booking.approval_notes}</p>
-                  </div>
-                )}
-                {booking.approved_at && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Approved At</p>
-                    <p className="text-gray-900">{formatDate(booking.approved_at)}</p>
+                    <p className="text-sm font-medium text-gray-600">{t('bookingDetails.paymentConfirmation')}</p>
+                    {getPaymentConfirmationStatus(booking.payment_confirmed)}
                   </div>
                 )}
               </div>
             </div>
           )}
-
-          {/* Notes */}
-          {booking.notes && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Additional Notes</h3>
-              <p className="text-gray-900">{booking.notes}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>
