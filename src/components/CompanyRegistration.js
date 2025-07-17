@@ -320,8 +320,8 @@ const CompanyRegistration = () => {
                     className="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"
                   >
                     <option value="">Select sector</option>
-                    {rwandaSectors.map((sector) => (
-                      <option key={sector} value={sector}>
+                    {rwandaSectors.map((sector, idx) => (
+                      <option key={sector + '-' + idx} value={sector}>
                         {sector}
                       </option>
                     ))}
@@ -341,8 +341,8 @@ const CompanyRegistration = () => {
                     className="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"
                   >
                     <option value="">Select cell</option>
-                    {rwandaCells.map((cell) => (
-                      <option key={cell} value={cell}>
+                    {rwandaCells.map((cell, idx) => (
+                      <option key={cell + '-' + idx} value={cell}>
                         {cell}
                       </option>
                     ))}
@@ -362,8 +362,8 @@ const CompanyRegistration = () => {
                     className="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition duration-150"
                   >
                     <option value="">Select village</option>
-                    {rwandaVillages.map((village) => (
-                      <option key={village} value={village}>
+                    {rwandaVillages.map((village, idx) => (
+                      <option key={village + '-' + idx} value={village}>
                         {village}
                       </option>
                     ))}

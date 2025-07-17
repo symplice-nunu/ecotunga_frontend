@@ -85,8 +85,9 @@ export default function CommunityEventForm({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
             <input
+              id="title"
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}

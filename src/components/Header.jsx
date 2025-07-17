@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BellIcon, GlobeAltIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { Menu } from 'lucide-react';
+import { Menu, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { communityEventApi } from '../services/communityEventApi';
+import { getUserPoints } from '../services/recyclingCenterApi';
 import TomorrowEventsModal from './TomorrowEventsModal';
+import PointsModal from './PointsModal';
 
 const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
@@ -15,6 +17,9 @@ const Header = ({ onMenuClick }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tomorrowEvents, setTomorrowEvents] = useState([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+  const [userPoints, setUserPoints] = useState({ total_points: 0 });
+  const [pointsLoading, setPointsLoading] = useState(false);
+  const [isPointsModalOpen, setIsPointsModalOpen] = useState(false);
   
   // Use actual user data from AuthContext, with fallback for demo
   const userInfo = user ? {
@@ -52,6 +57,26 @@ const Header = ({ onMenuClick }) => {
     fetchTomorrowEventsCount();
   }, []);
 
+  // Fetch user points
+  useEffect(() => {
+    const fetchUserPoints = async () => {
+      if (user && user.role === 'user') {
+        try {
+          setPointsLoading(true);
+          const response = await getUserPoints();
+          setUserPoints(response);
+        } catch (error) {
+          console.error('Error fetching user points:', error);
+          setUserPoints({ total_points: 0 });
+        } finally {
+          setPointsLoading(false);
+        }
+      }
+    };
+
+    fetchUserPoints();
+  }, [user]);
+
   // Handle badge click to show tomorrow's events
   const handleBadgeClick = async () => {
     setIsModalOpen(true);
@@ -66,6 +91,11 @@ const Header = ({ onMenuClick }) => {
     } finally {
       setIsLoadingEvents(false);
     }
+  };
+
+  // Handle points click to show points modal
+  const handlePointsClick = () => {
+    setIsPointsModalOpen(true);
   };
 
   return (
@@ -86,7 +116,7 @@ const Header = ({ onMenuClick }) => {
           <span className="text-gray-800 font-semibold">{t('header.dashboard')}</span>
         </nav>
 
-        {/* Right side: Language, Notification, User */}
+        {/* Right side: Language, Points, Notification, User */}
         <div className="flex items-center gap-3 lg:gap-6">
           {/* Language Switcher - Hidden on mobile */}
           <div className="relative hidden lg:block">
@@ -127,6 +157,21 @@ const Header = ({ onMenuClick }) => {
             )}
           </div>
 
+          {/* Points Display - Only show for logged-in users with role "user" */}
+          {user && user.role === 'user' && (
+            <button 
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-sm"
+              onClick={handlePointsClick}
+              aria-label="View points details"
+            >
+              <Star className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {pointsLoading ? '...' : userPoints.total_points}
+              </span>
+              <span className="text-xs opacity-90">pts</span>
+            </button>
+          )}
+
           {/* Notification - Only show for logged-in users with role "user" */}
           {user && user.role === 'user' && (
             <button 
@@ -164,6 +209,14 @@ const Header = ({ onMenuClick }) => {
         onClose={() => setIsModalOpen(false)}
         events={tomorrowEvents}
         isLoading={isLoadingEvents}
+      />
+
+      {/* Points Modal */}
+      <PointsModal
+        isOpen={isPointsModalOpen}
+        onClose={() => setIsPointsModalOpen(false)}
+        userPoints={userPoints}
+        isLoading={pointsLoading}
       />
     </header>
   );

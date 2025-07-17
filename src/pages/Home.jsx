@@ -1,26 +1,44 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, Phone, Star, TrendingUp, ArrowRight } from 'lucide-react';
+import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, Phone, TrendingUp, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
-import { getRecyclingCenterBookingsByCompany, getUserRecyclingCenterBookings, getAllRecyclingCenterBookings, getUserPoints } from '../services/recyclingCenterApi';
+import { getRecyclingCenterBookingsByCompany, getUserRecyclingCenterBookings, getAllRecyclingCenterBookings } from '../services/recyclingCenterApi';
 import { communityEventApi } from '../services/communityEventApi';
 import { Link, useNavigate } from 'react-router-dom';
 
 // Function to transform waste collection data into activities (moved outside component)
+// Helper function to safely parse dates
+const parseDate = (dateString) => {
+  if (!dateString) return null;
+  
+  let date;
+  
+  // Handle ISO date strings (like "2026-10-09T00:00:00.000Z")
+  if (dateString.includes('T') || dateString.includes('Z')) {
+    date = new Date(dateString);
+  } else {
+    // Handle simple date strings (like "2026-10-09")
+    const [year, month, day] = dateString.split('-').map(Number);
+    date = new Date(year, month - 1, day); // month is 0-indexed
+  }
+  
+  return isNaN(date.getTime()) ? null : date;
+};
+
 const transformCollectionsToActivities = (collectionsData, t) => {
   if (!Array.isArray(collectionsData) || collectionsData.length === 0) {
     return [];
   }
 
   return collectionsData.slice(0, 7).map((collection) => {
-    const pickupDate = new Date(collection.pickup_date);
-    const formattedDate = pickupDate.toLocaleDateString('en-US', {
+    const pickupDate = parseDate(collection.pickup_date);
+    const formattedDate = pickupDate ? pickupDate.toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short'
-    });
+    }) : 'N/A';
 
     let activityLabel = '';
     let link = false;
@@ -89,10 +107,7 @@ export default function Home() {
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState('');
-  const [userPoints, setUserPoints] = useState({
-    total_points: 0
-  });
-  const [pointsLoading, setPointsLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -171,7 +186,7 @@ export default function Home() {
           // Debug logging
           console.log('Raw bookings:', bookings);
           console.log('Now:', now);
-          bookings.forEach(b => console.log('Booking date:', b.dropoff_date, 'Parsed:', new Date(b.dropoff_date)));
+          bookings.forEach(b => console.log('Booking date:', b.dropoff_date, 'Parsed:', parseDate(b.dropoff_date)));
           
           // Find the next upcoming booking - use date-only comparison to avoid timezone issues
           const today = new Date();
@@ -179,21 +194,27 @@ export default function Home() {
           
           const upcoming = bookings
             .filter(b => {
-              const bookingDate = new Date(b.dropoff_date);
+              const bookingDate = parseDate(b.dropoff_date);
+              if (!bookingDate) return false;
               const bookingDateOnly = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
               console.log('Booking date only:', bookingDateOnly, 'Today:', today, 'Is upcoming:', bookingDateOnly >= today);
               return bookingDateOnly >= today;
             })
-            .sort((a, b) => new Date(a.dropoff_date) - new Date(b.dropoff_date));
+            .sort((a, b) => {
+              const dateA = parseDate(a.dropoff_date);
+              const dateB = parseDate(b.dropoff_date);
+              if (!dateA || !dateB) return 0;
+              return dateA - dateB;
+            });
           
           console.log('Upcoming bookings after filter:', upcoming);
           
           if (upcoming.length > 0) {
             const next = upcoming[0];
-            const bookingDate = new Date(next.dropoff_date);
-            const formattedDate = bookingDate.toLocaleDateString('en-US', {
+            const bookingDate = parseDate(next.dropoff_date);
+            const formattedDate = bookingDate ? bookingDate.toLocaleDateString('en-US', {
               weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
+            }) : 'N/A';
             setNextDropoff({
               hasUpcoming: true,
               dropoff: {
@@ -326,21 +347,6 @@ export default function Home() {
       }
     };
 
-    const fetchUserPoints = async () => {
-      try {
-        setPointsLoading(true);
-        const response = await getUserPoints();
-        setUserPoints(response);
-      } catch (err) {
-        console.error('Error fetching user points:', err);
-        setUserPoints({
-          total_points: 0
-        });
-      } finally {
-        setPointsLoading(false);
-      }
-    };
-
     if (user) {
       fetchCollections();
       fetchNextPickup();
@@ -348,7 +354,6 @@ export default function Home() {
       fetchDashboardStats();
       fetchEvents();
       fetchRecyclingBookings(); // Fetch recycling bookings for all users
-      fetchUserPoints(); // Fetch user points
     }
   }, [user, t]);
 
@@ -499,7 +504,7 @@ export default function Home() {
   // ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 min-h-screen">
       {/* Header */}
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{t('home.dashboard')}</h1>
       
@@ -508,7 +513,7 @@ export default function Home() {
         <div className="mb-6">
           <div className="bg-gradient-to-r from-green-400 to-green-600 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between shadow-md">
             <div className="flex-1 mr-4">
-              <marquee direction="right" style={{ color: 'white', fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+              <marquee direction="left" style={{ color: 'white', fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
                 {t('home.bannerMessage')}
               </marquee>
             </div>
@@ -2051,52 +2056,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Points Display Card - Only show for users with role 'user' */}
-      {user?.role === 'user' && !pointsLoading && (
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 shadow-lg border border-purple-100">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <Star className="w-6 h-6 text-yellow-300" />
-                  <h2 className="text-xl font-bold text-white">Recycling Points</h2>
-                </div>
-                <p className="text-purple-100 text-sm mb-4">
-                  Earn points by properly sorting your recyclables
-                </p>
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-white">{userPoints.total_points}</div>
-                    <div className="text-xs text-purple-200">Total Points</div>
-                    <div className="text-xs text-yellow-200 mt-2">100 points to unlock a 1,000 RWF bonus!</div>
-                  </div>
-                </div>
-              </div>
-              <div className="hidden sm:block">
-                <TrendingUp className="w-16 h-16 text-purple-200" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Loading state for points */}
-      {user?.role === 'user' && pointsLoading && (
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 shadow-lg border border-purple-100">
-            <div className="animate-pulse">
-              <div className="h-6 bg-purple-400 rounded w-1/3 mb-2"></div>
-              <div className="h-4 bg-purple-400 rounded w-1/2 mb-4"></div>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="text-center">
-                  <div className="h-8 bg-purple-400 rounded mb-1"></div>
-                  <div className="h-3 bg-purple-400 rounded w-3/4 mx-auto"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Loading state for stats cards */}
     </div>

@@ -74,12 +74,26 @@ export default function ApprovalModal({ isOpen, onClose, onApprove, booking, loa
               <div className="flex justify-between">
                 <span>Date:</span>
                 <span className="font-medium">
-                  {booking?.dropoff_date ? new Date(booking.dropoff_date).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  }) : 'N/A'}
+                  {booking?.dropoff_date ? (() => {
+                    let date;
+                    
+                    // Handle ISO date strings (like "2026-10-09T00:00:00.000Z")
+                    if (booking.dropoff_date.includes('T') || booking.dropoff_date.includes('Z')) {
+                      date = new Date(booking.dropoff_date);
+                    } else {
+                      // Handle simple date strings (like "2026-10-09")
+                      const [year, month, day] = booking.dropoff_date.split('-').map(Number);
+                      date = new Date(year, month - 1, day);
+                    }
+                    
+                    if (isNaN(date.getTime())) return 'Invalid Date';
+                    return date.toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    });
+                  })() : 'N/A'}
                 </span>
               </div>
               <div className="flex justify-between">

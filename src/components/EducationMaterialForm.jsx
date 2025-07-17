@@ -108,8 +108,9 @@ export default function EducationMaterialForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
               <input
+                id="title"
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
