@@ -265,8 +265,11 @@ export default function Signup() {
             
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold text-base sm:text-lg shadow-md transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+              disabled={isLoading || !form?.email || !form?.password}
+              className={`w-full py-3 px-4 rounded-lg text-white font-semibold text-base sm:text-lg shadow-md transition-all duration-300 mt-2
+                ${isLoading || !form?.email || !form?.password
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-500 hover:bg-green-600'}`}
             >
               {isLoading ? (
                 <span>Creating account...</span>
