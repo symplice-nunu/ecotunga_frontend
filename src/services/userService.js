@@ -44,7 +44,8 @@ export const registerUser = async (userData) => {
     const response = await api.post('/auth/register', {
       name: userData.name,
       email: userData.email,
-      password: userData.password
+      password: userData.password,
+      role: userData.role
     });
     return response.data;
   } catch (error) {
