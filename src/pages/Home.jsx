@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
 import { wasteCollectionApi } from '../services/wasteCollectionApi';
 import { getRecyclingCenterBookingsByCompany, getUserRecyclingCenterBookings, getAllRecyclingCenterBookings } from '../services/recyclingCenterApi';
-import { communityEventApi } from '../services/communityEventApi';
+
 import { Link, useNavigate } from 'react-router-dom';
 
 // Function to transform waste collection data into activities (moved outside component)
@@ -665,7 +665,7 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">Total Requests</p>
+                <p className="text-gray-500 text-sm font-medium">{t('recyclingRequest.totalRequests')}</p>
                 <p className="text-3xl font-bold text-gray-800">{getCollectionsCount()}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -680,7 +680,7 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">Pending</p>
+                <p className="text-gray-500 text-sm font-medium">{t('home.wasteCollections.statuses.pending')}</p>
                 <p className="text-3xl font-bold text-yellow-600">
                   {getCollectionsByStatus('pending')}
                 </p>
@@ -697,7 +697,7 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">Approved</p>
+                <p className="text-gray-500 text-sm font-medium">{t('home.wasteCollections.statuses.approved')}</p>
                 <p className="text-3xl font-bold text-green-600">
                   {getCollectionsByStatus('approved')}
                 </p>
@@ -714,7 +714,7 @@ export default function Home() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">Denied</p>
+                <p className="text-gray-500 text-sm font-medium">{t('home.wasteCollections.statuses.denied')}</p>
                 <p className="text-3xl font-bold text-red-600">
                   {getCollectionsByStatus('denied')}
                 </p>
