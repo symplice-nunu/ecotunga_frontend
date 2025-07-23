@@ -293,14 +293,22 @@
         "close": "Funga"
       },
       "register": {
-        "title": "Andika umukoresha mushya",
-        "subtitle": "Uzuze amakuru yo gukora konti nshya",
-        "name": "Izina",
-        "email": "Aderesi ya email",
-        "password": "Ijambo ry'ibanga",
-        "confirmPassword": "Emeza ijambo ry'ibanga",
-        "cancel": "Reka",
-        "submit": "Andika umukoresha"
+        "title": "Kwiyandikisha Umukoresha",
+        "subtitle": "Uzuza ibisobanuro hasi kwiyandikisha umukoresha mushya",
+        "name": "Izina ryuzuye",
+        "email": "Imeli",
+        "password": "Ijambobanga",
+        "confirmPassword": "Emeza ijambobanga",
+        "cancel": "Kureka",
+        "submit": "Kwiyandikisha",
+        "role": "Uruhare",
+        "selectRole": "Hitamo uruhare",
+        "roles": {
+          "user": "Umukoresha",
+          "admin": "Umuyobozi",
+          "recycling_center": "Ihuriro ry'imyanda",
+          "waste_collector": "Umutunzi w'imyanda"
+        }
       },
       "view": {
         "title": "Amakuru y'umukoresha",

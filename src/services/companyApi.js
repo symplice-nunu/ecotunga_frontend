@@ -11,7 +11,10 @@ companyAPI.interceptors.request.use((config) => {
   return config;
 });
 
-export const getCompanies = () => companyAPI.get('/');
+export const getCompanies = (type = null) => {
+  const params = type ? { type } : {};
+  return companyAPI.get('/', { params });
+};
 
 export const getCompanyById = (id) => companyAPI.get(`/${id}`);
 

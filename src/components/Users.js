@@ -24,7 +24,8 @@ const Users = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: ''
   });
   const [registrationError, setRegistrationError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -110,11 +111,19 @@ const Users = () => {
       return;
     }
 
+    // Validate role
+    const validRoles = ['user', 'waste_collector', 'recycling_center', 'admin'];
+    if (!validRoles.includes(newUser.role)) {
+      setRegistrationError(t('users.modals.register.invalidRole'));
+      return;
+    }
+
     try {
       await registerUser({
         name: newUser.name,
         email: newUser.email,
-        password: newUser.password
+        password: newUser.password,
+        role: newUser.role
       });
       
       // Close registration modal and reset form
@@ -123,7 +132,8 @@ const Users = () => {
         name: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        role: ''
       });
 
       // Show success modal
@@ -606,6 +616,25 @@ const Users = () => {
                   className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors duration-200"
                   placeholder={t('users.modals.register.confirmPassword')}
                 />
+              </div>
+
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('users.modals.register.role')}
+                </label>
+                <select
+                  id="role"
+                  name="role"
+                  value={newUser.role}
+                  onChange={handleInputChange}
+                  className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors duration-200"
+                >
+                  <option value="">{t('users.modals.register.selectRole')}</option>
+                  <option value="user">{t('users.modals.register.roles.user')}</option>
+                  <option value="admin">{t('users.modals.register.roles.admin')}</option>
+                  <option value="waste_collector">{t('users.modals.register.roles.waste_collector')}</option>
+                  <option value="recycling_center">{t('users.modals.register.roles.recycling_center')}</option>
+                </select>
               </div>
 
               {registrationError && (

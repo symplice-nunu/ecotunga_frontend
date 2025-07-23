@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { getRecyclingCenterBookingsByCompany, approveRecyclingCenterBooking } from '../services/recyclingCenterApi';
+import { getRecyclingCenterBookingsByCompany, getAllRecyclingCenterBookings, approveRecyclingCenterBooking } from '../services/recyclingCenterApi';
 import { Calendar, Clock, MapPin, User, Phone, Mail, Search, ArrowLeft, XCircle, CheckCircle, Hourglass, Ban } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ApprovalModal from '../components/ApprovalModal';
@@ -38,7 +38,12 @@ export default function RecyclingCenterBookings() {
       try {
         setLoading(true);
         setError('');
-        const response = await getRecyclingCenterBookingsByCompany();
+        let response;
+        if (user?.role === 'admin') {
+          response = await getAllRecyclingCenterBookings();
+        } else {
+          response = await getRecyclingCenterBookingsByCompany();
+        }
         setBookings(response.bookings || response || []);
       } catch (err) {
         const errorMessage = err.response?.data?.error || err.message || 'Failed to load bookings';
@@ -48,7 +53,7 @@ export default function RecyclingCenterBookings() {
         setLoading(false);
       }
     };
-    if (user?.role === 'recycling_center') {
+    if (user?.role === 'recycling_center' || user?.role === 'admin') {
       fetchBookings();
     }
   }, [user]);
@@ -244,7 +249,8 @@ export default function RecyclingCenterBookings() {
     setDetailsModal({ isOpen: false, booking: null });
   };
 
-  if (user?.role !== 'recycling_center') {
+  // Only allow access for recycling_center and admin roles
+  if (user && user.role !== 'recycling_center' && user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -376,7 +382,8 @@ export default function RecyclingCenterBookings() {
                       {t('recyclingCenterBookings.tableHeaders.dateTime')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('recyclingCenterBookings.tableHeaders.wasteTypes')}
+                     
+                    {user?.role === 'recycling_center' && t('recyclingCenterBookings.tableHeaders.wasteTypes')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('recyclingCenterBookings.tableHeaders.status')}
@@ -458,17 +465,21 @@ export default function RecyclingCenterBookings() {
                       {/* Waste Types */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-wrap gap-1">
-                          {booking.waste_types && booking.waste_types.length > 0 ? (
-                            booking.waste_types.map((type, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium"
-                              >
-                                {type}
+                          {user?.role === 'recycling_center' && (
+                            booking.waste_types && booking.waste_types.length > 0 ? (
+                              booking.waste_types.map((type, index) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium"
+                                >
+                                  {type}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-gray-500">
+                                {t('recyclingCenterBookings.noWasteTypesSpecified')}
                               </span>
-                            ))
-                          ) : (
-                            <span className="text-xs text-gray-500">{t('recyclingCenterBookings.noWasteTypesSpecified')}</span>
+                            )
                           )}
                         </div>
                       </td>
@@ -489,7 +500,7 @@ export default function RecyclingCenterBookings() {
                           >
                             <User className="w-3 h-3" /> {t('recyclingCenterBookings.actions.details')}
                           </button>
-                          {booking.status !== 'approved' && (
+                          {booking.status !== 'approved' && user?.role === 'recycling_center' && (
                             <button 
                               onClick={() => openApprovalModal(booking)}
                               className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 transition-colors"

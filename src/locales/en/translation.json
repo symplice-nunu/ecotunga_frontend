@@ -302,14 +302,22 @@
         "close": "Close"
       },
       "register": {
-        "title": "Register New User",
-        "subtitle": "Fill in the details to create a new user account",
-        "name": "Name",
+        "title": "Register User",
+        "subtitle": "Fill in the details below to register a new user",
+        "name": "Full Name",
         "email": "Email Address",
         "password": "Password",
         "confirmPassword": "Confirm Password",
         "cancel": "Cancel",
-        "submit": "Register User"
+        "submit": "Register",
+        "role": "Role",
+        "selectRole": "Select a Role",
+        "roles": {
+          "user": "User",
+          "admin": "Administrator",
+          "recycling_center": "Recycling Center",
+          "waste_collector": "Waste Collector"
+        }
       },
       "view": {
         "title": "User Details",

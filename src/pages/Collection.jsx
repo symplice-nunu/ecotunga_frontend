@@ -329,14 +329,15 @@ export default function Collection() {
     const fetchCompanies = async () => {
       try {
         setCompaniesLoading(true);
-        console.log('Fetching companies...');
-        const response = await getCompanies();
-        console.log('Companies response:', response.data);
-        setCompanies(response.data);
-        setFilteredCompanies(response.data); // Initially show all companies
-        companiesFetchedRef.current = true;
+        const response = await getCompanies('waste_collector', selectedLocation);
+        
+        // Double-check filtering on client side
+        const wasteCollectors = response.data.filter(c => c.type === 'waste_collector');
+        
+        setCompanies(wasteCollectors);
+        setFilteredCompanies(wasteCollectors);
       } catch (error) {
-        console.error('Error fetching companies:', error);
+        console.error('Failed to load companies:', error);
       } finally {
         setCompaniesLoading(false);
       }
@@ -347,7 +348,7 @@ export default function Collection() {
     } else {
       console.log('Companies already fetched');
     }
-  }, []);
+  }, [selectedLocation]);
 
   // Filter companies based on selected location
   useEffect(() => {
@@ -1039,13 +1040,13 @@ export default function Collection() {
           </div>
           {companiesLoading ? (
             <div className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-500">
-              Loading companies...
+              Loading waste collection companies...
             </div>
           ) : filteredCompanies.length === 0 ? (
             <div className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-500">
-              {selectedLocation.district || selectedLocation.sector || selectedLocation.cell 
-                ? 'No companies found in the selected location' 
-                : 'Please select a location to see available companies'}
+              {selectedLocation.district 
+                ? 'No waste collection companies found in this location'
+                : 'Please select a location to see available waste collectors'}
             </div>
           ) : (
             <select
@@ -1054,9 +1055,11 @@ export default function Collection() {
               onChange={e => handleCompanySelection(e.target.value)}
               required
             >
-              <option value="">Select a company</option>
+              <option value="">Select a waste collector</option>
               {filteredCompanies.map(company => (
-                <option key={company.id} value={company.id}>{company.name}</option>
+                <option key={company.id} value={company.id}>
+                  {company.name} ({company.district})
+                </option>
               ))}
             </select>
           )}

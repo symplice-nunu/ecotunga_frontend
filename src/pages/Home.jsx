@@ -1,6 +1,6 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Info, Tag, FileText, XCircle, Plus, Phone, TrendingUp, ArrowRight } from 'lucide-react';
+import { Calendar, Users, Truck, RefreshCcw, Clock, MapPin, CheckCircle, Tag, FileText, XCircle, Plus, Phone, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardStats } from '../services/userApi';
@@ -104,9 +104,6 @@ export default function Home() {
   const [nextDropoff, setNextDropoff] = useState(null);
   const [dropoffLoading, setDropoffLoading] = useState(true);
   const [dropoffError, setDropoffError] = useState('');
-  const [events, setEvents] = useState([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
-  const [eventsError, setEventsError] = useState('');
 
 
   useEffect(() => {
@@ -333,26 +330,11 @@ export default function Home() {
       }
     };
 
-    const fetchEvents = async () => {
-      try {
-        setEventsLoading(true);
-        const response = await communityEventApi.getAllEvents({ featured: true });
-        setEvents(response.events || []);
-      } catch (err) {
-        console.error('Error fetching events:', err);
-        setEventsError(`Failed to load events: ${err.response?.data?.error || err.message}`);
-        setEvents([]);
-      } finally {
-        setEventsLoading(false);
-      }
-    };
-
     if (user) {
       fetchCollections();
       fetchNextPickup();
       fetchNextDropoff();
       fetchDashboardStats();
-      fetchEvents();
       fetchRecyclingBookings(); // Fetch recycling bookings for all users
     }
   }, [user, t]);
@@ -374,7 +356,7 @@ export default function Home() {
 
   // Enhanced waste collection bar chart data with better formatting and realistic values
   const wasteData = [
-    { month: 'Sep 2024', thisPeriod: 156, lastPeriod: 142, growth: '+9.9%' },
+    { month: 'Sep 2024', thisPeriod: 50, lastPeriod: 40, growth: '+9.9%' },
     { month: 'Oct 2024', thisPeriod: 189, lastPeriod: 165, growth: '+14.5%' },
     { month: 'Nov 2024', thisPeriod: 203, lastPeriod: 178, growth: '+14.0%' },
     { month: 'Dec 2024', thisPeriod: 167, lastPeriod: 195, growth: '-14.4%' },
@@ -459,9 +441,9 @@ export default function Home() {
       details: t('home.stats.viewDetails'),
     },
     {
-      title: t('home.stats.totalAmount'),
+      title: 'Companies',
       value: statsLoading ? '...' : dashboardStats.companies.toString(),
-      icon: <Tag className="w-6 h-6 text-teal-500" />,
+      icon: <Tag className="w-6 h-6 text-teal-500" />, 
       details: t('home.stats.viewDetails'),
     },
     {
@@ -472,8 +454,8 @@ export default function Home() {
     },
     {
       title: t('home.stats.totalRecycledMaterials'),
-      value: statsLoading ? '...' : (dashboardStats.wasteCollectionsByStatus.approved || 0).toString(),
-      icon: <RefreshCcw className="w-6 h-6 text-teal-500" />,
+      value: recyclingLoading ? '...' : recyclingBookings.length.toString(),
+      icon: <RefreshCcw className="w-6 h-6 text-teal-500" />, 
       details: t('home.stats.viewDetails'),
     },
   ];
@@ -513,9 +495,12 @@ export default function Home() {
         <div className="mb-6">
           <div className="bg-gradient-to-r from-green-400 to-green-600 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between shadow-md">
             <div className="flex-1 mr-4">
-              <marquee direction="left" style={{ color: 'white', fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('home.bannerMessage')}
-              </marquee>
+              {/* Replaced <marquee> with accessible scrolling div */}
+              <div className="overflow-hidden whitespace-nowrap" style={{ height: '1.5em', marginBottom: '0.5rem' }} aria-label={t('home.bannerMessage')}>
+                <div className="inline-block animate-scroll-text text-white text-lg font-semibold" style={{ willChange: 'transform' }}>
+                  {t('home.bannerMessage')}
+                </div>
+              </div>
             </div>
             <a
               href="/education"
@@ -544,27 +529,50 @@ export default function Home() {
       
       {/* Stats Cards - Only show for admin users */}
       {user?.role === 'admin' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {stats.map((stat, idx) => (
-            <div key={idx} className="bg-white rounded-xl shadow-sm p-4 sm:p-6 flex flex-col gap-2">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-teal-50 rounded-lg p-2 flex items-center justify-center">
-                  {stat.icon}
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {stats.map((stat, idx) => {
+              let onClick = undefined;
+              let extraClass = '';
+              if (stat.title === t('home.stats.users')) {
+                onClick = () => navigate('/users');
+                extraClass = ' cursor-pointer hover:shadow-md transition-shadow';
+              } else if (stat.title === 'Companies') {
+                onClick = () => navigate('/companies');
+                extraClass = ' cursor-pointer hover:shadow-md transition-shadow';
+              } else if (stat.title === t('home.stats.totalWastePickups')) {
+                onClick = () => navigate('/waste-collections');
+                extraClass = ' cursor-pointer hover:shadow-md transition-shadow';
+              } else if (stat.title === t('home.stats.totalRecycledMaterials')) {
+                onClick = () => navigate('/recycling-bookings');
+                extraClass = ' cursor-pointer hover:shadow-md transition-shadow';
+              }
+              return (
+                <div
+                  key={idx}
+                  className={`bg-white rounded-xl shadow-sm p-4 sm:p-6 flex flex-col gap-2${extraClass}`}
+                  onClick={onClick}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-teal-50 rounded-lg p-2 flex items-center justify-center">
+                      {stat.icon}
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">{stat.title}</span>
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <button className="mt-2 text-xs text-teal-600 font-semibold flex items-center gap-1 hover:underline">
+                    {stat.details}
+                    <span className="ml-1">&rarr;</span>
+                  </button>
                 </div>
-                <span className="text-xs text-gray-500 font-medium">{stat.title}</span>
-              </div>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</div>
-              <button className="mt-2 text-xs text-teal-600 font-semibold flex items-center gap-1 hover:underline">
-                {stat.details}
-                <span className="ml-1">&rarr;</span>
-              </button>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* Waste Collection Stats Cards for Admin Users */}
-      {user?.role === 'admin' && !loading && (
+      {user?.role === 'admins' && !loading && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div 
             className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer"
@@ -1410,7 +1418,7 @@ export default function Home() {
           )}
 
           {/* Upcoming Events - Only show for regular users */}
-          {user?.role === 'user' && (
+          {/* {user?.role === 'user' && (
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
               <h3 className="text-md font-semibold text-gray-900 mb-3">{t('home.events.title')}</h3>
               {eventsLoading ? (
@@ -1457,7 +1465,7 @@ export default function Home() {
                 </div>
               )}
             </div>
-          )}
+          )} */}
         </div>
       </div>
       {/* Recycling Center Dashboard - Only show for users with role 'recycling_center' */}
@@ -1814,12 +1822,6 @@ export default function Home() {
                         const today = new Date();
                         const dayOfWeek = today.getDay();
                         const targetBookings = [18, 20, 22, 19, 21, 15, 12][dayOfWeek];
-                        const todayBookings = recyclingLoading ? 0 : (() => {
-                          const todayStr = today.toISOString().split('T')[0];
-                          return recyclingBookings.filter(booking => 
-                            booking.dropoff_date === todayStr
-                          ).length;
-                        })();
                         return targetBookings;
                       })()}
                     </div>

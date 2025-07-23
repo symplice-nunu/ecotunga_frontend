@@ -294,14 +294,22 @@
         "close": "Fermer"
       },
       "register": {
-        "title": "Enregistrer un nouvel utilisateur",
-        "subtitle": "Remplissez les détails pour créer un nouveau compte utilisateur",
-        "name": "Nom",
-        "email": "Adresse email",
+        "title": "Enregistrer un utilisateur",
+        "subtitle": "Remplissez les détails ci-dessous pour enregistrer un nouvel utilisateur",
+        "name": "Nom complet",
+        "email": "Adresse e-mail",
         "password": "Mot de passe",
         "confirmPassword": "Confirmer le mot de passe",
         "cancel": "Annuler",
-        "submit": "Enregistrer l'utilisateur"
+        "submit": "Enregistrer",
+        "role": "Rôle",
+        "selectRole": "Sélectionner un rôle",
+        "roles": {
+          "user": "Utilisateur",
+          "admin": "Administrateur",
+          "recycling_center": "Centre de recyclage",
+          "waste_collector": "Collecteur de déchets"
+        }
       },
       "view": {
         "title": "Détails de l'utilisateur",

@@ -336,13 +336,6 @@ const CompanyList = () => {
                         <span>Location</span>
                       </div>
                     </th>
-                    <th scope="col" className="px-8 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center space-x-2">
-                        {/* <DollarSign className="h-4 w-4" /> */}
-                        FRW &nbsp;
-                        <span>Amount/Month</span>
-                      </div>
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -385,11 +378,6 @@ const CompanyList = () => {
                         </div>
                         <div className="text-xs text-gray-500">
                           {company.cell}, {company.village}
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 whitespace-nowrap">
-                        <div className="text-sm font-medium text-teal-600">
-                          FRW {parseFloat(company.amount_per_month).toFixed(2)}
                         </div>
                       </td>
                     </tr>

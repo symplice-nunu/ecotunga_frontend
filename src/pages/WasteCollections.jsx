@@ -452,13 +452,13 @@ export default function WasteCollections() {
   };
 
   // Helper function to check if location data is valid (not placeholder)
-  const isValidLocationData = (value) => {
-    if (!value) return false;
-    const placeholderValues = ['Unknown', 'Ratione voluptatem', 'N/A', 'TBD', ''];
-    const isValid = !placeholderValues.includes(value.trim());
-    console.log(`🔍 Location validation: "${value}" -> ${isValid}`);
-    return isValid;
-  };
+  // const isValidLocationData = (value) => {
+  //   if (!value) return false;
+  //   const placeholderValues = ['Unknown', 'Ratione voluptatem', 'N/A', 'TBD', ''];
+  //   const isValid = !placeholderValues.includes(value.trim());
+  //   console.log(`🔍 Location validation: "${value}" -> ${isValid}`);
+  //   return isValid;
+  // };
 
   // Helper functions for recycling center bookings
   const getRecyclingStatusColor = (status) => {
@@ -719,22 +719,18 @@ export default function WasteCollections() {
                         </th>
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4" />
-                            {t('home.wasteCollections.company') || 'Company'}
-                          </div>
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          <div className="flex items-center gap-2">
                             <span className="text-lg">💳</span>
                             Payment
                           </div>
                         </th>
+                        {(user?.role === 'user' && (
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           <div className="flex items-center gap-2">
                             <Receipt className="w-4 h-4" />
                             Receipt
                           </div>
                         </th>
+                        ))}
                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           <div className="flex items-center gap-2">
                             <Trash2 className="w-4 h-4 text-red-500" />
@@ -788,16 +784,6 @@ export default function WasteCollections() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-purple-50 rounded-lg">
-                                <Building2 className="w-4 h-4 text-purple-600" />
-                              </div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {collection.company_name || t('home.wasteCollections.notAssigned') || 'Not Assigned'}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <span className="text-lg">{getPaymentStatusIcon(collection.payment_status, collection.status)}</span>
                               <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full border ${getPaymentStatusColor(collection.payment_status, collection.status)}`}>
@@ -805,6 +791,8 @@ export default function WasteCollections() {
                               </span>
                             </div>
                           </td>
+
+                        {(user?.role === 'user' && (
                           <td className="px-6 py-4">
                             {(() => {
                               const effectivePaymentStatus = getEffectivePaymentStatus(collection.payment_status, collection.status);
@@ -833,6 +821,7 @@ export default function WasteCollections() {
                               }
                             })()}
                           </td>
+                        ))}
                           <td className="px-6 py-4">
                             {(() => {
                               // Only show cancel button for pending or approved collections that haven't been completed
