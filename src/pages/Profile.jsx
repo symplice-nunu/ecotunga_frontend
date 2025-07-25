@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getUserProfile, updateUserProfile } from '../services/userApi';
 import { useTranslation } from 'react-i18next';
-import { User, MapPin, Save, CheckCircle, AlertCircle, Mail, Phone } from 'lucide-react';
+import { User, MapPin, Save, CheckCircle, AlertCircle, Mail, Phone, DollarSign } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import API from '../services/api';
+import pricingApi from '../services/pricingApi';
 
 // Rwanda districts array
 const rwandaDistricts = [
@@ -325,6 +326,8 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [cellOptions, setCellOptions] = useState([]);
+  const [pricingData, setPricingData] = useState([]);
+  const [pricingLoading, setPricingLoading] = useState(true);
 
   // Helper function to determine if a field should be hidden based on user role
   const shouldHideField = (fieldName) => {
@@ -359,6 +362,38 @@ const Profile = () => {
     }
     return t('profile.personalInfo');
   };
+
+  // Fetch pricing data for ubudehe categories
+  useEffect(() => {
+    const fetchPricingData = async () => {
+      try {
+        setPricingLoading(true);
+        console.log('Profile: Starting to fetch pricing data...');
+        
+        // Always try to fetch from API first (pricing endpoints are public)
+        console.log('Profile: Fetching from API...');
+        const data = await pricingApi.getAllPricing();
+        console.log('Profile: Pricing data fetched from API:', data);
+        console.log('Profile: First item description:', data[0]?.description);
+        setPricingData(data);
+      } catch (error) {
+        console.error('Error fetching pricing data:', error);
+        // Set default pricing if API fails
+        const fallbackPricing = [
+          { ubudehe_category: 'A', amount: 1000, description: 'Category A - Lowest income bracket' },
+          { ubudehe_category: 'B', amount: 1500, description: 'Category B - Low income bracket' },
+          { ubudehe_category: 'C', amount: 2000, description: 'Category C - Medium income bracket' },
+          { ubudehe_category: 'D', amount: 4000, description: 'Category D - High income bracket' }
+        ];
+        console.log('Profile: Setting fallback pricing:', fallbackPricing);
+        setPricingData(fallbackPricing);
+      } finally {
+        setPricingLoading(false);
+      }
+    };
+
+    fetchPricingData();
+  }, []);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -699,11 +734,13 @@ const Profile = () => {
                         className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white text-sm sm:text-base"
                       >
                         <option value="">Select</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
+                        {pricingData.map((pricing) => (
+                          <option key={pricing.ubudehe_category} value={pricing.ubudehe_category}>
+                            {pricing.ubudehe_category} - RWF {pricing.amount?.toLocaleString()}
+                          </option>
+                        ))}
                       </select>
+                     
                     </div>
                   )}
                 </div>

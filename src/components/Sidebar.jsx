@@ -8,7 +8,8 @@ import {
   LogOut,
   Building2,
   Shield,
-  X
+  X,
+  DollarSign
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
@@ -57,6 +58,8 @@ export default function Sidebar({ onClose }) {
         ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.users'), icon: Users, path: '/users' }] : []),
         // Only show Companies section for admin users
         ...(user?.role === 'admin' ? [{ label: t('sidebar.sections.items.companies'), icon: Building2, path: '/companies' }] : []),
+        // Only show Pricing Management for admin users
+        ...(user?.role === 'admin' ? [{ label: 'Pricing Management', icon: DollarSign, path: '/pricing' }] : []),
       ],
     },
   ];

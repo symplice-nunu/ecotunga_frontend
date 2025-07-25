@@ -106,6 +106,28 @@ const fallbackCellOptions = [
   'Jali', 'Kacyiru', 'Kimihurura', 'Kimironko', 'Kinyinya', 'Ndera', 'Nduba', 'Remera', 'Rusororo', 'Rutunga'
 ];
 
+// Helper function to format date in local timezone without timezone conversion
+const formatDateForBackend = (date) => {
+  if (!date) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper function to display date consistently
+const formatDateForDisplay = (dateString) => {
+  if (!dateString) return 'N/A';
+  const [year, month, day] = dateString.split('-');
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
 export default function Collection() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -219,6 +241,32 @@ export default function Collection() {
     phoneNumber: ''
   });
   const [showMobileMoneyForm, setShowMobileMoneyForm] = useState(false);
+
+  // Pricing table state (for Payment Modal)
+  const [allPricing, setAllPricing] = useState([]);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState('');
+
+  useEffect(() => {
+    const fetchAllPricing = async () => {
+      setPricingLoading(true);
+      setPricingError('');
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://62.171.173.62/api'}/api/pricing`);
+        if (response.ok) {
+          const data = await response.json();
+          setAllPricing(data);
+        } else {
+          setPricingError('Failed to fetch pricing table');
+        }
+      } catch (error) {
+        setPricingError('Error fetching pricing table');
+      } finally {
+        setPricingLoading(false);
+      }
+    };
+    fetchAllPricing();
+  }, []);
 
   // Helper to ensure select options include the profile value
   // const districtOptionsWithProfile = getOptionsWithProfileValue(districtOptions, location.district);
@@ -571,29 +619,63 @@ export default function Collection() {
       sector: location.sector,
       cell: location.cell,
       street: location.street,
-      pickup_date: pickupDate.toISOString().split('T')[0],
+      pickup_date: formatDateForBackend(pickupDate),
       time_slot: timeSlot,
       company_id: selectedCompany,
       notes: notes
     };
 
-    // Set payment amount based on ubudehe_category
-    const getAmountByUbudeheCategory = (category) => {
-      switch (category) {
-        case 'A':
-          return 1000;
-        case 'B':
-          return 1500;
-        case 'C':
-          return 2000;
-        case 'D':
-          return 4000;
-        default:
-          return 2000; // Default to category C if no category is set
+    // Set payment amount based on ubudehe_category from database
+    const getAmountByUbudeheCategory = async (category) => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://62.171.173.62/api'}/pricing/category/${category}`, {
+          headers
+        });
+        
+        if (response.ok) {
+          const pricingData = await response.json();
+          return pricingData.amount;
+        } else {
+          // Fallback to default pricing if API call fails
+          console.warn('Failed to fetch pricing from database, using default values');
+          switch (category) {
+            case 'A':
+              return 1000;
+            case 'B':
+              return 1500;
+            case 'C':
+              return 2000;
+            case 'D':
+              return 4000;
+            default:
+              return 2000; // Default to category C if no category is set
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pricing:', error);
+        // Fallback to default pricing
+        switch (category) {
+          case 'A':
+            return 132000;
+          case 'B':
+            return 1500;
+          case 'C':
+            return 2000;
+          case 'D':
+            return 4000;
+          default:
+            return 2000; // Default to category C if no category is set
+        }
       }
     };
 
-    const amount = getAmountByUbudeheCategory(personalInfo.ubudehe_category);
+    const amount = await getAmountByUbudeheCategory(personalInfo.ubudehe_category);
     setPaymentAmount(amount);
 
     // Store booking data temporarily and show payment modal
@@ -1146,7 +1228,7 @@ export default function Collection() {
               selected={pickupDate}
               onChange={(date) => setPickupDate(date)}
               placeholderText="Select a date"
-              dateFormat="MMMM dd, yyyy"
+              dateFormat="EEE, MMM dd, yyyy"
               minDate={new Date()}
               filterDate={(date) => {
                 // Only allow weekdays (Monday to Friday)
@@ -1248,7 +1330,7 @@ export default function Collection() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Pickup Date:</span>
-              <span className="font-medium">{bookingDetails.pickup_date}</span>
+              <span className="font-medium">{formatDateForDisplay(bookingDetails.pickup_date)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Time Slot:</span>
@@ -1529,12 +1611,14 @@ export default function Collection() {
 
           {/* Payment Amount */}
           <div className="p-6 border-b border-gray-200">
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Total Amount:</span>
                 <span className="text-2xl font-bold text-green-600">RWF {paymentAmount?.toLocaleString()}</span>
               </div>
             </div>
+            {/* Pricing Table */}
+          
           </div>
 
           {/* Payment Methods */}
@@ -2007,12 +2091,7 @@ export default function Collection() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Pickup Date:</span>
                     <span className="font-medium">
-                      {new Date(tempBookingData.pickup_date).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
+                      {formatDateForDisplay(tempBookingData.pickup_date)}
                     </span>
                   </div>
                   <div className="flex justify-between">

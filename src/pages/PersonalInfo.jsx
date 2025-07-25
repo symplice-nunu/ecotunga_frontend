@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import API from '../services/api';
+import pricingApi from '../services/pricingApi';
 import logo from '../assets/login_logo.png';
 import LanguageSelector from '../components/LanguageSelector';
-import { User, MapPin, Phone, Building } from 'lucide-react';
+import { User, MapPin, Phone, Building, DollarSign } from 'lucide-react';
 
 // Rwanda districts array (same as Profile.jsx)
 const rwandaDistricts = [
@@ -723,6 +724,7 @@ const wasteTypes = [
 ];
 
 export default function PersonalInfo() {
+  console.log('PersonalInfo: Component mounted');
   const { t } = useTranslation();
   const [form, setForm] = useState({
     name: '',
@@ -742,6 +744,8 @@ export default function PersonalInfo() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+  const [pricingData, setPricingData] = useState([]);
+  const [pricingLoading, setPricingLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -749,8 +753,51 @@ export default function PersonalInfo() {
   // Get user credentials from location state (passed from signup)
   const userCredentials = location.state?.userCredentials;
 
+  // Redirect to signup if no credentials are provided
+  useEffect(() => {
+    console.log('PersonalInfo: userCredentials:', userCredentials);
+    console.log('PersonalInfo: location.state:', location.state);
+    
+    if (!userCredentials) {
+      console.log('PersonalInfo: No credentials found, redirecting to signup');
+      navigate('/signup');
+    }
+  }, [userCredentials, navigate, location.state]);
+
   // Check if user is a business entity (waste collector or recycling center)
   const isBusinessEntity = userCredentials?.role === 'waste_collector' || userCredentials?.role === 'recycling_center';
+
+  // Fetch pricing data for ubudehe categories
+  useEffect(() => {
+    const fetchPricingData = async () => {
+      try {
+        setPricingLoading(true);
+        console.log('PersonalInfo: Starting to fetch pricing data...');
+        
+        // Always try to fetch from API first (pricing endpoints are public)
+        console.log('PersonalInfo: Fetching from API...');
+        const data = await pricingApi.getAllPricing();
+        console.log('PersonalInfo: Pricing data fetched from API:', data);
+        console.log('PersonalInfo: First item description:', data[0]?.description);
+        setPricingData(data);
+      } catch (error) {
+        console.error('Error fetching pricing data:', error);
+        // Set default pricing if API fails
+        const fallbackPricing = [
+          { ubudehe_category: 'A', amount: 1000, description: 'Category A - Lowest income bracket' },
+          { ubudehe_category: 'B', amount: 1500, description: 'Category B - Low income bracket' },
+          { ubudehe_category: 'C', amount: 2000, description: 'Category C - Medium income bracket' },
+          { ubudehe_category: 'D', amount: 4000, description: 'Category D - High income bracket' }
+        ];
+        console.log('PersonalInfo: Setting fallback pricing:', fallbackPricing);
+        setPricingData(fallbackPricing);
+      } finally {
+        setPricingLoading(false);
+      }
+    };
+
+    fetchPricingData();
+  }, []);
 
   // Get sectors for selected district
   const getSectorsForDistrict = (district) => {
@@ -894,22 +941,7 @@ export default function PersonalInfo() {
     setServerError('');
 
     try {
-      // First, try to register the user
-      try {
-        await API.post('/auth/register', {
-          name: userCredentials.name,
-          email: userCredentials.email,
-          password: userCredentials.password,
-          role: userCredentials.role
-        });
-      } catch (registerError) {
-        // If user already exists, that's fine - we can proceed with login
-        if (registerError.response?.status !== 400 || !registerError.response?.data?.message?.includes('already exists')) {
-          throw registerError;
-        }
-      }
-
-      // Then, login the user to get the token
+      // Login the user to get the token
       const loginResponse = await API.post('/auth/login', {
         email: userCredentials.email,
         password: userCredentials.password
@@ -1210,10 +1242,11 @@ export default function PersonalInfo() {
                           className={`w-full px-4 py-3 border ${errors.ubudehe_category ? 'border-red-300' : 'border-gray-200'} rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white`}
                         >
                           <option value="">Select</option>
-                          <option value="A">A</option>
-                          <option value="B">B</option>
-                          <option value="C">C</option>
-                          <option value="D">D</option>
+                          {pricingData.map((pricing) => (
+                            <option key={pricing.ubudehe_category} value={pricing.ubudehe_category}>
+                              {pricing.description}
+                            </option>
+                          ))}
                         </select>
                         {errors.ubudehe_category && <p className="mt-1 text-xs text-red-600">{errors.ubudehe_category}</p>}
                       </div>

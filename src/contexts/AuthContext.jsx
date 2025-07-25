@@ -22,9 +22,9 @@ export function AuthProvider({ children }) {
           // Token is invalid, logout user
           localStorage.removeItem('token');
           setUser(null);
-          // Redirect to login page with current path, but only if not already on /login
+          // Redirect to login page with current path, but only if not already on /login or personal-info
           const currentPath = window.location.pathname;
-          if (currentPath !== '/login') {
+          if (currentPath !== '/login' && currentPath !== '/personal-info') {
             window.location.href = `/login?from=${encodeURIComponent(currentPath)}`;
           }
         }

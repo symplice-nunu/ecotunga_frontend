@@ -23,6 +23,7 @@ import RecyclingRequest from './pages/RecyclingRequest';
 import RecyclingCenterBookings from './pages/RecyclingCenterBookings';
 import BookingConfirmation from './pages/BookingConfirmation';
 import PaymentConfirmation from './pages/PaymentConfirmation';
+import PricingManagementPage from './pages/PricingManagement';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
               <Route path="recycling-bookings" element={<RecyclingCenterBookings />} />
               <Route path="recycling-center/bookings/:id/confirm" element={<BookingConfirmation />} />
               <Route path="recycling-center/bookings/:id/confirm-payment" element={<PaymentConfirmation />} />
+              <Route path="pricing" element={<PricingManagementPage />} />
             </Route>
             
             {/* Catch all route */}

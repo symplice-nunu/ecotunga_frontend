@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/login_logo.png';
 import LanguageSelector from '../components/LanguageSelector';
+import API from '../services/api';
 
 export default function Signup() {
   const [form, setForm] = useState({ 
@@ -62,16 +63,35 @@ export default function Signup() {
     setIsLoading(true);
     setServerError('');
     try {
-      navigate('/personal-info', { 
-        state: { 
-          userCredentials: {
-            name: form.name,
-            email: form.email,
-            password: form.password,
-            role: form.role
-          }
-        } 
+      // First, register the user
+      const response = await API.post('/auth/register', {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        role: form.role
       });
+
+      // If registration is successful, navigate to personal info
+      if (response.data) {
+        console.log('Signup: Registration successful, navigating to personal-info');
+        console.log('Signup: userCredentials being passed:', {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role
+        });
+        
+        navigate('/personal-info', { 
+          state: { 
+            userCredentials: {
+              name: form.name,
+              email: form.email,
+              password: form.password,
+              role: form.role
+            }
+          } 
+        });
+      }
     } catch (err) {
       setServerError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
