@@ -49,7 +49,7 @@ export default function Sidebar({ onClose }) {
         // Only show Manage Collections for admin users
         ...(user?.role === 'waste_collector' ? [{ label: 'Manage Collections', icon: Shield, path: '/admin-waste-collections' }] : []),
         // Only show Recycling Center for recycling_center and admin users
-        //...(user?.role === 'user' ? [{ label: t('sidebar.sections.items.recyclingCenter'), icon: Recycle, path: '/recycling-center' }] : []),
+        ...(user?.role === 'recycling_center' ? [{ label: 'Recycling Bookings', icon: Recycle, path: '/recycling-bookings' }] : []),
         // Only show Community Events for admin users
         ...(user?.role === 'user' || user?.role === 'admin' ? [{ label: t('sidebar.sections.items.communityEvents'), icon: Users, path: '/community' }] : []),
         // Only show Education Materials for admin users

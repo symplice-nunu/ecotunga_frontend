@@ -488,7 +488,7 @@ export default function Home() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header */}
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">{t('home.dashboard')}</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-2">{t('home.dashboard')}</h1>
       
       {/* Banner for users to learn about sorting waste and earning rewards */}
       {user?.role === 'user' && (
@@ -514,7 +514,7 @@ export default function Home() {
       
       {/* Error Display for Collections */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="mb-2 bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <XCircle className="h-5 w-5 text-red-400" />
@@ -827,7 +827,7 @@ export default function Home() {
       )}
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-2 sm:mb-2">
         {/* Chart & Activity */}
         <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
           {/* Book Waste Collection Button - Only show for users with role 'user' */}
@@ -1470,8 +1470,8 @@ export default function Home() {
       </div>
       {/* Recycling Center Dashboard - Only show for users with role 'recycling_center' */}
       {user?.role === 'recycling_center' && (
-        <div className="mt-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">{t('recyclingCenter.dashboard')}</h2>
+        <div className="">
+          {/* <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">{t('recyclingCenter.dashboard')}</h2> */}
           
           {/* Error Display for Recycling Bookings */}
           {recyclingError && (
@@ -1522,10 +1522,14 @@ export default function Home() {
                       <p className="text-sm font-medium text-gray-600">Today's Bookings</p>
                       <p className="text-2xl font-bold text-gray-900">
                         {recyclingLoading ? '...' : (() => {
-                          const today = new Date().toISOString().split('T')[0];
-                          return recyclingBookings.filter(booking => 
-                            booking.dropoff_date === today
-                          ).length;
+                          const today = new Date();
+                          const todayStr = today.toISOString().split('T')[0];
+                          return recyclingBookings.filter(booking => {
+                            if (!booking.dropoff_date) return false;
+                            const bookingDate = new Date(booking.dropoff_date);
+                            const bookingDateStr = bookingDate.toISOString().split('T')[0];
+                            return bookingDateStr === todayStr;
+                          }).length;
                         })()}
                       </p>
                       <p className="text-xs text-blue-600 mt-1">Active today</p>
@@ -1551,10 +1555,11 @@ export default function Home() {
                           const endOfWeek = new Date(startOfWeek);
                           endOfWeek.setDate(startOfWeek.getDate() + 6);
                           
-                          return recyclingBookings.filter(booking => {
-                            const bookingDate = new Date(booking.dropoff_date);
-                            return bookingDate >= startOfWeek && bookingDate <= endOfWeek;
-                          }).length;
+                                                  return recyclingBookings.filter(booking => {
+                          if (!booking.dropoff_date) return false;
+                          const bookingDate = new Date(booking.dropoff_date);
+                          return bookingDate >= startOfWeek && bookingDate <= endOfWeek;
+                        }).length;
                         })()}
                       </p>
                       <p className="text-xs text-purple-600 mt-1">Scheduled</p>
@@ -1574,10 +1579,14 @@ export default function Home() {
                       <p className="text-sm font-medium text-gray-600">Capacity</p>
                       <p className="text-2xl font-bold text-gray-900">
                         {recyclingLoading ? '...' : (() => {
-                          const today = new Date().toISOString().split('T')[0];
-                          const todayBookings = recyclingBookings.filter(booking => 
-                            booking.dropoff_date === today
-                          ).length;
+                          const today = new Date();
+                          const todayStr = today.toISOString().split('T')[0];
+                          const todayBookings = recyclingBookings.filter(booking => {
+                            if (!booking.dropoff_date) return false;
+                            const bookingDate = new Date(booking.dropoff_date);
+                            const bookingDateStr = bookingDate.toISOString().split('T')[0];
+                            return bookingDateStr === todayStr;
+                          }).length;
                           const capacity = 50; // Assuming 50 bookings per day capacity
                           return Math.round((todayBookings / capacity) * 100);
                         })()}%
@@ -1644,9 +1653,12 @@ export default function Home() {
                         targetDate.setDate(startOfWeek.getDate() + idx);
                         const targetDateStr = targetDate.toISOString().split('T')[0];
                         
-                        return recyclingBookings.filter(booking => 
-                          booking.dropoff_date === targetDateStr
-                        ).length;
+                        return recyclingBookings.filter(booking => {
+                          if (!booking.dropoff_date) return false;
+                          const bookingDate = new Date(booking.dropoff_date);
+                          const bookingDateStr = bookingDate.toISOString().split('T')[0];
+                          return bookingDateStr === targetDateStr;
+                        }).length;
                       })();
                       
                       // Enhanced data with realistic targets and performance
@@ -1758,9 +1770,12 @@ export default function Home() {
                             targetDate.setDate(startOfWeek.getDate() + idx);
                             const targetDateStr = targetDate.toISOString().split('T')[0];
                             
-                            return recyclingBookings.filter(booking => 
-                              booking.dropoff_date === targetDateStr
-                            ).length;
+                            return recyclingBookings.filter(booking => {
+                              if (!booking.dropoff_date) return false;
+                              const bookingDate = new Date(booking.dropoff_date);
+                              const bookingDateStr = bookingDate.toISOString().split('T')[0];
+                              return bookingDateStr === targetDateStr;
+                            }).length;
                           })();
                           return sum + bookings;
                         }, 0);
@@ -1781,9 +1796,12 @@ export default function Home() {
                             targetDate.setDate(startOfWeek.getDate() + idx);
                             const targetDateStr = targetDate.toISOString().split('T')[0];
                             
-                            return recyclingBookings.filter(booking => 
-                              booking.dropoff_date === targetDateStr
-                            ).length;
+                            return recyclingBookings.filter(booking => {
+                              if (!booking.dropoff_date) return false;
+                              const bookingDate = new Date(booking.dropoff_date);
+                              const bookingDateStr = bookingDate.toISOString().split('T')[0];
+                              return bookingDateStr === targetDateStr;
+                            }).length;
                           })();
                           return sum + bookings;
                         }, 0);
@@ -1805,9 +1823,12 @@ export default function Home() {
                             targetDate.setDate(startOfWeek.getDate() + idx);
                             const targetDateStr = targetDate.toISOString().split('T')[0];
                             
-                            return recyclingBookings.filter(booking => 
-                              booking.dropoff_date === targetDateStr
-                            ).length;
+                            return recyclingBookings.filter(booking => {
+                              if (!booking.dropoff_date) return false;
+                              const bookingDate = new Date(booking.dropoff_date);
+                              const bookingDateStr = bookingDate.toISOString().split('T')[0];
+                              return bookingDateStr === targetDateStr;
+                            }).length;
                           })();
                           return sum + bookings;
                         }, 0);
@@ -1854,7 +1875,7 @@ export default function Home() {
                 ) : recyclingBookings.length > 0 ? (
                   <div className="space-y-4">
                     {recyclingBookings.slice(0, 5).map((booking) => {
-                      const bookingDate = new Date(booking.dropoff_date);
+                      const bookingDate = booking.dropoff_date ? new Date(booking.dropoff_date) : new Date();
                       const formattedDate = bookingDate.toLocaleDateString('en-US', {
                         weekday: 'short',
                         month: 'short',
@@ -1862,14 +1883,14 @@ export default function Home() {
                       });
                       
                       return (
-                        <div key={booking.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div key={booking.id || Math.random()} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
                           <div className="flex items-center space-x-4">
                             <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
                               <Users className="w-5 h-5 text-teal-600" />
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">
-                                {booking.user_name} {booking.user_last_name}
+                                {booking.user_name || 'Unknown'} {booking.user_last_name || ''}
                               </p>
                               <p className="text-sm text-gray-500">
                                 {booking.sector}, {booking.district}
@@ -1878,7 +1899,7 @@ export default function Home() {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium text-gray-900">{formattedDate}</p>
-                            <p className="text-xs text-gray-500">{booking.time_slot}</p>
+                            <p className="text-xs text-gray-500">{booking.time_slot || 'TBD'}</p>
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               Confirmed
                             </span>
@@ -1912,26 +1933,30 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (() => {
-                  const today = new Date().toISOString().split('T')[0];
-                  const todayBookings = recyclingBookings.filter(booking => 
-                    booking.dropoff_date === today
-                  );
+                  const today = new Date();
+                  const todayStr = today.toISOString().split('T')[0];
+                  const todayBookings = recyclingBookings.filter(booking => {
+                    if (!booking.dropoff_date) return false;
+                    const bookingDate = new Date(booking.dropoff_date);
+                    const bookingDateStr = bookingDate.toISOString().split('T')[0];
+                    return bookingDateStr === todayStr;
+                  });
                   
                   return todayBookings.length > 0 ? (
                     <div className="space-y-3">
                       {todayBookings.map((booking) => (
-                        <div key={booking.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                        <div key={booking.id || Math.random()} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
                           <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
                             <Clock className="w-4 h-4 text-teal-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {booking.user_name} {booking.user_last_name}
-                            </p>
-                            <p className="text-xs text-gray-500">{booking.time_slot}</p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {booking.sector}, {booking.district}
-                            </p>
+                                                          <p className="text-sm font-medium text-gray-900 truncate">
+                                {booking.user_name || 'Unknown'} {booking.user_last_name || ''}
+                              </p>
+                                                          <p className="text-xs text-gray-500">{booking.time_slot || 'TBD'}</p>
+                              <p className="text-xs text-gray-500 truncate">
+                                {booking.sector || 'Unknown'}, {booking.district || 'Unknown'}
+                              </p>
                           </div>
                         </div>
                       ))}
@@ -1957,6 +1982,7 @@ export default function Home() {
                 ) : (() => {
                   const today = new Date();
                   const upcomingBookings = recyclingBookings.filter(booking => {
+                    if (!booking.dropoff_date) return false;
                     const bookingDate = new Date(booking.dropoff_date);
                     return bookingDate > today;
                   }).slice(0, 3);
@@ -1964,19 +1990,19 @@ export default function Home() {
                   return upcomingBookings.length > 0 ? (
                     <div className="space-y-3">
                       {upcomingBookings.map((booking) => {
-                        const bookingDate = new Date(booking.dropoff_date);
+                        const bookingDate = booking.dropoff_date ? new Date(booking.dropoff_date) : new Date();
                         const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
                         
                         return (
-                          <div key={booking.id} className="flex items-center gap-3 p-3 rounded-lg bg-blue-50">
+                          <div key={booking.id || Math.random()} className="flex items-center gap-3 p-3 rounded-lg bg-blue-50">
                             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                               <Calendar className="w-4 h-4 text-blue-600" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">
-                                {booking.user_name} {booking.user_last_name}
+                                {booking.user_name || 'Unknown'} {booking.user_last_name || ''}
                               </p>
-                              <p className="text-xs text-gray-500">{booking.time_slot}</p>
+                              <p className="text-xs text-gray-500">{booking.time_slot || 'TBD'}</p>
                               <p className="text-xs text-blue-600 font-medium">
                                 {daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`}
                               </p>
@@ -2002,6 +2028,7 @@ export default function Home() {
                     <span className="text-sm font-semibold text-gray-900">
                       {recyclingLoading ? '...' : (() => {
                         const lastWeek = recyclingBookings.filter(booking => {
+                          if (!booking.dropoff_date) return false;
                           const bookingDate = new Date(booking.dropoff_date);
                           const weekAgo = new Date();
                           weekAgo.setDate(weekAgo.getDate() - 7);

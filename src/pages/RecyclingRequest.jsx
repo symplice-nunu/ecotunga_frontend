@@ -46,7 +46,19 @@ export default function RecyclingRequest() {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    if (!dateString) return 'N/A';
+    
+    let date;
+    
+    // Handle date strings in YYYY-MM-DD format by parsing them as local dates
+    if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      date = new Date(year, month - 1, day); // month is 0-indexed
+    } else {
+      // For other date formats, use the original logic
+      date = new Date(dateString);
+    }
+    
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Test</title>
+</head>
+<body>
+    <h1>Date Formatting Test</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            results.innerHTML += '<p>' + message + '</p>';
+        }
+        
+        log('🔍 Testing date formatting in browser...');
+        log('Timezone offset: ' + new Date().getTimezoneOffset() + ' minutes');
+        log('Current time: ' + new Date().toLocaleString());
+        
+        // Test the problematic date
+        const testDate = '2025-08-20';
+        log('<br><strong>Testing date: ' + testDate + '</strong>');
+        
+        // Old way (problematic)
+        const oldDate = new Date(testDate);
+        const oldDisplay = oldDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        // New way (fixed)
+        const formatRecyclingDate = (dateString) => {
+            if (!dateString) return 'N/A';
+            
+            // Handle date strings in YYYY-MM-DD format by parsing them as local dates
+            if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                const [year, month, day] = dateString.split('-').map(Number);
+                const date = new Date(year, month - 1, day); // month is 0-indexed
+                return date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+            
+            // For other date formats, use the original logic
+            return new Date(dateString).toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        };
+        
+        const newDisplay = formatRecyclingDate(testDate);
+        
+        log('Old way: ' + oldDisplay + ' (' + oldDate.toISOString() + ')');
+        log('New way: ' + newDisplay);
+        log('Different: ' + (oldDisplay !== newDisplay ? 'YES' : 'NO'));
+        
+        // Test with different timezone-sensitive dates
+        const timezoneTestDates = ['2025-12-31', '2025-01-01', '2025-06-30'];
+        
+        log('<br><strong>Testing timezone-sensitive dates:</strong>');
+        timezoneTestDates.forEach(dateStr => {
+            const oldResult = new Date(dateStr).toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            const newResult = formatRecyclingDate(dateStr);
+            
+            log(dateStr + ': Old=' + oldResult + ', New=' + newResult + ', Different=' + (oldResult !== newResult ? 'YES' : 'NO'));
+        });
+        
+        log('<br><strong>Instructions:</strong>');
+        log('1. If you see "Different: YES" for any date, the fix is working');
+        log('2. If all show "Different: NO", the timezone issue might not affect your dates');
+        log('3. Check the browser console for any errors');
+    </script>
+</body>
+</html> 

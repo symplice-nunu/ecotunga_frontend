@@ -210,6 +210,7 @@
     }
   },
   "recyclingCenter": {
+    "dashboard": "Recycling Center Dashboard",
     "tabTitle": "Recycling Center",
     "bookRecycling": "Book Recycling",
     "date": "Date",
@@ -249,7 +250,8 @@
       "completed": "Completed",
       "cancelled": "Cancelled",
       "unknown": "Unknown"
-    }
+    },
+    "errorLoadingBookings": "Failed to load recycling center bookings"
   },
   "header": {
     "home": "Home",

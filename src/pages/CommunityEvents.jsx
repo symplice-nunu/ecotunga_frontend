@@ -255,7 +255,7 @@ export default function CommunityEvents() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="px-2 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div>

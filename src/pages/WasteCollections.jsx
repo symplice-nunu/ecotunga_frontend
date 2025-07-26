@@ -487,6 +487,20 @@ export default function WasteCollections() {
 
   const formatRecyclingDate = (dateString) => {
     if (!dateString) return 'N/A';
+    
+    // Handle date strings in YYYY-MM-DD format by parsing them as local dates
+    if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day); // month is 0-indexed
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+    
+    // For other date formats, use the original logic
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short',
       year: 'numeric',
@@ -962,7 +976,7 @@ export default function WasteCollections() {
                               </td>
                               <td className="px-6 py-4">
                                 <div className="text-sm text-gray-900 font-medium">
-                                  {formatRecyclingTime(booking.time_slot)}
+                                  {booking.time_slot || 'TBD'}
                                 </div>
                               </td>
                               <td className="px-6 py-4">
@@ -1550,12 +1564,25 @@ export default function WasteCollections() {
                       Drop-off Date
                     </div>
                     <div className="text-lg font-semibold text-gray-900 bg-white rounded-lg p-3 border border-blue-200">
-                      {selectedRecyclingBooking.dropoff_date ? new Date(selectedRecyclingBooking.dropoff_date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      }) : 'Not scheduled'}
+                      {selectedRecyclingBooking.dropoff_date ? (() => {
+                        const dateString = selectedRecyclingBooking.dropoff_date;
+                        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                          const [year, month, day] = dateString.split('-').map(Number);
+                          const date = new Date(year, month - 1, day);
+                          return date.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          });
+                        }
+                        return new Date(dateString).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        });
+                      })() : 'Not scheduled'}
                     </div>
                   </div>
                   <div className="space-y-2">

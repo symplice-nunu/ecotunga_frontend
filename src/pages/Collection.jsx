@@ -1116,7 +1116,7 @@ export default function Collection() {
             <label className="block font-semibold">Select Company</label>
             {(selectedLocation.district || selectedLocation.sector || selectedLocation.cell) && (
               <span className="text-sm text-gray-600">
-                {filteredCompanies.length} company{filteredCompanies.length !== 1 ? 'ies' : 'y'} found
+                {filteredCompanies.length} compan{filteredCompanies.length !== 1 ? 'ies' : 'y'} found
               </span>
             )}
           </div>
